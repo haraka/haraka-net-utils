@@ -1,3 +1,8 @@
+[![Build Status][ci-img]][ci-url]
+[![Code Coverage][cov-img]][cov-url]
+[![Code Climate][clim-img]][clim-url]
+[![NPM][npm-img]][npm-url]
+
 # Net-Utils
 
 This module provides network utility functions.
@@ -54,3 +59,13 @@ This module provides network utility functions.
     // For IPv4, returns true if is_private_ipv4 or is_local_ipv4 are true
     // For IPv6, returns true if is_local_ipv6 is true
 
+
+
+[ci-img]: https://travis-ci.org/haraka/haraka-net-utils.svg
+[ci-url]: https://travis-ci.org/haraka/haraka-net-utils
+[cov-img]: https://codecov.io/github/haraka/haraka-net-utils/coverage.svg
+[cov-url]: https://codecov.io/github/haraka/haraka-net-utils
+[clim-img]: https://codeclimate.com/github/haraka/haraka-net-utils/badges/gpa.svg
+[clim-url]: https://codeclimate.com/github/haraka/haraka-net-utils
+[npm-img]: https://nodei.co/npm/haraka-net-utils.png
+[npm-url]: https://www.npmjs.com/package/haraka-net-utils

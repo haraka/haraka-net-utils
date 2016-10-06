@@ -10,6 +10,12 @@ function _check(test, ip, host, res) {
     test.done();
 }
 
+exports.long_to_ip = {
+    '185999660': function (test) {
+        _check(test, 185999660, '11.22.33.44', false);
+    }
+};
+
 exports.static_rdns = {
     '74.125.82.182': function (test) {
         _check(test, '74.125.82.182', 'mail-we0-f182.google.com', false);
