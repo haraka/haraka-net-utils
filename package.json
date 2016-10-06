@@ -1,0 +1,38 @@
+{
+  "name": "haraka-net-utils",
+  "version": "1.0.0",
+  "description": "haraka network utilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "./run_tests",
+    "lint": "eslint index",
+    "coverage": "./node_modules/.bin/istanbul cover ./run_tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haraka/haraka-net-utils.git"
+  },
+  "keywords": [
+    "haraka",
+    "mta",
+    "network",
+    "utility"
+  ],
+  "author": "matt simerson <matt@tnpi.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/haraka/haraka-net-utils/issues"
+  },
+  "homepage": "https://github.com/haraka/haraka-net-utils#readme",
+  "devDependencies": {
+    "eslint": "^3.7.1",
+    "nodeunit": "^0.10.2"
+  },
+  "dependencies": {
+    "async": "^2.0.1",
+    "haraka-config": "^1.0.3",
+    "haraka-tld": "^1.0.9",
+    "ipaddr.js": "^1.2.0",
+    "sprintf-js": "^1.0.3"
+  }
+}
