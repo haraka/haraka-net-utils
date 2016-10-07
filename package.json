@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "./run_tests",
-    "lint": "eslint index.js",
+    "lint": "./node_modules/.bin/eslint *.js test",
     "coverage": "./node_modules/.bin/istanbul cover ./run_tests"
   },
   "repository": {
