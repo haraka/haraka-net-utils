@@ -12,7 +12,9 @@ function _check(test, ip, host, res) {
 
 exports.long_to_ip = {
   '185999660': function (test) {
-    _check(test, 185999660, '11.22.33.44', false);
+    test.expect(1);
+    test.equals(net_utils.long_to_ip(185999660), '11.22.33.44');
+    test.done();
   }
 };
 
