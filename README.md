@@ -59,6 +59,12 @@ This module provides network utility functions.
     // For IPv4, returns true if is_private_ipv4 or is_local_ipv4 are true
     // For IPv6, returns true if is_local_ipv6 is true
 
+### ip_in_list
+
+    // searches for 'ip' as a hash key in the list object
+    // ip can be a host, an IP, or an IPv4 or IPv6 range
+    net_utils.ip_in_list(object, ip);
+    net_utils.ip_in_list(tls.no_tls_hosts, '127.0.0.5');
 
 
 [ci-img]: https://travis-ci.org/haraka/haraka-net-utils.svg

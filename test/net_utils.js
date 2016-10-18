@@ -12,7 +12,9 @@ function _check(test, ip, host, res) {
 
 exports.long_to_ip = {
   '185999660': function (test) {
-    _check(test, 185999660, '11.22.33.44', false);
+    test.expect(1);
+    test.equals(net_utils.long_to_ip(185999660), '11.22.33.44');
+    test.done();
   }
 };
 
@@ -904,5 +906,50 @@ exports.get_ips_by_host = {
       test.done();
     });
   },
+};
+
+function _check_list(test, list, ip, res) {
+  test.expect(1);
+  test.equals(net_utils.ip_in_list(list, ip), res);
+  test.done();
+}
+
+exports.ip_in_list = {
+  'domain.com': function (test) {
+    _check_list(test, { 'domain.com': undefined }, 'domain.com', true);
+  },
+  'foo.com': function (test) {
+    _check_list(test, { }, 'foo.com', false);
+  },
+  '1.2.3.4': function (test) {
+    _check_list(test, { '1.2.3.4': undefined }, '1.2.3.4', true);
+  },
+  '1.2.3.4/32': function (test) {
+    _check_list(test, { '1.2.3.4/32': undefined }, '1.2.3.4', true);
+  },
+  '1.2.0.0/16 <-> 1.2.3.4': function (test) {
+    _check_list(test, { '1.2.0.0/16': undefined }, '1.2.3.4', true);
+  },
+  '1.2.0.0/16 <-> 5.6.7.8': function (test) {
+    _check_list(test, { '1.2.0.0/16': undefined }, '5.6.7.8', false);
+  },
+  '0000:0000:0000:0000:0000:0000:0000:0001': function (test) {
+    _check_list(test, { '0000:0000:0000:0000:0000:0000:0000:0001': undefined }, '0000:0000:0000:0000:0000:0000:0000:0001', true);
+  },
+  '0:0:0:0:0:0:0:1': function (test) {
+    _check_list(test, { '0:0:0:0:0:0:0:1': undefined }, '0000:0000:0000:0000:0000:0000:0000:0001', true);
+  },
+  '1.2 (bad config)': function (test) {
+    _check_list(test, { '1.2': undefined }, '1.2.3.4', false);
+  },
+  '1.2.3.4/ (mask ignored)': function (test) {
+    _check_list(test, { '1.2.3.4/': undefined }, '1.2.3.4', true);
+  },
+  '1.2.3.4/gr (mask ignored)': function (test) {
+    _check_list(test, { '1.2.3.4/gr': undefined }, '1.2.3.4', true);
+  },
+  '1.2.3.4/400 (mask read as 400 bits)': function (test) {
+    _check_list(test, { '1.2.3.4/400': undefined }, '1.2.3.4', true);
+  }
 };
 
