@@ -336,3 +336,26 @@ exports.ipv6_bogus = function(ipv6){
   if (ipCheck.range() !== 'unicast') { return true; }
   return false;
 };
+
+exports.ip_in_list = function (list, ip) {
+  if (!net.isIP(ip)) return (ip in list); // domain
+
+  for (var string in list) {
+    if (string === ip) return true; // exact match
+
+    var cidr = string.split('/');
+    var c_net  = cidr[0];
+
+    if (!net.isIP(c_net)) continue;  // bad config entry
+    if (net.isIPv4(ip) && net.isIPv6(c_net)) continue;
+    if (net.isIPv6(ip) && net.isIPv4(c_net)) continue;
+
+    var c_mask = parseInt(cidr[1], 10) || (net.isIPv6(c_net) ? 128 : 32);
+
+    if (ipaddr.parse(ip).match(ipaddr.parse(c_net), c_mask)) {
+      return true;
+    }
+  }
+
+  return false;
+}
