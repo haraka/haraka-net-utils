@@ -9,7 +9,9 @@ var async    = require('async');
 var ipaddr   = require('ipaddr.js');
 var sprintf  = require('sprintf-js').sprintf;
 var tlds     = require('haraka-tld');
-var config   = require('haraka-config');
+
+// export config, so config base path can be overloaded by tests
+exports.config = require('haraka-config');
 
 exports.long_to_ip = function (n) {
   var d = n%256;
@@ -201,7 +203,7 @@ exports.get_public_ip = function (cb) {
   }
 
     // manual config override, for the cases where we can't figure it out
-  var smtpIni = config.get('smtp.ini').main;
+  var smtpIni = exports.config.get('smtp.ini').main;
   if (smtpIni.public_ip) {
     nu.public_ip = smtpIni.public_ip;
     return cb(null, nu.public_ip);
@@ -358,4 +360,21 @@ exports.ip_in_list = function (list, ip) {
   }
 
   return false;
+}
+
+exports.load_tls_ini = function (cb) {
+  var cfg = exports.config.get('tls.ini', {
+    booleans: [
+      '+main.requestCert',
+      '-main.rejectUnauthorized',
+      '-main.honorCipherOrder',
+      '-redis.disable_for_failed_hosts',
+    ]
+  }, cb);
+
+  if (!cfg.no_tls_hosts) {
+    cfg.no_tls_hosts = {};
+  }
+
+  return cfg;
 }
