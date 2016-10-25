@@ -955,42 +955,51 @@ exports.ip_in_list = {
 };
 
 exports.load_tls_ini = {
-  'loads a tls.ini config file (defaults)': function (test) {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    done();
+  },
+  'loads missing tls.ini default config': function (test) {
     test.expect(1);
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('non-exist'));
     test.deepEqual(net_utils.load_tls_ini(),
       { main:
        { requestCert: true,
          rejectUnauthorized: false,
-         honorCipherOrder: false
+         honorCipherOrder: false,
+         enableOCSPStapling: false,
        },
       redis: { disable_for_failed_hosts: false },
       no_tls_hosts: {}
     });
     test.done();
   },
-  'loads a tls.ini config file from test dir': function (test) {
+  'loads tls.ini from test dir': function (test) {
     test.expect(1);
-    net_utils.config = net_utils.config.module_config(path.resolve('test'));
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
     test.deepEqual(net_utils.load_tls_ini(),
       { main:
        { requestCert: true,
          rejectUnauthorized: true,
          honorCipherOrder: true,
+         enableOCSPStapling: true,
          key: 'tls_key.pem',
          cert: 'tls_cert.pem',
          dhparam: 'dhparams.pem',
          ciphers: 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384' },
       redis: { disable_for_failed_hosts: false },
       no_tls_hosts: {},
-      outbound:
-       { key: 'tls_key.pem',
-         cert: 'tls_cert.pem',
-         dhparam: 'dhparams.pem',
-         ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
-         rejectUnauthorized: 'false',
-         requestCert: 'false',
-         honorCipherOrder: 'false' }
-       }
+      outbound: {
+        key: 'tls_key.pem',
+        cert: 'tls_cert.pem',
+        dhparam: 'dhparams.pem',
+        ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
+        rejectUnauthorized: false,
+        requestCert: false,
+        honorCipherOrder: false,
+        enableOCSPStapling: false,
+      }
+      }
     );
     test.done();
   },

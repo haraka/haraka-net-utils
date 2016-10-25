@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "async": "^2.0.1",
-    "haraka-config": "^1.0.3",
+    "haraka-config": ">=1.0.5",
     "haraka-tld": "*",
     "ipaddr.js": "^1.2.0",
     "sprintf-js": "^1.0.3"

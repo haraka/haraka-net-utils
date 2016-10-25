@@ -365,10 +365,19 @@ exports.ip_in_list = function (list, ip) {
 exports.load_tls_ini = function (cb) {
   var cfg = exports.config.get('tls.ini', {
     booleans: [
+      '-redis.disable_for_failed_hosts',
+
+      // wildcards match in any section and are not initialized
+      '*.requestCert',
+      '*.rejectUnauthorized',
+      '*.honorCipherOrder',
+      '*.enableOCSPStapling',
+
+      // explicitely declared booleans are initialized
       '+main.requestCert',
       '-main.rejectUnauthorized',
       '-main.honorCipherOrder',
-      '-redis.disable_for_failed_hosts',
+      '-main.enableOCSPStapling',
     ]
   }, cb);
 
