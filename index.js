@@ -216,11 +216,11 @@ exports.get_public_ip = function (cb) {
   try {
     nu.stun = require('vs-stun');
   }
-    catch (e) {
-      e.install = 'Please install stun: "npm install -g vs-stun"';
-      console.error(e.msg + "\n" + e.install);
-      return cb(e);
-    }
+  catch (e) {
+    e.install = 'Please install stun: "npm install -g vs-stun"';
+    console.error(e.msg + "\n" + e.install);
+    return cb(e);
+  }
 
   var timeout = 10;
   var timer;

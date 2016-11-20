@@ -170,9 +170,9 @@ function has_stun () {
   try {
     require('vs-stun');
   }
-    catch (e) {
-      return false;
-    }
+  catch (e) {
+    return false;
+  }
   return true;
 }
 
@@ -964,15 +964,15 @@ exports.load_tls_ini = {
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('non-exist'));
     test.deepEqual(net_utils.load_tls_ini(),
       { main:
-       { requestCert: true,
-         rejectUnauthorized: false,
-         honorCipherOrder: false,
-         enableOCSPStapling: false,
-         enableSNI: false,
-       },
-      redis: { disable_for_failed_hosts: false },
-      no_tls_hosts: {}
-    });
+      { requestCert: true,
+        rejectUnauthorized: false,
+        honorCipherOrder: false,
+        enableOCSPStapling: false,
+        enableSNI: false,
+      },
+        redis: { disable_for_failed_hosts: false },
+        no_tls_hosts: {}
+      });
     test.done();
   },
   'loads tls.ini from test dir': function (test) {
@@ -980,28 +980,29 @@ exports.load_tls_ini = {
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
     test.deepEqual(net_utils.load_tls_ini(),
       { main:
-       { requestCert: true,
-         rejectUnauthorized: true,
-         honorCipherOrder: true,
-         enableOCSPStapling: true,
-         enableSNI: true,
-         key: 'tls_key.pem',
-         cert: 'tls_cert.pem',
-         dhparam: 'dhparams.pem',
-         ciphers: 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384' },
-      redis: { disable_for_failed_hosts: false },
-      no_tls_hosts: {},
-      outbound: {
+      { requestCert: true,
+        rejectUnauthorized: true,
+        honorCipherOrder: true,
+        enableOCSPStapling: true,
+        enableSNI: true,
         key: 'tls_key.pem',
         cert: 'tls_cert.pem',
         dhparam: 'dhparams.pem',
-        ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
-        rejectUnauthorized: false,
-        requestCert: false,
-        honorCipherOrder: false,
-        enableOCSPStapling: false,
-        enableSNI: false,
-      }
+        ciphers: 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384',
+      },
+        redis: { disable_for_failed_hosts: false },
+        no_tls_hosts: {},
+        outbound: {
+          key: 'tls_key.pem',
+          cert: 'tls_cert.pem',
+          dhparam: 'dhparams.pem',
+          ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
+          rejectUnauthorized: false,
+          requestCert: false,
+          honorCipherOrder: false,
+          enableOCSPStapling: false,
+          enableSNI: false,
+        }
       }
     );
     test.done();
