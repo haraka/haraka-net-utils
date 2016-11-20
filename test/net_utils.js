@@ -968,6 +968,7 @@ exports.load_tls_ini = {
          rejectUnauthorized: false,
          honorCipherOrder: false,
          enableOCSPStapling: false,
+         enableSNI: false,
        },
       redis: { disable_for_failed_hosts: false },
       no_tls_hosts: {}
@@ -983,6 +984,7 @@ exports.load_tls_ini = {
          rejectUnauthorized: true,
          honorCipherOrder: true,
          enableOCSPStapling: true,
+         enableSNI: true,
          key: 'tls_key.pem',
          cert: 'tls_cert.pem',
          dhparam: 'dhparams.pem',
@@ -998,6 +1000,7 @@ exports.load_tls_ini = {
         requestCert: false,
         honorCipherOrder: false,
         enableOCSPStapling: false,
+        enableSNI: false,
       }
       }
     );

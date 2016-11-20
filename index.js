@@ -372,12 +372,14 @@ exports.load_tls_ini = function (cb) {
       '*.rejectUnauthorized',
       '*.honorCipherOrder',
       '*.enableOCSPStapling',
+      '*.enableSNI',
 
       // explicitely declared booleans are initialized
       '+main.requestCert',
       '-main.rejectUnauthorized',
       '-main.honorCipherOrder',
       '-main.enableOCSPStapling',
+      '-main.enableSNI',
     ]
   }, cb);
 
