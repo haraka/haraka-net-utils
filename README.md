@@ -5,6 +5,8 @@
 
 # Net-Utils
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/haraka/haraka-net-utils.svg)](https://greenkeeper.io/)
+
 This module provides network utility functions.
 
 ## Usage
