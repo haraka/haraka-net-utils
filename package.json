@@ -26,7 +26,8 @@
   "homepage": "https://github.com/haraka/haraka-net-utils#readme",
   "devDependencies": {
     "eslint": "*",
-    "nodeunit": "*"
+    "nodeunit": "*",
+    "eslint-plugin-haraka": "*"
   },
   "dependencies": {
     "async": "^2.0.1",

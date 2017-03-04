@@ -320,7 +320,7 @@ exports.get_ips_by_host = function (hostname, done) {
     );
 };
 
-exports.ipv6_reverse = function(ipv6){
+exports.ipv6_reverse = function (ipv6){
   ipv6 = ipaddr.parse(ipv6);
   return ipv6.toNormalizedString()
         .split(':')
@@ -333,7 +333,7 @@ exports.ipv6_reverse = function(ipv6){
         .join('.');
 };
 
-exports.ipv6_bogus = function(ipv6){
+exports.ipv6_bogus = function (ipv6){
   var ipCheck = ipaddr.parse(ipv6);
   if (ipCheck.range() !== 'unicast') { return true; }
   return false;

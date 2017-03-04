@@ -5,7 +5,7 @@ var path = require('path');
 require('haraka-config').watch_files = false;
 var net_utils = require('../index');
 
-function _check(test, ip, host, res) {
+function _check (test, ip, host, res) {
   test.expect(1);
   test.equals(net_utils.is_ip_in_str(ip, host), res);
   test.done();
@@ -47,7 +47,7 @@ exports.dynamic_rdns = {
   }
 };
 
-function _same_ipv4_network(test, addr, addrList, expected) {
+function _same_ipv4_network (test, addr, addrList, expected) {
   test.expect(1);
   test.equals(expected, net_utils.same_ipv4_network(addr, addrList));
   test.done();
@@ -79,7 +79,7 @@ exports.is_ipv4_literal = {
   },
 };
 
-function _is_private_ip(test, ip, expected) {
+function _is_private_ip (test, ip, expected) {
   test.expect(1);
   test.equals(expected, net_utils.is_private_ip(ip));
   test.done();
@@ -909,7 +909,7 @@ exports.get_ips_by_host = {
   },
 };
 
-function _check_list(test, list, ip, res) {
+function _check_list (test, list, ip, res) {
   test.expect(1);
   test.equals(net_utils.ip_in_list(list, ip), res);
   test.done();
