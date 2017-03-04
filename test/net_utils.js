@@ -993,9 +993,6 @@ exports.load_tls_ini = {
         redis: { disable_for_failed_hosts: false },
         no_tls_hosts: {},
         outbound: {
-          key: 'tls_key.pem',
-          cert: 'tls_cert.pem',
-          dhparam: 'dhparams.pem',
           ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
           rejectUnauthorized: false,
           requestCert: false,
@@ -1005,6 +1002,32 @@ exports.load_tls_ini = {
         }
       }
     );
+    test.done();
+  },
+}
+
+exports.tls_ini_section_with_defaults = {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    done();
+  },
+  'gets tls.ini outbound with main defaults': function (test) {
+    test.expect(1);
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
+    test.deepEqual(
+      net_utils.tls_ini_section_with_defaults('outbound'),
+      {
+        ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
+        rejectUnauthorized: false,
+        requestCert: false,
+        honorCipherOrder: false,
+        enableOCSPStapling: false,
+        enableSNI: false,
+        // inherited from [main]
+        key: 'tls_key.pem',
+        cert: 'tls_cert.pem',
+        dhparam: 'dhparams.pem'
+      });
     test.done();
   },
 }

@@ -363,7 +363,8 @@ exports.ip_in_list = function (list, ip) {
 }
 
 exports.load_tls_ini = function (cb) {
-  var cfg = exports.config.get('tls.ini', {
+
+  exports.tlsCfg = exports.config.get('tls.ini', {
     booleans: [
       '-redis.disable_for_failed_hosts',
 
@@ -383,8 +384,31 @@ exports.load_tls_ini = function (cb) {
     ]
   }, cb);
 
-  if (!cfg.no_tls_hosts) {
-    cfg.no_tls_hosts = {};
+  if (!exports.tlsCfg.no_tls_hosts) {
+    exports.tlsCfg.no_tls_hosts = {};
+  }
+
+  return exports.tlsCfg;
+}
+
+exports.tls_ini_section_with_defaults = function (section) {
+  if (!exports.tlsCfg) exports.load_tls_ini();
+
+  var inheritable_opts = [
+    'key', 'cert', 'ciphers', 'dhparam',
+    'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
+  ];
+
+  var cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
+
+  for (let opt of inheritable_opts) {
+    if (cfg[opt] === undefined) {
+      // this 'opt' not declared in tls.ini[section]
+      if (exports.tlsCfg.main[opt] !== undefined) {
+        // use value from [main] section
+        cfg[opt] = exports.tlsCfg.main[opt];
+      }
+    }
   }
 
   return cfg;
