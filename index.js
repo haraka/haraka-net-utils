@@ -401,6 +401,7 @@ exports.tls_ini_section_with_defaults = function (section) {
     'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
   ];
 
+  if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
   var cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
 
   for (let opt of inheritable_opts) {
