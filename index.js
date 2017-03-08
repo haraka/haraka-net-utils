@@ -419,7 +419,7 @@ exports.tls_ini_section_with_defaults = function (section) {
 exports.parse_x509_names = function (string) {
   // receives the text value of a x509 certificate and returns are array of
   // of names extracted from the Subject CN and the v3 Subject Alternate Names
-  var hosts_found = [];
+  var names_found = [];
 
   // console.log(string);
 
@@ -428,7 +428,7 @@ exports.parse_x509_names = function (string) {
     // console.log(match[0]);
     if (match[1]) {
       // console.log(match[1]);
-      hosts_found.push(match[1]);
+      names_found.push(match[1]);
     }
   }
 
@@ -438,12 +438,12 @@ exports.parse_x509_names = function (string) {
     let re = /DNS:([^,]+)[,\n]/g;
     while ((dns_name = re.exec(match[0])) !== null) {
       // console.log(dns_name);
-      if (hosts_found.indexOf(dns_name[1]) !== -1) continue; // ignore dupes
-      hosts_found.push(dns_name[1]);
+      if (names_found.indexOf(dns_name[1]) !== -1) continue; // ignore dupes
+      names_found.push(dns_name[1]);
     }
   }
 
-  return hosts_found;
+  return names_found;
 }
 
 exports.load_tls_dir = function (done) {
@@ -452,50 +452,48 @@ exports.load_tls_dir = function (done) {
   plugin.config.getDir('tls', {}, function (err, files) {
     if (err) return done(err);
 
-    async.map(files,
-      function (file, iter_done) {
-        // console.log(file.path);
+    async.map(files, function (file, iter_done) {
+      // console.log(file.path);
+      // console.log(file.data.toString());
+
+      var match = /^([^\-]*)?([\-]+BEGIN PRIVATE KEY[\-]+[^\-]+[\-]+END PRIVATE KEY[\-]+\n)([^]*)$/.exec(file.data.toString());
+      if (!match) {
         // console.log(file.data.toString());
-
-        var match = /^([^\-]*)?([\-]+BEGIN PRIVATE KEY[\-]+[^\-]+[\-]+END PRIVATE KEY[\-]+\n)([^]*)$/.exec(file.data.toString());
-        if (!match) {
-          // console.log(file.data.toString());
-          // console.error('no PEM in ' + file.path);
-          return iter_done('no PEM in ' + file.path);
-        }
-        if (match[1] && match[1].length) {
-          console.error('leading garbage');
-          console.error(match[1]);
-        }
-        if (!match[2] || !match[2].length) {
-          console.error('no PRIVATE key in ' + file.path);
-          // console.log(match[2]);
-          return iter_done('no PRIVATE key in ' + file.path);
-        }
-        if (!match[3] || !match[3].length) {
-          console.error('no CERTS in ' + file.path);
-          return iter_done('no CERTS in ' + file.path);
-        }
-
-        // console.log(match[3]);
-        var x509args = { noout: true, text: true };
-
-        openssl('x509', Buffer.from(match[3]), x509args, function (e, as_str) {
-          // console.log(as_str.toString());
-
-          iter_done(err, {
-            file: path.basename(file.path),
-            key: match[2],
-            certs: match[3],
-            names: plugin.parse_x509_names(as_str),
-          })
-        })
-      },
-      function (err_any, async_list) {
-        if (err) return async_list(err_any);
-        // console.log(async_list);
-        done(err_any, async_list);
+        // console.error('no PEM in ' + file.path);
+        return iter_done('no PEM in ' + file.path);
       }
-    );
+      if (match[1] && match[1].length) {
+        console.error('leading garbage');
+        console.error(match[1]);
+      }
+      if (!match[2] || !match[2].length) {
+        console.error('no PRIVATE key in ' + file.path);
+        // console.log(match[2]);
+        return iter_done('no PRIVATE key in ' + file.path);
+      }
+      if (!match[3] || !match[3].length) {
+        console.error('no CERTS in ' + file.path);
+        return iter_done('no CERTS in ' + file.path);
+      }
+
+      // console.log(match[3]);
+      var x509args = { noout: true, text: true };
+
+      openssl('x509', Buffer.from(match[3]), x509args, function (e, as_str) {
+        // console.log(as_str.toString());
+
+        iter_done(err, {
+          file: path.basename(file.path),
+          key: match[2],
+          certs: match[3],
+          names: plugin.parse_x509_names(as_str),
+        })
+      })
+    },
+    function (err_any, async_list) {
+      if (err) return async_list(err_any);
+      // console.log(async_list);
+      done(err_any, async_list);
+    });
   })
 }
