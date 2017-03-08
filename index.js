@@ -490,10 +490,6 @@ exports.load_tls_dir = function (done) {
         })
       })
     },
-    function (err_any, async_list) {
-      if (err) return async_list(err_any);
-      // console.log(async_list);
-      done(err_any, async_list);
-    });
+    done);
   })
 }
