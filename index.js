@@ -432,10 +432,10 @@ exports.parse_x509_names = function (string) {
     }
   }
 
-  var re = /DNS:([^,]+)[,\n]/g;
   match = /X509v3 Subject Alternative Name:[^]*X509/.exec(string);
   if (match) {
     let dns_name;
+    let re = /DNS:([^,]+)[,\n]/g;
     while ((dns_name = re.exec(match[0])) !== null) {
       // console.log(dns_name);
       if (hosts_found.indexOf(dns_name[1]) !== -1) continue; // ignore dupes
