@@ -1,3 +1,8 @@
+
+1.0.7 - 2017-03-08
+
+- handle undefined tls.ini section
+
 1.0.6 - 2017-03-04
 
 - add tls_ini_section_with_defaults()
