@@ -1031,3 +1031,64 @@ exports.tls_ini_section_with_defaults = {
     test.done();
   },
 }
+
+exports.parse_x509_names = {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    done();
+  },
+  'extracts nictool.com from x509 Subject CN': function (test) {
+    test.expect(1);
+    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n');
+    test.deepEqual(r, ['nictool.com']);
+    test.done();
+  },
+  'extracts haraka.local from x509 Subject CN': function (test) {
+    test.expect(1);
+    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Mar  4 23:28:49 2017 GMT\n            Not After : Mar  3 23:28:49 2023 GMT\n        Subject: C=US, ST=Washington, L=Seattle, O=Haraka, CN=haraka.local/emailAddress=matt@haraka.local\n        Subject Public Key Info:\n            Public Key Algorithm: rsaEncryption\n');
+    test.deepEqual(r, ['haraka.local']);
+    test.done();
+  },
+  'extracts host names from X509v3 Subject Alternative Name': function (test) {
+    test.expect(1);
+    var r = this.net_utils.parse_x509_names('                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    test.deepEqual(r, ['nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
+    test.done();
+  },
+  'extracts host names from both': function (test) {
+    test.expect(2);
+
+    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    test.deepEqual(r, ['nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
+
+    r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=foo.nictool.com\n        Subject Public Key Info:\n                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    test.deepEqual(r, ['foo.nictool.com', 'nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
+
+    test.done();
+  }
+}
+
+exports.load_tls_dir = {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    this.net_utils.config =
+      this.net_utils.config.module_config(path.resolve('test'));
+    done();
+  },
+  'loads tls files from config/tls': function (test) {
+    test.expect(5);
+    this.net_utils.load_tls_dir(function (err, res) {
+      test.equal(err, null);
+      // console.log(res);
+      // console.log(res[0]);
+      if (res && res[0]) {
+        test.equal(res[0].file, 'haraka.local.pem');
+        test.ok(res[0].key.length);
+        test.ok(res[0].names.length);
+        // console.log(res[0].key);
+        test.ok(res[0].certs.length);
+      }
+      test.done();
+    })
+  },
+}
