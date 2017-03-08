@@ -1,6 +1,8 @@
 1.0.6 - 2017-03-04
 
-* add tls_ini_section_with_defaults()
+- add tls_ini_section_with_defaults()
+- add load_tls_dir()
+- add parse_x509_names()
 
 1.0.5 - 2016-11-20
 
