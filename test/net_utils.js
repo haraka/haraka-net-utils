@@ -5,7 +5,7 @@ var path = require('path');
 require('haraka-config').watch_files = false;
 var net_utils = require('../index');
 
-function _check(test, ip, host, res) {
+function _check (test, ip, host, res) {
   test.expect(1);
   test.equals(net_utils.is_ip_in_str(ip, host), res);
   test.done();
@@ -47,7 +47,7 @@ exports.dynamic_rdns = {
   }
 };
 
-function _same_ipv4_network(test, addr, addrList, expected) {
+function _same_ipv4_network (test, addr, addrList, expected) {
   test.expect(1);
   test.equals(expected, net_utils.same_ipv4_network(addr, addrList));
   test.done();
@@ -79,7 +79,7 @@ exports.is_ipv4_literal = {
   },
 };
 
-function _is_private_ip(test, ip, expected) {
+function _is_private_ip (test, ip, expected) {
   test.expect(1);
   test.equals(expected, net_utils.is_private_ip(ip));
   test.done();
@@ -909,7 +909,7 @@ exports.get_ips_by_host = {
   },
 };
 
-function _check_list(test, list, ip, res) {
+function _check_list (test, list, ip, res) {
   test.expect(1);
   test.equals(net_utils.ip_in_list(list, ip), res);
   test.done();
@@ -993,9 +993,6 @@ exports.load_tls_ini = {
         redis: { disable_for_failed_hosts: false },
         no_tls_hosts: {},
         outbound: {
-          key: 'tls_key.pem',
-          cert: 'tls_cert.pem',
-          dhparam: 'dhparams.pem',
           ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
           rejectUnauthorized: false,
           requestCert: false,
@@ -1006,5 +1003,92 @@ exports.load_tls_ini = {
       }
     );
     test.done();
+  },
+}
+
+exports.tls_ini_section_with_defaults = {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    done();
+  },
+  'gets tls.ini outbound with main defaults': function (test) {
+    test.expect(1);
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
+    test.deepEqual(
+      net_utils.tls_ini_section_with_defaults('outbound'),
+      {
+        ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
+        rejectUnauthorized: false,
+        requestCert: false,
+        honorCipherOrder: false,
+        enableOCSPStapling: false,
+        enableSNI: false,
+        // inherited from [main]
+        key: 'tls_key.pem',
+        cert: 'tls_cert.pem',
+        dhparam: 'dhparams.pem'
+      });
+    test.done();
+  },
+}
+
+exports.parse_x509_names = {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    done();
+  },
+  'extracts nictool.com from x509 Subject CN': function (test) {
+    test.expect(1);
+    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n');
+    test.deepEqual(r, ['nictool.com']);
+    test.done();
+  },
+  'extracts haraka.local from x509 Subject CN': function (test) {
+    test.expect(1);
+    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Mar  4 23:28:49 2017 GMT\n            Not After : Mar  3 23:28:49 2023 GMT\n        Subject: C=US, ST=Washington, L=Seattle, O=Haraka, CN=haraka.local/emailAddress=matt@haraka.local\n        Subject Public Key Info:\n            Public Key Algorithm: rsaEncryption\n');
+    test.deepEqual(r, ['haraka.local']);
+    test.done();
+  },
+  'extracts host names from X509v3 Subject Alternative Name': function (test) {
+    test.expect(1);
+    var r = this.net_utils.parse_x509_names('                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    test.deepEqual(r, ['nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
+    test.done();
+  },
+  'extracts host names from both': function (test) {
+    test.expect(2);
+
+    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    test.deepEqual(r, ['nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
+
+    r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=foo.nictool.com\n        Subject Public Key Info:\n                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    test.deepEqual(r, ['foo.nictool.com', 'nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
+
+    test.done();
+  }
+}
+
+exports.load_tls_dir = {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    this.net_utils.config =
+      this.net_utils.config.module_config(path.resolve('test'));
+    done();
+  },
+  'loads tls files from config/tls': function (test) {
+    test.expect(5);
+    this.net_utils.load_tls_dir(function (err, res) {
+      test.equal(err, null);
+      // console.log(res);
+      // console.log(res[0]);
+      if (res && res[0]) {
+        test.equal(res[0].file, 'haraka.local.pem');
+        test.ok(res[0].key.length);
+        test.ok(res[0].names.length);
+        // console.log(res[0].key);
+        test.ok(res[0].certs.length);
+      }
+      test.done();
+    })
   },
 }

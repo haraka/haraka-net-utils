@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
@@ -26,13 +26,15 @@
   "homepage": "https://github.com/haraka/haraka-net-utils#readme",
   "devDependencies": {
     "eslint": "*",
-    "nodeunit": "*"
+    "nodeunit": "*",
+    "eslint-plugin-haraka": "*"
   },
   "dependencies": {
     "async": "^2.0.1",
-    "haraka-config": ">=1.0.5",
+    "haraka-config": ">=1.0.11",
     "haraka-tld": "*",
     "ipaddr.js": "^1.2.0",
+    "openssl-wrapper": "^0.3.4",
     "sprintf-js": "^1.0.3"
   }
 }
