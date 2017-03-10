@@ -1065,7 +1065,13 @@ exports.parse_x509_names = {
     test.deepEqual(r, ['foo.nictool.com', 'nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
 
     test.done();
-  }
+  },
+  'extracts expiration date': function (test) {
+    test.expect(1);
+    var r = this.net_utils.parse_x509_expire('foo', 'Validity\n            Not Before: Mar  4 23:28:49 2017 GMT\n            Not After : Mar  3 23:28:49 2023 GMT\n        Subject');
+    test.deepEqual(r, new Date('2023-03-03T23:28:49.000Z'));
+    test.done();
+  },
 }
 
 exports.load_tls_dir = {
@@ -1077,7 +1083,7 @@ exports.load_tls_dir = {
   },
   'loads tls files from config/tls': function (test) {
     test.expect(5);
-    this.net_utils.load_tls_dir(function (err, res) {
+    this.net_utils.load_tls_dir('tls', function (err, res) {
       test.equal(err, null);
       // console.log(res);
       // console.log(res[0]);
@@ -1086,7 +1092,7 @@ exports.load_tls_dir = {
         test.ok(res[0].key.length);
         test.ok(res[0].names.length);
         // console.log(res[0].key);
-        test.ok(res[0].certs.length);
+        test.ok(res[0].cert.length);
       }
       test.done();
     })

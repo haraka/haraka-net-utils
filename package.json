@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
