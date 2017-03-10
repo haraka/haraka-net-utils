@@ -1,4 +1,11 @@
 
+1.0.8 - 2017-03-08
+
+- skip loading expired x509 (TLS) certs
+- make TLS cert dir configurable
+- rename certs -> cert (be consistent with haraka/plugins/tls)
+- store cert/key as buffers (was strings)
+
 1.0.7 - 2017-03-08
 
 - handle undefined tls.ini section

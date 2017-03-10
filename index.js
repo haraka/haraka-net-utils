@@ -46,34 +46,33 @@ exports.octets_in_string = function (str, oct1, oct2) {
     // test the largest of the two octets first
   if (oct2.length >= oct1.length) {
     oct2_idx = str.lastIndexOf(oct2);
-    if (oct2_idx === -1) { return false; }
+    if (oct2_idx === -1) return false;
 
     oct1_idx = (str.substring(0, oct2_idx) +
             str.substring(oct2_idx + oct2.length)).lastIndexOf(oct1);
-    if (oct1_idx === -1) { return false; }
+    if (oct1_idx === -1) return false;
 
     return true;  // both were found
   }
 
   oct1_idx = str.indexOf(oct1);
-  if (oct1_idx === -1) { return false; }
+  if (oct1_idx === -1) return false;
 
   oct2_idx = (str.substring(0, oct1_idx) +
         str.substring(oct1_idx + oct1.length)).lastIndexOf(oct2);
-  if (oct2_idx === -1) { return false; }
+  if (oct2_idx === -1) return false;
 
   return true;
 };
 
 exports.is_ip_in_str = function (ip, str) {
-  if (!str) { return false; }
-  if (!ip) { return false; }
-  if (!net.isIPv4(ip)) {
-    return false;   // IPv4 only, for now
-  }
+  if (!str) return false;
+  if (!ip) return false;
+  if (!net.isIPv4(ip)) return false;   // IPv4 only, for now
 
   var host_part = (tlds.split_hostname(str,1))[0].toString();
   var octets = ip.split('.');
+
     // See if the 3rd and 4th octets appear in the string
   if (this.octets_in_string(host_part, octets[2], octets[3])) {
     return true;
@@ -86,7 +85,7 @@ exports.is_ip_in_str = function (ip, str) {
     // Whole IP in hex
   var host_part_copy = host_part;
   var ip_hex = this.dec_to_hex(this.ip_to_long(ip));
-  for (var i=0; i<4; i++) {
+  for (let i=0; i<4; i++) {
     var part = host_part_copy.indexOf(ip_hex.substring(i*2, (i*2)+2));
     if (part === -1) break;
     if (i === 3) return true;
@@ -289,24 +288,24 @@ exports.get_ips_by_host = function (hostname, done) {
   async.parallel(
     [
       function (iter_done) {
-        dns.resolve4(hostname, function resolve_cb (err, res) {
+        dns.resolve4(hostname, (err, res) => {
           if (err) {
             errors.push(err);
             return iter_done();
           }
-          for (var i=0; i<res.length; i++) {
+          for (let i=0; i<res.length; i++) {
             ips.push(res[i]);
           }
           iter_done(null, true);
         });
       },
       function (iter_done) {
-        dns.resolve6(hostname, function resolve_cb (err, res) {
+        dns.resolve6(hostname, (err, res) => {
           if (err) {
             errors.push(err);
             return iter_done();
           }
-          for (var j=0; j<res.length; j++) {
+          for (let j=0; j<res.length; j++) {
             ips.push(res[j]);
           }
           iter_done(null, true);
@@ -420,11 +419,11 @@ exports.tls_ini_section_with_defaults = function (section) {
 exports.parse_x509_names = function (string) {
   // receives the text value of a x509 certificate and returns are array of
   // of names extracted from the Subject CN and the v3 Subject Alternate Names
-  var names_found = [];
+  let names_found = [];
 
   // console.log(string);
 
-  var match = /Subject:.*?CN=([^\/\s]+)/.exec(string);
+  let match = /Subject:.*?CN=([^\/\s]+)/.exec(string);
   if (match) {
     // console.log(match[0]);
     if (match[1]) {
@@ -447,17 +446,26 @@ exports.parse_x509_names = function (string) {
   return names_found;
 }
 
-exports.load_tls_dir = function (done) {
+exports.parse_x509_expire = function (file, string) {
+
+  let dateMatch = /Not After : (.*)/.exec(string);
+  if (!dateMatch) return;
+
+  // console.log(dateMatch[1]);
+  return new Date(dateMatch[1]);
+}
+
+exports.load_tls_dir = function (tlsDir, done) {
   var plugin = this;
 
-  plugin.config.getDir('tls', {}, function (err, files) {
+  plugin.config.getDir(tlsDir, {}, (err, files) => {
     if (err) return done(err);
 
-    async.map(files, function (file, iter_done) {
+    async.map(files, (file, iter_done) => {
       // console.log(file.path);
       // console.log(file.data.toString());
 
-      var match = /^([^\-]*)?([\-]+BEGIN PRIVATE KEY[\-]+[^\-]+[\-]+END PRIVATE KEY[\-]+\n)([^]*)$/.exec(file.data.toString());
+      let match = /^([^\-]*)?([\-]+BEGIN PRIVATE KEY[\-]+[^\-]+[\-]+END PRIVATE KEY[\-]+\n)([^]*)$/.exec(file.data.toString());
       if (!match) {
         // console.log(file.data.toString());
         // console.error('no PEM in ' + file.path);
@@ -473,21 +481,28 @@ exports.load_tls_dir = function (done) {
         return iter_done('no PRIVATE key in ' + file.path);
       }
       if (!match[3] || !match[3].length) {
-        console.error('no CERTS in ' + file.path);
-        return iter_done('no CERTS in ' + file.path);
+        console.error('no CERT in ' + file.path);
+        return iter_done('no CERT in ' + file.path);
       }
 
-      // console.log(match[3]);
-      var x509args = { noout: true, text: true };
+      let cert = Buffer.from(match[3]);
+      // console.log(cert);
+      let x509args = { noout: true, text: true };
 
-      openssl('x509', Buffer.from(match[3]), x509args, function (e, as_str) {
-        // console.log(as_str.toString());
+      openssl('x509', cert, x509args, function (e, as_str) {
 
-        iter_done(err, {
+        let expire = plugin.parse_x509_expire(file, as_str);
+        if (expire && expire < new Date()) {
+          console.error(file.path + ' expired on ' + expire);
+          return iter_done(new Error(file.path + ' expired on ' + expire));
+        }
+
+        iter_done(e, {
           file: path.basename(file.path),
-          key: match[2],
-          certs: match[3],
+          key: Buffer.from(match[2]),
+          cert: cert,
           names: plugin.parse_x509_names(as_str),
+          expires: expire,
         })
       })
     },
