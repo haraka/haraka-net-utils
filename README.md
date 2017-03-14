@@ -1,8 +1,9 @@
 [![Build Status][ci-img]][ci-url]
 [![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
+[![Windows Build status][apv-img]][apv-url]
+[![Greenkeeper badge][gk-img]](https://greenkeeper.io/)
 [![NPM][npm-img]][npm-url]
-[![Greenkeeper badge](https://badges.greenkeeper.io/haraka/haraka-net-utils.svg)](https://greenkeeper.io/)
 
 # Net-Utils
 
@@ -74,5 +75,8 @@ This module provides network utility functions.
 [cov-url]: https://codecov.io/github/haraka/haraka-net-utils
 [clim-img]: https://codeclimate.com/github/haraka/haraka-net-utils/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-net-utils
+[gk-img]: https://badges.greenkeeper.io/haraka/haraka-net-utils.svg
 [npm-img]: https://nodei.co/npm/haraka-net-utils.png
 [npm-url]: https://www.npmjs.com/package/haraka-net-utils
+[apv-img]: https://ci.appveyor.com/api/projects/status/wkvydwu9odfxxr3v?svg=true
+[apv-url]: https://ci.appveyor.com/project/msimerson/haraka-net-utils
