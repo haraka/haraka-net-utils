@@ -3,7 +3,6 @@
 // node.js built-ins
 const dns    = require('dns');
 const net    = require('net');
-const path   = require('path');
 
 // npm modules
 const async    = require('async');
@@ -363,9 +362,9 @@ exports.ip_in_list = function (list, ip) {
   return false;
 }
 
-exports.load_tls_ini = function (cb) {
+exports.load_tls_ini = function (onChangeCb) {
 
-  exports.tlsCfg = exports.config.get('tls.ini', {
+  var cfg = exports.config.get('tls.ini', {
     booleans: [
       '-redis.disable_for_failed_hosts',
 
@@ -374,34 +373,110 @@ exports.load_tls_ini = function (cb) {
       '*.rejectUnauthorized',
       '*.honorCipherOrder',
       '*.enableOCSPStapling',
-      '*.enableSNI',
 
       // explicitely declared booleans are initialized
       '+main.requestCert',
       '-main.rejectUnauthorized',
       '-main.honorCipherOrder',
       '-main.enableOCSPStapling',
-      '-main.enableSNI',
     ]
-  }, cb);
+  }, onChangeCb);
 
-  if (!exports.tlsCfg.no_tls_hosts) {
-    exports.tlsCfg.no_tls_hosts = {};
+  if (!cfg.no_tls_hosts) cfg.no_tls_hosts = {};
+
+  if (cfg.main.key && cfg.main.cert) {
+
+    cfg.secureContexts = {};
+
+    // wildcard/default (no SNI) context
+    cfg.secureContexts['*'] = exports.getSecureContextOptions(null, cfg);
+
+    exports.load_tls_dir('tls', (err, certs) => {
+      if (err) {
+        console.error(err);
+      }
+      if (!certs || !certs.length) return;
+
+      certs.forEach(cert => {
+        let name = Object.keys(cert)[0];
+        cfg.secureContexts[name] = cert[name];
+      })
+    })
   }
 
-  return exports.tlsCfg;
+  exports.tlsCfg = cfg;
+  return cfg;
+}
+
+exports.getSecureContextOptions = function (section, cfg) {
+
+  if (!cfg) {
+    if (exports.tlsCfg === undefined) this.load_tls_ini();
+    cfg = exports.tlsCfg;
+  }
+
+  let opts = {};
+
+  // https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options
+  let everySecureContextOption = [
+    'pfx', 'key', 'passphrase', 'cert', 'ca', 'crl', 'ecdhCurve',
+    'ciphers', 'honorCipherOrder', 'dhparam', 'secureProtocol',
+    'secureOptions', 'sessionIdContext'
+  ]
+
+  // apply specific tls.ini [section] settings
+  if (section && cfg[section] !== undefined) {
+    everySecureContextOption.forEach(opt => {
+      if (cfg[section][opt] === undefined) return;
+      if (opts[opt] !== undefined) return;
+      opts[opt] = cfg[section][opt];
+    })
+  }
+
+  // apply [main] settings
+  everySecureContextOption.forEach(opt => {
+    if (opts[opt] !== undefined) return;
+    if (!cfg || !cfg.main || cfg.main[opt] === undefined) return;
+    opts[opt] = cfg.main[opt];
+  })
+
+  if (!opts.sessionIdContext) opts.sessionIdContext = 'haraka';
+
+  if (opts.dhparam && typeof opts.dhparam === 'string') {
+    opts.dhparam = exports.config.get(opts.dhparam, 'binary');
+  }
+
+  // a string (tls_key.pem) when called by load_tls_ini
+  if (opts.key && typeof opts.key === 'string') {
+    // as arrays (to support keys using different algorithms)
+    if (!(Array.isArray(opts.key))) opts.key = [opts.key];
+    opts.key = opts.key.map(keyFile => {
+      return exports.config.get(keyFile, 'binary');
+    });
+  }
+
+  if (opts.cert && typeof opts.cert === 'string') {
+    if (!(Array.isArray(opts.cert))) opts.cert = [opts.cert];
+    opts.cert = opts.cert.map(certFile => {
+      return exports.config.get(certFile, 'binary');
+    });
+  }
+
+  return opts;
 }
 
 exports.tls_ini_section_with_defaults = function (section) {
-  if (!exports.tlsCfg) exports.load_tls_ini();
+  if (exports.tlsCfg === undefined) exports.load_tls_ini();
 
-  var inheritable_opts = [
+  let inheritable_opts = [
     'key', 'cert', 'ciphers', 'dhparam',
     'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
   ];
 
-  if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
-  var cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
+  if (exports.tlsCfg[section] === undefined)
+    exports.tlsCfg[section] = {};
+
+  let cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
 
   for (let opt of inheritable_opts) {
     if (cfg[opt] === undefined) {
@@ -455,56 +530,74 @@ exports.parse_x509_expire = function (file, string) {
   return new Date(dateMatch[1]);
 }
 
+exports.getSecureContexts = function (file, x509obj, done) {
+
+  let x509args = { noout: true, text: true };
+
+  openssl('x509', x509obj.cert, x509args, function (opsslErr, as_str) {
+
+    let expire = exports.parse_x509_expire(file, as_str);
+    if (expire && expire < new Date()) {
+      console.error(file.path + ' expired on ' + expire);
+      return done(new Error(file.path + ' expired on ' + expire));
+    }
+
+    var sniOptions = {};
+
+    // x509 certs can have SubjectName & v3 Subject Alt Names
+    // set up SNI options for each name
+    exports.parse_x509_names(as_str).forEach(name => {
+      sniOptions[name] = exports.getSecureContextOptions(name);
+    })
+
+    done(null, sniOptions);
+  })
+}
+
+exports.parse_x509 = function (string) {
+
+  var res = {};
+
+  let match = /^([^\-]*)?([\-]+BEGIN.*PRIVATE KEY[\-]+[^\-]+[\-]+END.*PRIVATE KEY[\-]+\n)([^]*)$/.exec(string);
+  if (!match) return res;
+
+  if (match[1] && match[1].length) {
+    console.error('leading garbage');
+    console.error(match[1]);
+  }
+  if (!match[2] || !match[2].length) return res;
+  res.key = Buffer.from(match[2]);
+
+  if (!match[3] || !match[3].length) return res;
+  res.cert = Buffer.from(match[3]);
+
+  return res;
+}
+
 exports.load_tls_dir = function (tlsDir, done) {
   var plugin = this;
 
-  plugin.config.getDir(tlsDir, {}, (err, files) => {
+  let getDirOpts = {
+    watchCb: () => {
+      console.log('nu.load_tls_dir: getDir onChange');
+    }
+  }
+
+  plugin.config.getDir(tlsDir, getDirOpts, (err, files) => {
     if (err) return done(err);
 
     async.map(files, (file, iter_done) => {
       // console.log(file.path);
       // console.log(file.data.toString());
-
-      let match = /^([^\-]*)?([\-]+BEGIN PRIVATE KEY[\-]+[^\-]+[\-]+END PRIVATE KEY[\-]+\n)([^]*)$/.exec(file.data.toString());
-      if (!match) {
-        // console.log(file.data.toString());
-        // console.error('no PEM in ' + file.path);
-        return iter_done('no PEM in ' + file.path);
-      }
-      if (match[1] && match[1].length) {
-        console.error('leading garbage');
-        console.error(match[1]);
-      }
-      if (!match[2] || !match[2].length) {
-        console.error('no PRIVATE key in ' + file.path);
-        // console.log(match[2]);
+      let parsed = exports.parse_x509(file.data.toString());
+      if (!parsed.key) {
         return iter_done('no PRIVATE key in ' + file.path);
       }
-      if (!match[3] || !match[3].length) {
-        console.error('no CERT in ' + file.path);
+      if (!parsed.cert) {
         return iter_done('no CERT in ' + file.path);
       }
 
-      let cert = Buffer.from(match[3]);
-      // console.log(cert);
-      let x509args = { noout: true, text: true };
-
-      openssl('x509', cert, x509args, function (e, as_str) {
-
-        let expire = plugin.parse_x509_expire(file, as_str);
-        if (expire && expire < new Date()) {
-          console.error(file.path + ' expired on ' + expire);
-          return iter_done(new Error(file.path + ' expired on ' + expire));
-        }
-
-        iter_done(e, {
-          file: path.basename(file.path),
-          key: Buffer.from(match[2]),
-          cert: cert,
-          names: plugin.parse_x509_names(as_str),
-          expires: expire,
-        })
-      })
+      exports.getSecureContexts(file, parsed, iter_done);
     },
     done);
   })
