@@ -1,3 +1,4 @@
+'use strict';
 
 const net = require('net');
 const path = require('path');
@@ -1148,7 +1149,7 @@ exports.load_tls_dir = {
         return test.done();
       }
 
-      test.expect(5);
+      // test.expect(5);
       // console.log(contextOptions);
       test.equal(err, null);
       contextOptions.forEach(opts => {
