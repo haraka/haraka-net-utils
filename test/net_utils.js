@@ -975,16 +975,16 @@ exports.load_tls_ini = {
   'loads missing tls.ini default config': function (test) {
     test.expect(1);
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('non-exist'));
-    test.deepEqual(net_utils.load_tls_ini(),
-      { main:
-        { requestCert: true,
-          rejectUnauthorized: false,
-          honorCipherOrder: false,
-          enableOCSPStapling: false,
-        },
-        redis: { disable_for_failed_hosts: false },
-        no_tls_hosts: {}
-      });
+    test.deepEqual(net_utils.load_tls_ini(), {
+      main: {
+        requestCert: true,
+        rejectUnauthorized: false,
+        honorCipherOrder: false,
+        enableOCSPStapling: false,
+      },
+      redis: { disable_for_failed_hosts: false },
+      no_tls_hosts: {}
+    });
     test.done();
   },
   'loads tls.ini from test dir': function (test) {
