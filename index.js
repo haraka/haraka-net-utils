@@ -3,6 +3,7 @@
 // node.js built-ins
 const dns    = require('dns');
 const net    = require('net');
+// const tls    = require('tls');
 
 // npm modules
 const async    = require('async');
@@ -384,24 +385,11 @@ exports.load_tls_ini = function (onChangeCb) {
 
   if (!cfg.no_tls_hosts) cfg.no_tls_hosts = {};
 
+  cfg.contextOpts = {};
+
   if (cfg.main.key && cfg.main.cert) {
-
-    cfg.secureContexts = {};
-
     // wildcard/default (no SNI) context
-    cfg.secureContexts['*'] = exports.getSecureContextOptions(null, cfg);
-
-    exports.load_tls_dir('tls', (err, certs) => {
-      if (err) {
-        console.error(err);
-      }
-      if (!certs || !certs.length) return;
-
-      certs.forEach(cert => {
-        let name = Object.keys(cert)[0];
-        cfg.secureContexts[name] = cert[name];
-      })
-    })
+    cfg.contextOpts.default = exports.getSecureContextOptions(null, cfg);
   }
 
   exports.tlsCfg = cfg;
@@ -446,17 +434,18 @@ exports.getSecureContextOptions = function (section, cfg) {
     opts.dhparam = exports.config.get(opts.dhparam, 'binary');
   }
 
+  // as arrays (to support keys using different algorithms)
+  if (!(Array.isArray(opts.key))) opts.key = [opts.key];
+
   // a string (tls_key.pem) when called by load_tls_ini
-  if (opts.key && typeof opts.key === 'string') {
-    // as arrays (to support keys using different algorithms)
-    if (!(Array.isArray(opts.key))) opts.key = [opts.key];
+  if (opts.key && typeof opts.key[0] === 'string') {
     opts.key = opts.key.map(keyFile => {
       return exports.config.get(keyFile, 'binary');
     });
   }
 
-  if (opts.cert && typeof opts.cert === 'string') {
-    if (!(Array.isArray(opts.cert))) opts.cert = [opts.cert];
+  if (!(Array.isArray(opts.cert))) opts.cert = [opts.cert];
+  if (opts.cert && typeof opts.cert[0] === 'string') {
     opts.cert = opts.cert.map(certFile => {
       return exports.config.get(certFile, 'binary');
     });

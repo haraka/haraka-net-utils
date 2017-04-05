@@ -134,10 +134,7 @@ exports.is_private_ip = {
 };
 
 exports.get_public_ip = {
-  setUp: function (callback) {
-    this.net_utils = require('../index');
-    callback();
-  },
+  setUp: setUp,
   'cached': function (test) {
     test.expect(2);
     this.net_utils.public_ip='1.1.1.1';
@@ -807,13 +804,12 @@ var ip_fixtures = [
 ];
 
 exports.get_ipany_re = {
-    /* jshint maxlen: false */
   'IPv6, Prefix': function (test) {
-        /* for x-*-ip headers */
+    /* for x-*-ip headers */
     test.expect(2);
-        // it must fail as of not valide
+    // it must fail as of not valide
     test.ok(!net.isIPv6('IPv6:2001:db8:85a3::8a2e:370:7334'));
-        // must okay!
+    // must okay!
     test.ok(net.isIPv6('2001:db8:85a3::8a2e:370:7334'));
     test.done();
   },
@@ -821,13 +817,13 @@ exports.get_ipany_re = {
     test.expect(ip_fixtures.length);
     for (var i in ip_fixtures) {
       var match = net_utils.get_ipany_re('^','$').test(ip_fixtures[i][1]);
-            // console.log('IP:', "'"+ip_fixtures[i][1]+"'" , 'Expected:', ip_fixtures[i][0] , 'Match:' , match);
+      // console.log('IP:', "'"+ip_fixtures[i][1]+"'" , 'Expected:', ip_fixtures[i][0] , 'Match:' , match);
       test.ok((match===ip_fixtures[i][0]), ip_fixtures[i][1] + ' - Expected: ' + ip_fixtures[i][0] + ' - Match: ' + match);
     }
     test.done();
   },
   'IPv4, bare': function (test) {
-        /* for x-*-ip headers */
+    /* for x-*-ip headers */
     test.expect(2);
     var match = net_utils.get_ipany_re().exec('127.0.0.1');
     test.equal(match[1], '127.0.0.1');
@@ -964,10 +960,7 @@ exports.ip_in_list = {
 };
 
 exports.load_tls_ini = {
-  setUp : function (done) {
-    this.net_utils = require('../index');
-    done();
-  },
+  setUp : setUp,
   tearDown : function (done) {
     delete this.net_utils.tlsCfg;
     done();
@@ -983,12 +976,13 @@ exports.load_tls_ini = {
         enableOCSPStapling: false,
       },
       redis: { disable_for_failed_hosts: false },
-      no_tls_hosts: {}
+      no_tls_hosts: {},
+      contextOpts: {},
     });
     test.done();
   },
   'loads tls.ini from test dir': function (test) {
-    test.expect(1);
+    test.expect(2);
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
     var expected = {
       main: {
@@ -1010,11 +1004,10 @@ exports.load_tls_ini = {
         honorCipherOrder: false,
         enableOCSPStapling: false,
       },
-      'haraka.local': {}
+      'haraka.local': {},
     };
     let cfg = net_utils.load_tls_ini();
-    // console.log(cfg.secureContexts);
-    delete cfg.secureContexts;
+    test.ok(delete cfg.contextOpts);
     test.deepEqual(cfg, expected);
     test.done();
   },
