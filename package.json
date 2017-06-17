@@ -1,11 +1,12 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
     "test": "./run_tests",
     "lint": "./node_modules/.bin/eslint *.js test",
+    "lintfix": "./node_modules/.bin/eslint --fix *.js test",
     "cover": "./node_modules/.bin/istanbul cover ./run_tests"
   },
   "repository": {
