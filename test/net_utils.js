@@ -993,15 +993,14 @@ exports.load_tls_ini = {
       redis: { disable_for_failed_hosts: false },
       no_tls_hosts: {},
       outbound: {
-          ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
-          rejectUnauthorized: false,
-          requestCert: false,
-          honorCipherOrder: false,
-          enableOCSPStapling: false,
-          enableSNI: false,
-        }
+        ciphers: 'ECDHE-RSA-AES256-GCM-SHA384',
+        rejectUnauthorized: false,
+        requestCert: false,
+        honorCipherOrder: false,
+        enableOCSPStapling: false,
+        enableSNI: false,
       }
-    );
+      });
     test.done();
   },
 }
