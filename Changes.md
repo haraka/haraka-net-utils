@@ -1,4 +1,8 @@
 
+1.0.9 - 2017-06-16
+
+- lint fixes for compat with eslint 4
+
 1.0.8 - 2017-03-08
 
 - skip loading expired x509 (TLS) certs
