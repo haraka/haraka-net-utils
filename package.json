@@ -1,13 +1,13 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
-    "test": "./run_tests",
-    "lint": "./node_modules/.bin/eslint *.js test",
-    "lintfix": "./node_modules/.bin/eslint --fix *.js test",
-    "cover": "./node_modules/.bin/istanbul cover ./run_tests"
+    "test": "node run_tests",
+    "lint": "node node_modules/.bin/eslint *.js test",
+    "lintfix": "node node_modules/.bin/eslint --fix *.js test",
+    "cover": "node node_modules/.bin/istanbul cover ./run_tests"
   },
   "repository": {
     "type": "git",
@@ -37,5 +37,8 @@
     "ipaddr.js": "^1.2.0",
     "openssl-wrapper": "^0.3.4",
     "sprintf-js": "^1.0.3"
+  },
+  "optionalDependencies": {
+      "vs-stun"               : "~0.0.7"
   }
 }
