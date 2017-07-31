@@ -1037,12 +1037,7 @@ exports.getSecureContextOptions = {
 }
 
 exports.tls_ini_section_with_defaults = {
-  setUp : function (done) {
-    this.net_utils = require('../index');
-    // delete this.net_utils.tlsCfg;
-    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
-    done();
-  },
+  setUp : setUp,
   'gets tls.ini outbound with main defaults': function (test) {
     test.expect(1);
     test.deepEqual(

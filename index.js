@@ -365,7 +365,7 @@ exports.ip_in_list = function (list, ip) {
 
 exports.load_tls_ini = function (onChangeCb) {
 
-  var cfg = exports.config.get('tls.ini', {
+  let cfg = exports.config.get('tls.ini', {
     booleans: [
       '-redis.disable_for_failed_hosts',
 
@@ -462,8 +462,7 @@ exports.tls_ini_section_with_defaults = function (section) {
     'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
   ];
 
-  if (exports.tlsCfg[section] === undefined)
-    exports.tlsCfg[section] = {};
+  if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
 
   let cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
 
@@ -547,7 +546,7 @@ exports.parse_x509 = function (string) {
 
   var res = {};
 
-  let match = /^([^\-]*)?([\-]+BEGIN.*PRIVATE KEY[\-]+[^\-]+[\-]+END.*PRIVATE KEY[\-]+\n)([^]*)$/.exec(string);
+  let match = /^([^\-]*)?([\-]+BEGIN (?:\w+\s)?PRIVATE KEY[\-]+[^\-]+[\-]+END (?:\w+\s)?PRIVATE KEY[\-]+\n)([^]*)$/.exec(string);
   if (!match) return res;
 
   if (match[1] && match[1].length) {
@@ -564,7 +563,7 @@ exports.parse_x509 = function (string) {
 }
 
 exports.load_tls_dir = function (tlsDir, done) {
-  var plugin = this;
+  var nu = this;
 
   let getDirOpts = {
     watchCb: () => {
@@ -572,12 +571,13 @@ exports.load_tls_dir = function (tlsDir, done) {
     }
   }
 
-  plugin.config.getDir(tlsDir, getDirOpts, (err, files) => {
+  nu.config.getDir(tlsDir, {}, (err, files) => {
     if (err) return done(err);
 
     async.map(files, (file, iter_done) => {
       // console.log(file.path);
       // console.log(file.data.toString());
+
       let parsed = exports.parse_x509(file.data.toString());
       if (!parsed.key) {
         return iter_done('no PRIVATE key in ' + file.path);

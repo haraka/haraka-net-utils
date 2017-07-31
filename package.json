@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "network",
     "utility"
   ],
-  "author": "matt simerson <matt@tnpi.net>",
+  "author": "Matt Simerson <matt@tnpi.net>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/haraka/haraka-net-utils/issues"
@@ -31,7 +31,7 @@
     "eslint-plugin-haraka": "*"
   },
   "dependencies": {
-    "async": "^2.0.1",
+    "async": "^2.3.0",
     "haraka-config": ">=1.0.11",
     "haraka-tld": "*",
     "ipaddr.js": "^1.2.0",
@@ -39,6 +39,6 @@
     "sprintf-js": "^1.0.3"
   },
   "optionalDependencies": {
-      "vs-stun"               : "~0.0.7"
+      "vs-stun"       : "~0.0.7"
   }
 }
