@@ -365,7 +365,7 @@ exports.ip_in_list = function (list, ip) {
 
 exports.load_tls_ini = function (cb) {
 
-  exports.tlsCfg = exports.config.get('tls.ini', {
+  let cfg = exports.config.get('tls.ini', {
     booleans: [
       '-redis.disable_for_failed_hosts',
 
@@ -385,23 +385,23 @@ exports.load_tls_ini = function (cb) {
     ]
   }, cb);
 
-  if (!exports.tlsCfg.no_tls_hosts) {
-    exports.tlsCfg.no_tls_hosts = {};
-  }
+  if (!cfg.no_tls_hosts) cfg.no_tls_hosts = {};
 
-  return exports.tlsCfg;
+  exports.tlsCfg = cfg;
+  return cfg;
 }
 
 exports.tls_ini_section_with_defaults = function (section) {
-  if (!exports.tlsCfg) exports.load_tls_ini();
+  if (exports.tlsCfg === undefined) exports.load_tls_ini();
 
-  var inheritable_opts = [
+  let inheritable_opts = [
     'key', 'cert', 'ciphers', 'dhparam',
     'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
   ];
 
   if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
-  var cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
+
+  let cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
 
   for (let opt of inheritable_opts) {
     if (cfg[opt] === undefined) {
@@ -455,53 +455,61 @@ exports.parse_x509_expire = function (file, string) {
   return new Date(dateMatch[1]);
 }
 
-exports.load_tls_dir = function (tlsDir, done) {
-  var plugin = this;
+exports.parse_x509 = function (string) {
 
-  plugin.config.getDir(tlsDir, {}, (err, files) => {
+  var res = {};
+
+  let match = /^([^\-]*)?([\-]+BEGIN (?:\w+\s)?PRIVATE KEY[\-]+[^\-]+[\-]+END (?:\w+\s)?PRIVATE KEY[\-]+\n)([^]*)$/.exec(string);
+  if (!match) return res;
+
+  if (match[1] && match[1].length) {
+    console.error('leading garbage');
+    console.error(match[1]);
+  }
+  if (!match[2] || !match[2].length) return res;
+  res.key = Buffer.from(match[2]);
+
+  if (!match[3] || !match[3].length) return res;
+  res.cert = Buffer.from(match[3]);
+
+  return res;
+}
+
+exports.load_tls_dir = function (tlsDir, done) {
+  var nu = this;
+
+  nu.config.getDir(tlsDir, {}, (err, files) => {
     if (err) return done(err);
 
     async.map(files, (file, iter_done) => {
       // console.log(file.path);
       // console.log(file.data.toString());
 
-      let match = /^([^\-]*)?([\-]+BEGIN PRIVATE KEY[\-]+[^\-]+[\-]+END PRIVATE KEY[\-]+\n)([^]*)$/.exec(file.data.toString());
-      if (!match) {
-        // console.log(file.data.toString());
-        // console.error('no PEM in ' + file.path);
-        return iter_done('no PEM in ' + file.path);
-      }
-      if (match[1] && match[1].length) {
-        console.error('leading garbage');
-        console.error(match[1]);
-      }
-      if (!match[2] || !match[2].length) {
-        console.error('no PRIVATE key in ' + file.path);
-        // console.log(match[2]);
+      let parsed = exports.parse_x509(file.data.toString());
+      if (!parsed.key) {
         return iter_done('no PRIVATE key in ' + file.path);
       }
-      if (!match[3] || !match[3].length) {
+      if (!parsed.cert) {
         console.error('no CERT in ' + file.path);
         return iter_done('no CERT in ' + file.path);
       }
 
-      let cert = Buffer.from(match[3]);
       // console.log(cert);
       let x509args = { noout: true, text: true };
 
-      openssl('x509', cert, x509args, function (e, as_str) {
+      openssl('x509', parsed.cert, x509args, function (e, as_str) {
+        if (e) console.error(e);
 
-        let expire = plugin.parse_x509_expire(file, as_str);
+        let expire = nu.parse_x509_expire(file, as_str);
         if (expire && expire < new Date()) {
           console.error(file.path + ' expired on ' + expire);
-          return iter_done(new Error(file.path + ' expired on ' + expire));
         }
 
         iter_done(e, {
           file: path.basename(file.path),
-          key: Buffer.from(match[2]),
-          cert: cert,
-          names: plugin.parse_x509_names(as_str),
+          key: parsed.key,
+          cert: parsed.cert,
+          names: nu.parse_x509_names(as_str),
           expires: expire,
         })
       })
