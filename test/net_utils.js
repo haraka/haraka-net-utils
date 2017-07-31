@@ -1,14 +1,21 @@
 
-var net = require('net');
-var path = require('path');
+const net  = require('net');
+const path = require('path');
 
 require('haraka-config').watch_files = false;
-var net_utils = require('../index');
+const net_utils = require('../index');
 
 function _check (test, ip, host, res) {
   test.expect(1);
   test.equals(net_utils.is_ip_in_str(ip, host), res);
   test.done();
+}
+
+function setUp (done) {
+  this.net_utils = require('../index');
+  this.net_utils.config =
+      this.net_utils.config.module_config(path.resolve('test'));
+  done();
 }
 
 exports.long_to_ip = {
@@ -125,10 +132,7 @@ exports.is_private_ip = {
 };
 
 exports.get_public_ip = {
-  setUp: function (callback) {
-    this.net_utils = require('../index');
-    callback();
-  },
+  setUp: setUp,
   'cached': function (test) {
     test.expect(2);
     this.net_utils.public_ip='1.1.1.1';
@@ -798,7 +802,6 @@ var ip_fixtures = [
 ];
 
 exports.get_ipany_re = {
-  /* jshint maxlen: false */
   'IPv6, Prefix': function (test) {
     /* for x-*-ip headers */
     test.expect(2);
@@ -955,8 +958,9 @@ exports.ip_in_list = {
 };
 
 exports.load_tls_ini = {
-  setUp : function (done) {
-    this.net_utils = require('../index');
+  setUp : setUp,
+  tearDown : function (done) {
+    delete this.net_utils.tlsCfg;
     done();
   },
   'loads missing tls.ini default config': function (test) {
@@ -978,9 +982,9 @@ exports.load_tls_ini = {
   'loads tls.ini from test dir': function (test) {
     test.expect(1);
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
-    test.deepEqual(net_utils.load_tls_ini(),
-      { main:
-      { requestCert: true,
+    test.deepEqual(net_utils.load_tls_ini(), {
+      main: {
+        requestCert: true,
         rejectUnauthorized: true,
         honorCipherOrder: true,
         enableOCSPStapling: true,
@@ -1000,16 +1004,13 @@ exports.load_tls_ini = {
         enableOCSPStapling: false,
         enableSNI: false,
       }
-      });
+    });
     test.done();
   },
 }
 
 exports.tls_ini_section_with_defaults = {
-  setUp : function (done) {
-    this.net_utils = require('../index');
-    done();
-  },
+  setUp : setUp,
   'gets tls.ini outbound with main defaults': function (test) {
     test.expect(1);
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
@@ -1027,6 +1028,37 @@ exports.tls_ini_section_with_defaults = {
         cert: 'tls_cert.pem',
         dhparam: 'dhparams.pem'
       });
+    test.done();
+  },
+}
+
+exports.parse_x509 = {
+  setUp: setUp,
+  'returns empty object on empty input' : function (test) {
+    var res = this.net_utils.parse_x509();
+    test.deepEqual(res, {});
+    test.done();
+  },
+  'returns key from BEGIN PRIVATE KEY block' : function (test) {
+    var res = this.net_utils.parse_x509('-BEGIN PRIVATE KEY-\nhello\n--END PRIVATE KEY--\n-its me-\n');
+    res.key.toString();
+    test.deepEqual(
+      res.key.toString(),
+      '-BEGIN PRIVATE KEY-\nhello\n--END PRIVATE KEY--\n'
+    );
+    // everything after the private key is cert(s)
+    test.deepEqual(res.cert.toString(), '-its me-\n');
+    test.done();
+  },
+  'returns key from BEGIN RSA PRIVATE KEY block' : function (test) {
+    var res = this.net_utils.parse_x509('-BEGIN RSA PRIVATE KEY-\nhello\n--END RSA PRIVATE KEY--\n-its me-\n');
+    res.key.toString();
+    test.deepEqual(
+      res.key.toString(),
+      '-BEGIN RSA PRIVATE KEY-\nhello\n--END RSA PRIVATE KEY--\n'
+    );
+    // everything after the private key is cert(s)
+    test.deepEqual(res.cert.toString(), '-its me-\n');
     test.done();
   },
 }
@@ -1081,18 +1113,16 @@ exports.load_tls_dir = {
     done();
   },
   'loads tls files from config/tls': function (test) {
-    test.expect(5);
+    test.expect(9);
     this.net_utils.load_tls_dir('tls', function (err, res) {
-      test.equal(err, null);
-      // console.log(res);
-      // console.log(res[0]);
-      if (res && res[0]) {
-        test.equal(res[0].file, 'haraka.local.pem');
-        test.ok(res[0].key.length);
-        test.ok(res[0].names.length);
-        // console.log(res[0].key);
-        test.ok(res[0].cert.length);
-      }
+      // test.equal(err, null);
+      res.forEach(cert => {
+        console.log(`cert ${cert.file} expires on ${cert.expires}`);
+        // console.log(cert.names);
+        test.ok(cert.names.length)
+        test.ok(cert.key.length);
+        test.ok(cert.cert.length);
+      })
       test.done();
     })
   },
