@@ -43,7 +43,7 @@ exports.octets_in_string = function (str, oct1, oct2) {
   var oct1_idx;
   var oct2_idx;
 
-    // test the largest of the two octets first
+  // test the largest of the two octets first
   if (oct2.length >= oct1.length) {
     oct2_idx = str.lastIndexOf(oct2);
     if (oct2_idx === -1) return false;
@@ -73,16 +73,16 @@ exports.is_ip_in_str = function (ip, str) {
   var host_part = (tlds.split_hostname(str,1))[0].toString();
   var octets = ip.split('.');
 
-    // See if the 3rd and 4th octets appear in the string
+  // See if the 3rd and 4th octets appear in the string
   if (this.octets_in_string(host_part, octets[2], octets[3])) {
     return true;
   }
-    // then the 1st and 2nd octets
+  // then the 1st and 2nd octets
   if (this.octets_in_string(host_part, octets[0], octets[1])) {
     return true;
   }
 
-    // Whole IP in hex
+  // Whole IP in hex
   var host_part_copy = host_part;
   var ip_hex = this.dec_to_hex(this.ip_to_long(ip));
   for (let i=0; i<4; i++) {
@@ -101,13 +101,13 @@ var re_ipv4 = {
 
   private10: /^10\./,          // 10/8
   private192: /^192\.168\./,   // 192.168/16
-    // 172.16/16 .. 172.31/16
+  // 172.16/16 .. 172.31/16
   private172: /^172\.(1[6-9]|2[0-9]|3[01])\./,  // 172.16/12
 };
 
 exports.is_private_ipv4 = function (ip) {
 
-    // RFC 1918, reserved as "private" IP space
+  // RFC 1918, reserved as "private" IP space
   if (re_ipv4.private10.test(ip)) return true;
   if (re_ipv4.private192.test(ip)) return true;
   if (re_ipv4.private172.test(ip)) return true;
@@ -116,10 +116,10 @@ exports.is_private_ipv4 = function (ip) {
 };
 
 exports.is_local_ipv4 = function (ip) {
-    // 127/8 (loopback)   # RFC 1122
+  // 127/8 (loopback)   # RFC 1122
   if (re_ipv4.loopback.test(ip)) return true;
 
-    // link local: 169.254/16 RFC 3927
+  // link local: 169.254/16 RFC 3927
   if (re_ipv4.link_local.test(ip)) return true;
 
   return false;
@@ -134,14 +134,14 @@ var re_ipv6 = {
 exports.is_local_ipv6 = function (ip) {
   if (ip === '::1') return true;   // RFC 4291
 
-    // 2 more IPv6 notations for ::1
-    // 0:0:0:0:0:0:0:1 or 0000:0000:0000:0000:0000:0000:0000:0001
+  // 2 more IPv6 notations for ::1
+  // 0:0:0:0:0:0:0:1 or 0000:0000:0000:0000:0000:0000:0000:0001
   if (re_ipv6.loopback.test(ip)) return true;
 
-    // link local: fe80::/10, RFC 4862
+  // link local: fe80::/10, RFC 4862
   if (re_ipv6.link_local.test(ip)) return true;
 
-    // unique local (fc00::/7)   -> fc00: - fd00:
+  // unique local (fc00::/7)   -> fc00: - fd00:
   if (re_ipv6.unique_local.test(ip)) return true;
 
   return false;
@@ -203,15 +203,15 @@ exports.get_public_ip = function (cb) {
     return cb(null, nu.public_ip);  // cache
   }
 
-    // manual config override, for the cases where we can't figure it out
+  // manual config override, for the cases where we can't figure it out
   var smtpIni = exports.config.get('smtp.ini').main;
   if (smtpIni.public_ip) {
     nu.public_ip = smtpIni.public_ip;
     return cb(null, nu.public_ip);
   }
 
-    // Initialise cache value to null to prevent running
-    // should we hit a timeout or the module isn't installed.
+  // Initialise cache value to null to prevent running
+  // should we hit a timeout or the module isn't installed.
   nu.public_ip = null;
 
   try {
@@ -232,7 +232,7 @@ exports.get_public_ip = function (cb) {
       return cb(error);
     }
     socket.close();
-        /*          sample socket.stun response
+    /*          sample socket.stun response
          *
          *  { local: { host: '127.0.0.30', port: 26163 },
          *  public: { host: '50.115.0.94', port: 57345, family: 'IPv4' },
@@ -255,7 +255,7 @@ exports.get_public_ip = function (cb) {
 };
 
 function get_stun_server () {
-    // STUN servers by Google
+  // STUN servers by Google
   var servers = [
     'stun.l.google.com',
     'stun1.l.google.com',
@@ -267,18 +267,18 @@ function get_stun_server () {
 }
 
 exports.get_ipany_re = function (prefix, suffix, modifier) {
-    /* jshint maxlen: false */
+  /* jshint maxlen: false */
   if (prefix === undefined) prefix = '';
   if (suffix === undefined) suffix = '';
   if (modifier === undefined) modifier = 'mg';
   return new RegExp(
-        prefix +
+    prefix +
         '(' +    // capture group
         '(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){6})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:::(?:(?:(?:[0-9a-fA-F]{1,4})):){5})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){4})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,1}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){3})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,2}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){2})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,3}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:[0-9a-fA-F]{1,4})):)(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,4}(?:(?:[0-9a-fA-F]{1,4})))?::)(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,5}(?:(?:[0-9a-fA-F]{1,4})))?::)(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,6}(?:(?:[0-9a-fA-F]{1,4})))?::))))' + // complex ipv4 + ipv6
         ')' +    // end capture
         suffix,
-        modifier
-    );
+    modifier
+  );
 };
 
 exports.get_ips_by_host = function (hostname, done) {
@@ -324,14 +324,14 @@ exports.get_ips_by_host = function (hostname, done) {
 exports.ipv6_reverse = function (ipv6){
   ipv6 = ipaddr.parse(ipv6);
   return ipv6.toNormalizedString()
-        .split(':')
-        .map(function (n) {
-          return sprintf('%04x', parseInt(n, 16));
-        })
-        .join('')
-        .split('')
-        .reverse()
-        .join('.');
+    .split(':')
+    .map(function (n) {
+      return sprintf('%04x', parseInt(n, 16));
+    })
+    .join('')
+    .split('')
+    .reverse()
+    .join('.');
 };
 
 exports.ipv6_bogus = function (ipv6){
