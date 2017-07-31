@@ -503,7 +503,6 @@ exports.load_tls_dir = function (tlsDir, done) {
         let expire = nu.parse_x509_expire(file, as_str);
         if (expire && expire < new Date()) {
           console.error(file.path + ' expired on ' + expire);
-          e = new Error(file.path + ' expired on ' + expire);
         }
 
         iter_done(e, {

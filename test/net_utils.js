@@ -1118,7 +1118,7 @@ exports.load_tls_dir = {
       // test.equal(err, null);
       res.forEach(cert => {
         console.log(`cert ${cert.file} expires on ${cert.expires}`);
-        // console.log(cert.names);
+        // console.log(cert);
         test.ok(cert.names.length)
         test.ok(cert.key.length);
         test.ok(cert.cert.length);
