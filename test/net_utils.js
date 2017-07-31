@@ -1,6 +1,8 @@
+'use strict';
 
-const net  = require('net');
+const net = require('net');
 const path = require('path');
+const util = require('util');
 
 require('haraka-config').watch_files = false;
 const net_utils = require('../index');
@@ -966,29 +968,28 @@ exports.load_tls_ini = {
   'loads missing tls.ini default config': function (test) {
     test.expect(1);
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('non-exist'));
-    test.deepEqual(net_utils.load_tls_ini(),
-      { main:
-      { requestCert: true,
+    test.deepEqual(net_utils.load_tls_ini(), {
+      main: {
+        requestCert: true,
         rejectUnauthorized: false,
         honorCipherOrder: false,
         enableOCSPStapling: false,
-        enableSNI: false,
       },
       redis: { disable_for_failed_hosts: false },
-      no_tls_hosts: {}
-      });
+      no_tls_hosts: {},
+      contextOpts: {},
+    });
     test.done();
   },
   'loads tls.ini from test dir': function (test) {
-    test.expect(1);
+    test.expect(2);
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
-    test.deepEqual(net_utils.load_tls_ini(), {
+    var expected = {
       main: {
         requestCert: true,
         rejectUnauthorized: true,
         honorCipherOrder: true,
         enableOCSPStapling: true,
-        enableSNI: true,
         key: 'tls_key.pem',
         cert: 'tls_cert.pem',
         dhparam: 'dhparams.pem',
@@ -1002,18 +1003,43 @@ exports.load_tls_ini = {
         requestCert: false,
         honorCipherOrder: false,
         enableOCSPStapling: false,
-        enableSNI: false,
-      }
-    });
+      },
+    };
+    let cfg = net_utils.load_tls_ini();
+    test.ok(delete cfg.contextOpts);
+    test.deepEqual(cfg, expected);
     test.done();
   },
+}
+
+exports.getSecureContextOptions = {
+  setUp : function (done) {
+    this.net_utils = require('../index');
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
+    done();
+  },
+  tearDown : function (done) {
+    delete this.net_utils.tlsCfg;
+    done();
+  },
+  'returns options suitable for tls.createSecureContext': function (test) {
+    test.expect(5);
+    var context = this.net_utils.getSecureContextOptions();
+    // console.log(context);
+    ['key','cert'].forEach(b => {
+      test.ok(Buffer.isBuffer(context[b][0]));
+    });
+    test.ok(Buffer.isBuffer(context.dhparam));
+    test.equal(context.sessionIdContext, 'haraka');
+    test.ok(util.isBoolean(context.honorCipherOrder));
+    test.done();
+  }
 }
 
 exports.tls_ini_section_with_defaults = {
   setUp : setUp,
   'gets tls.ini outbound with main defaults': function (test) {
     test.expect(1);
-    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
     test.deepEqual(
       net_utils.tls_ini_section_with_defaults('outbound'),
       {
@@ -1022,7 +1048,6 @@ exports.tls_ini_section_with_defaults = {
         requestCert: false,
         honorCipherOrder: false,
         enableOCSPStapling: false,
-        enableSNI: false,
         // inherited from [main]
         key: 'tls_key.pem',
         cert: 'tls_cert.pem',
@@ -1064,10 +1089,7 @@ exports.parse_x509 = {
 }
 
 exports.parse_x509_names = {
-  setUp : function (done) {
-    this.net_utils = require('../index');
-    done();
-  },
+  setUp : setUp,
   'extracts nictool.com from x509 Subject CN': function (test) {
     test.expect(1);
     var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n');
@@ -1106,22 +1128,24 @@ exports.parse_x509_names = {
 }
 
 exports.load_tls_dir = {
-  setUp : function (done) {
-    this.net_utils = require('../index');
-    this.net_utils.config =
-      this.net_utils.config.module_config(path.resolve('test'));
-    done();
-  },
+  setUp : setUp,
   'loads tls files from config/tls': function (test) {
-    test.expect(9);
-    this.net_utils.load_tls_dir('tls', function (err, res) {
-      // test.equal(err, null);
-      res.forEach(cert => {
-        console.log(`cert ${cert.file} expires on ${cert.expires}`);
-        // console.log(cert);
-        test.ok(cert.names.length)
-        test.ok(cert.key.length);
-        test.ok(cert.cert.length);
+    this.net_utils.load_tls_dir('tls', function (err, contextOptions) {
+      if (err) {
+        // console.error(err);
+        return test.done();
+      }
+
+      // test.expect(5);
+      // console.log(contextOptions);
+      test.equal(err, null);
+      contextOptions.forEach(opts => {
+        // console.log(opts);
+        let name = Object.keys(opts)[0];
+        // console.log(name);
+        test.ok(opts[name].key.length);
+        // console.log(opts[name].key);
+        test.ok(opts[name].cert.length);
       })
       test.done();
     })
