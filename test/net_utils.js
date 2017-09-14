@@ -136,7 +136,7 @@ exports.get_public_ip = {
   'cached': function (test) {
     test.expect(2);
     this.net_utils.public_ip='1.1.1.1';
-    var cb = function (err, ip) {
+    const cb = function (err, ip) {
       test.equal(null, err);
       test.equal('1.1.1.1', ip);
       test.done();
@@ -145,7 +145,7 @@ exports.get_public_ip = {
   },
   'normal': function (test) {
     this.net_utils.public_ip=undefined;
-    var cb = function (err, ip) {
+    const cb = function (err, ip) {
       // console.log('ip: ' + ip);
       // console.log('err: ' + err);
       if (has_stun()) {
@@ -182,7 +182,7 @@ function has_stun () {
 
 exports.octets_in_string = {
   'c-24-18-98-14.hsd1.wa.comcast.net': function (test) {
-    var str = 'c-24-18-98-14.hsd1.wa.comcast.net';
+    const str = 'c-24-18-98-14.hsd1.wa.comcast.net';
     test.expect(3);
     test.equal(net_utils.octets_in_string(str, 98, 14), true );
     test.equal(net_utils.octets_in_string(str, 24, 18), true );
@@ -190,7 +190,7 @@ exports.octets_in_string = {
     test.done();
   },
   '149.213.210.203.in-addr.arpa': function (test) {
-    var str = '149.213.210.203.in-addr.arpa';
+    const str = '149.213.210.203.in-addr.arpa';
     test.expect(3);
     test.equal(net_utils.octets_in_string(str, 149, 213), true );
     test.equal(net_utils.octets_in_string(str, 210, 20), true );
@@ -309,7 +309,7 @@ exports.is_local_ipv6 = {
   },
 };
 
-var ip_fixtures = [
+const ip_fixtures = [
   [false , " 2001:0000:1234:0000:0000:C1C0:ABCD:0876  "],
   [false , " 2001:0000:1234:0000:0000:C1C0:ABCD:0876  0"],
   [false , " 2001:0000:1234:0000:0000:C1C0:ABCD:0876"],
@@ -813,8 +813,8 @@ exports.get_ipany_re = {
   },
   'IP fixtures check': function (test) {
     test.expect(ip_fixtures.length);
-    for (var i in ip_fixtures) {
-      var match = net_utils.get_ipany_re('^','$').test(ip_fixtures[i][1]);
+    for (const i in ip_fixtures) {
+      const match = net_utils.get_ipany_re('^','$').test(ip_fixtures[i][1]);
       // console.log('IP:', "'"+ip_fixtures[i][1]+"'" , 'Expected:', ip_fixtures[i][0] , 'Match:' , match);
       test.ok((match===ip_fixtures[i][0]), ip_fixtures[i][1] + ' - Expected: ' + ip_fixtures[i][0] + ' - Match: ' + match);
     }
@@ -823,49 +823,49 @@ exports.get_ipany_re = {
   'IPv4, bare': function (test) {
     /* for x-*-ip headers */
     test.expect(2);
-    var match = net_utils.get_ipany_re().exec('127.0.0.1');
+    const match = net_utils.get_ipany_re().exec('127.0.0.1');
     test.equal(match[1], '127.0.0.1');
     test.equal(match.length, 2);
     test.done();
   },
   'IPv4, Received header, parens': function (test) {
     test.expect(2);
-    var received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
-    var match = received_re.exec('Received: from unknown (HELO mail.theartfarm.com) (127.0.0.30) by mail.theartfarm.com with SMTP; 5 Sep 2015 14:29:00 -0000');
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
+    const match = received_re.exec('Received: from unknown (HELO mail.theartfarm.com) (127.0.0.30) by mail.theartfarm.com with SMTP; 5 Sep 2015 14:29:00 -0000');
     test.equal(match[1], '127.0.0.30');
     test.equal(match.length, 2);
     test.done();
   },
   'IPv4, Received header, bracketed, expedia': function (test) {
     test.expect(2);
-    var received_header = 'Received: from mta2.expediamail.com (mta2.expediamail.com [66.231.89.19]) by mail.theartfarm.com (Haraka/2.6.2-toaster) with ESMTPS id C669CF18-1C1C-484C-8A5B-A89088B048CB.1 envelope-from <bounce-857_HTML-202764435-1098240-260085-60@bounce.global.expediamail.com> (version=TLSv1/SSLv3 cipher=AES256-SHA verify=NO); Sat, 05 Sep 2015 07:28:57 -0700';
-    var received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
-    var match = received_re.exec(received_header);
+    const received_header = 'Received: from mta2.expediamail.com (mta2.expediamail.com [66.231.89.19]) by mail.theartfarm.com (Haraka/2.6.2-toaster) with ESMTPS id C669CF18-1C1C-484C-8A5B-A89088B048CB.1 envelope-from <bounce-857_HTML-202764435-1098240-260085-60@bounce.global.expediamail.com> (version=TLSv1/SSLv3 cipher=AES256-SHA verify=NO); Sat, 05 Sep 2015 07:28:57 -0700';
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
+    const match = received_re.exec(received_header);
     test.equal(match[1], '66.231.89.19');
     test.equal(match.length, 2);
     test.done();
   },
   'IPv4, Received header, bracketed, github': function (test) {
     test.expect(2);
-    var received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
-    var match = received_re.exec('Received: from github-smtp2a-ext-cp1-prd.iad.github.net (github-smtp2-ext5.iad.github.net [192.30.252.196])');
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
+    const match = received_re.exec('Received: from github-smtp2a-ext-cp1-prd.iad.github.net (github-smtp2-ext5.iad.github.net [192.30.252.196])');
     test.equal(match[1], '192.30.252.196');
     test.equal(match.length, 2);
     test.done();
   },
   'IPv6, Received header, bracketed': function (test) {
     test.expect(2);
-    var received_header = 'Received: from ?IPv6:2601:184:c001:5cf7:a53f:baf7:aaf3:bce7? ([2601:184:c001:5cf7:a53f:baf7:aaf3:bce7])';
-    var received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
-    var match = received_re.exec(received_header);
+    const received_header = 'Received: from ?IPv6:2601:184:c001:5cf7:a53f:baf7:aaf3:bce7? ([2601:184:c001:5cf7:a53f:baf7:aaf3:bce7])';
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
+    const match = received_re.exec(received_header);
     test.equal(match[1], '2601:184:c001:5cf7:a53f:baf7:aaf3:bce7');
     test.equal(match.length, 2);
     test.done();
   },
   'IPv6, Received header, bracketed, IPv6 prefix': function (test) {
     test.expect(2);
-    var received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
-    var match = received_re.exec('Received: from hub.freebsd.org (hub.freebsd.org [IPv6:2001:1900:2254:206c::16:88])');
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
+    const match = received_re.exec('Received: from hub.freebsd.org (hub.freebsd.org [IPv6:2001:1900:2254:206c::16:88])');
     test.equal(match[1], '2001:1900:2254:206c::16:88');
     test.equal(match.length, 2);
     test.done();
@@ -873,8 +873,8 @@ exports.get_ipany_re = {
   'IPv6, folded Received header, bracketed, IPv6 prefix': function (test) {
     test.expect(2);
     /* note the use of [\s\S], '.' doesn't match newlines in JS regexp */
-    var received_re = net_utils.get_ipany_re('^Received:[\\s\\S]*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
-    var match = received_re.exec('Received: from freefall.freebsd.org (freefall.freebsd.org\r\n [IPv6:2001:1900:2254:206c::16:87])');
+    const received_re = net_utils.get_ipany_re('^Received:[\\s\\S]*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
+    const match = received_re.exec('Received: from freefall.freebsd.org (freefall.freebsd.org\r\n [IPv6:2001:1900:2254:206c::16:87])');
     if (match) {
       test.equal(match[1], '2001:1900:2254:206c::16:87');
       test.equal(match.length, 2);
@@ -883,8 +883,8 @@ exports.get_ipany_re = {
   },
   'IPv6, Received header, bracketed, IPv6 prefix, localhost compressed': function (test) {
     test.expect(2);
-    var received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
-    var match = received_re.exec('Received: from ietfa.amsl.com (localhost [IPv6:::1])');
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
+    const match = received_re.exec('Received: from ietfa.amsl.com (localhost [IPv6:::1])');
     test.equal(match[1], '::1');
     test.equal(match.length, 2);
     test.done();
@@ -1035,12 +1035,12 @@ exports.tls_ini_section_with_defaults = {
 exports.parse_x509 = {
   setUp: setUp,
   'returns empty object on empty input' : function (test) {
-    var res = this.net_utils.parse_x509();
+    const res = this.net_utils.parse_x509();
     test.deepEqual(res, {});
     test.done();
   },
   'returns key from BEGIN PRIVATE KEY block' : function (test) {
-    var res = this.net_utils.parse_x509('-BEGIN PRIVATE KEY-\nhello\n--END PRIVATE KEY--\n-its me-\n');
+    const res = this.net_utils.parse_x509('-BEGIN PRIVATE KEY-\nhello\n--END PRIVATE KEY--\n-its me-\n');
     res.key.toString();
     test.deepEqual(
       res.key.toString(),
@@ -1051,7 +1051,7 @@ exports.parse_x509 = {
     test.done();
   },
   'returns key from BEGIN RSA PRIVATE KEY block' : function (test) {
-    var res = this.net_utils.parse_x509('-BEGIN RSA PRIVATE KEY-\nhello\n--END RSA PRIVATE KEY--\n-its me-\n');
+    const res = this.net_utils.parse_x509('-BEGIN RSA PRIVATE KEY-\nhello\n--END RSA PRIVATE KEY--\n-its me-\n');
     res.key.toString();
     test.deepEqual(
       res.key.toString(),
@@ -1070,26 +1070,26 @@ exports.parse_x509_names = {
   },
   'extracts nictool.com from x509 Subject CN': function (test) {
     test.expect(1);
-    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n');
+    const r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n');
     test.deepEqual(r, ['nictool.com']);
     test.done();
   },
   'extracts haraka.local from x509 Subject CN': function (test) {
     test.expect(1);
-    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Mar  4 23:28:49 2017 GMT\n            Not After : Mar  3 23:28:49 2023 GMT\n        Subject: C=US, ST=Washington, L=Seattle, O=Haraka, CN=haraka.local/emailAddress=matt@haraka.local\n        Subject Public Key Info:\n            Public Key Algorithm: rsaEncryption\n');
+    const r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Mar  4 23:28:49 2017 GMT\n            Not After : Mar  3 23:28:49 2023 GMT\n        Subject: C=US, ST=Washington, L=Seattle, O=Haraka, CN=haraka.local/emailAddress=matt@haraka.local\n        Subject Public Key Info:\n            Public Key Algorithm: rsaEncryption\n');
     test.deepEqual(r, ['haraka.local']);
     test.done();
   },
   'extracts host names from X509v3 Subject Alternative Name': function (test) {
     test.expect(1);
-    var r = this.net_utils.parse_x509_names('                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    const r = this.net_utils.parse_x509_names('                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
     test.deepEqual(r, ['nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
     test.done();
   },
   'extracts host names from both': function (test) {
     test.expect(2);
 
-    var r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
+    let r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=nictool.com\n        Subject Public Key Info:\n                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
     test.deepEqual(r, ['nictool.com', 'nictool.org', 'www.nictool.com', 'www.nictool.org']);
 
     r = this.net_utils.parse_x509_names('        Validity\n            Not Before: Jan 15 22:47:00 2017 GMT\n            Not After : Apr 15 22:47:00 2017 GMT\n        Subject: CN=foo.nictool.com\n        Subject Public Key Info:\n                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/\n\n            X509v3 Subject Alternative Name: \n                DNS:nictool.com, DNS:nictool.org, DNS:www.nictool.com, DNS:www.nictool.org\n            X509v3 Certificate Policies: \n                Policy: 2.23.140.1.2.1\n');
@@ -1099,7 +1099,7 @@ exports.parse_x509_names = {
   },
   'extracts expiration date': function (test) {
     test.expect(1);
-    var r = this.net_utils.parse_x509_expire('foo', 'Validity\n            Not Before: Mar  4 23:28:49 2017 GMT\n            Not After : Mar  3 23:28:49 2023 GMT\n        Subject');
+    const r = this.net_utils.parse_x509_expire('foo', 'Validity\n            Not Before: Mar  4 23:28:49 2017 GMT\n            Not After : Mar  3 23:28:49 2023 GMT\n        Subject');
     test.deepEqual(r, new Date('2023-03-03T23:28:49.000Z'));
     test.done();
   },
