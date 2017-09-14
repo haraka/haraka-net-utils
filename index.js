@@ -16,8 +16,8 @@ const tlds     = require('haraka-tld');
 exports.config = require('haraka-config');
 
 exports.long_to_ip = function (n) {
-  var d = n%256;
-  for (var i=3; i>0; i--) {
+  let d = n%256;
+  for (let i=3; i>0; i--) {
     n = Math.floor(n/256);
     d = n%256 + '.' + d;
   }
@@ -35,13 +35,13 @@ exports.hex_to_dec = function (h) {
 exports.ip_to_long = function (ip) {
   if (!net.isIPv4(ip)) { return false; }
 
-  var d = ip.split('.');
+  const d = ip.split('.');
   return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
 };
 
 exports.octets_in_string = function (str, oct1, oct2) {
-  var oct1_idx;
-  var oct2_idx;
+  let oct1_idx;
+  let oct2_idx;
 
   // test the largest of the two octets first
   if (oct2.length >= oct1.length) {
@@ -70,8 +70,8 @@ exports.is_ip_in_str = function (ip, str) {
   if (!ip) return false;
   if (!net.isIPv4(ip)) return false;   // IPv4 only, for now
 
-  var host_part = (tlds.split_hostname(str,1))[0].toString();
-  var octets = ip.split('.');
+  const host_part = (tlds.split_hostname(str,1))[0].toString();
+  const octets = ip.split('.');
 
   // See if the 3rd and 4th octets appear in the string
   if (this.octets_in_string(host_part, octets[2], octets[3])) {
@@ -83,10 +83,10 @@ exports.is_ip_in_str = function (ip, str) {
   }
 
   // Whole IP in hex
-  var host_part_copy = host_part;
-  var ip_hex = this.dec_to_hex(this.ip_to_long(ip));
+  let host_part_copy = host_part;
+  const ip_hex = this.dec_to_hex(this.ip_to_long(ip));
   for (let i=0; i<4; i++) {
-    var part = host_part_copy.indexOf(ip_hex.substring(i*2, (i*2)+2));
+    const part = host_part_copy.indexOf(ip_hex.substring(i*2, (i*2)+2));
     if (part === -1) break;
     if (i === 3) return true;
     host_part_copy = host_part_copy.substring(0, part) +
@@ -95,7 +95,7 @@ exports.is_ip_in_str = function (ip, str) {
   return false;
 };
 
-var re_ipv4 = {
+const re_ipv4 = {
   loopback: /^127\./,
   link_local: /^169\.254\./,
 
@@ -125,7 +125,7 @@ exports.is_local_ipv4 = function (ip) {
   return false;
 };
 
-var re_ipv6 = {
+const re_ipv6 = {
   loopback:     /^(0{1,4}:){7}0{0,3}1$/,
   link_local:   /^fe80::/i,
   unique_local: /^f(c|d)[a-f0-9]{2}:/i,
@@ -184,9 +184,9 @@ exports.same_ipv4_network = function (ip, ipList) {
     return false;
   }
 
-  var first3 = ip.split('.').slice(0,3).join('.');
+  const first3 = ip.split('.').slice(0,3).join('.');
 
-  for (var i=0; i < ipList.length; i++) {
+  for (let i=0; i < ipList.length; i++) {
     if (!net.isIPv4(ipList[i])) {
       console.error('same_ipv4_network, IP in list is not IPv4!');
       continue;
@@ -198,13 +198,13 @@ exports.same_ipv4_network = function (ip, ipList) {
 };
 
 exports.get_public_ip = function (cb) {
-  var nu = this;
+  const nu = this;
   if (nu.public_ip !== undefined) {
     return cb(null, nu.public_ip);  // cache
   }
 
   // manual config override, for the cases where we can't figure it out
-  var smtpIni = exports.config.get('smtp.ini').main;
+  const smtpIni = exports.config.get('smtp.ini').main;
   if (smtpIni.public_ip) {
     nu.public_ip = smtpIni.public_ip;
     return cb(null, nu.public_ip);
@@ -223,10 +223,10 @@ exports.get_public_ip = function (cb) {
     return cb(e);
   }
 
-  var timeout = 10;
-  var timer;
+  const timeout = 10;
+  let timer;
 
-  var st_cb = function (error, socket) {
+  const st_cb = function (error, socket) {
     if (timer) clearTimeout(timer);
     if (error) {
       return cb(error);
@@ -256,7 +256,7 @@ exports.get_public_ip = function (cb) {
 
 function get_stun_server () {
   // STUN servers by Google
-  var servers = [
+  const servers = [
     'stun.l.google.com',
     'stun1.l.google.com',
     'stun2.l.google.com',
@@ -282,8 +282,8 @@ exports.get_ipany_re = function (prefix, suffix, modifier) {
 };
 
 exports.get_ips_by_host = function (hostname, done) {
-  var ips = [];
-  var errors = [];
+  const ips = [];
+  const errors = [];
 
   async.parallel(
     [
@@ -335,7 +335,7 @@ exports.ipv6_reverse = function (ipv6){
 };
 
 exports.ipv6_bogus = function (ipv6){
-  var ipCheck = ipaddr.parse(ipv6);
+  const ipCheck = ipaddr.parse(ipv6);
   if (ipCheck.range() !== 'unicast') { return true; }
   return false;
 };
@@ -343,17 +343,17 @@ exports.ipv6_bogus = function (ipv6){
 exports.ip_in_list = function (list, ip) {
   if (!net.isIP(ip)) return (ip in list); // domain
 
-  for (var string in list) {
+  for (const string in list) {
     if (string === ip) return true; // exact match
 
-    var cidr = string.split('/');
-    var c_net  = cidr[0];
+    const cidr = string.split('/');
+    const c_net  = cidr[0];
 
     if (!net.isIP(c_net)) continue;  // bad config entry
     if (net.isIPv4(ip) && net.isIPv6(c_net)) continue;
     if (net.isIPv6(ip) && net.isIPv4(c_net)) continue;
 
-    var c_mask = parseInt(cidr[1], 10) || (net.isIPv6(c_net) ? 128 : 32);
+    const c_mask = parseInt(cidr[1], 10) || (net.isIPv6(c_net) ? 128 : 32);
 
     if (ipaddr.parse(ip).match(ipaddr.parse(c_net), c_mask)) {
       return true;
@@ -365,7 +365,7 @@ exports.ip_in_list = function (list, ip) {
 
 exports.load_tls_ini = function (cb) {
 
-  let cfg = exports.config.get('tls.ini', {
+  const cfg = exports.config.get('tls.ini', {
     booleans: [
       '-redis.disable_for_failed_hosts',
 
@@ -394,16 +394,16 @@ exports.load_tls_ini = function (cb) {
 exports.tls_ini_section_with_defaults = function (section) {
   if (exports.tlsCfg === undefined) exports.load_tls_ini();
 
-  let inheritable_opts = [
+  const inheritable_opts = [
     'key', 'cert', 'ciphers', 'dhparam',
     'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
   ];
 
   if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
 
-  let cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
+  const cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
 
-  for (let opt of inheritable_opts) {
+  for (const opt of inheritable_opts) {
     if (cfg[opt] === undefined) {
       // not declared in tls.ini[section]
       if (exports.tlsCfg.main[opt] !== undefined) {
@@ -419,7 +419,7 @@ exports.tls_ini_section_with_defaults = function (section) {
 exports.parse_x509_names = function (string) {
   // receives the text value of a x509 certificate and returns are array of
   // of names extracted from the Subject CN and the v3 Subject Alternate Names
-  let names_found = [];
+  const names_found = [];
 
   // console.log(string);
 
@@ -435,7 +435,7 @@ exports.parse_x509_names = function (string) {
   match = /X509v3 Subject Alternative Name:[^]*X509/.exec(string);
   if (match) {
     let dns_name;
-    let re = /DNS:([^,]+)[,\n]/g;
+    const re = /DNS:([^,]+)[,\n]/g;
     while ((dns_name = re.exec(match[0])) !== null) {
       // console.log(dns_name);
       if (names_found.indexOf(dns_name[1]) !== -1) continue; // ignore dupes
@@ -448,7 +448,7 @@ exports.parse_x509_names = function (string) {
 
 exports.parse_x509_expire = function (file, string) {
 
-  let dateMatch = /Not After : (.*)/.exec(string);
+  const dateMatch = /Not After : (.*)/.exec(string);
   if (!dateMatch) return;
 
   // console.log(dateMatch[1]);
@@ -457,9 +457,9 @@ exports.parse_x509_expire = function (file, string) {
 
 exports.parse_x509 = function (string) {
 
-  var res = {};
+  const res = {};
 
-  let match = /^([^\-]*)?([\-]+BEGIN (?:\w+\s)?PRIVATE KEY[\-]+[^\-]+[\-]+END (?:\w+\s)?PRIVATE KEY[\-]+\n)([^]*)$/.exec(string);
+  const match = /^([^\-]*)?([\-]+BEGIN (?:\w+\s)?PRIVATE KEY[\-]+[^\-]+[\-]+END (?:\w+\s)?PRIVATE KEY[\-]+\n)([^]*)$/.exec(string);
   if (!match) return res;
 
   if (match[1] && match[1].length) {
@@ -476,7 +476,7 @@ exports.parse_x509 = function (string) {
 }
 
 exports.load_tls_dir = function (tlsDir, done) {
-  var nu = this;
+  const nu = this;
 
   nu.config.getDir(tlsDir, {}, (err, files) => {
     if (err) return done(err);
@@ -485,7 +485,7 @@ exports.load_tls_dir = function (tlsDir, done) {
       // console.log(file.path);
       // console.log(file.data.toString());
 
-      let parsed = exports.parse_x509(file.data.toString());
+      const parsed = exports.parse_x509(file.data.toString());
       if (!parsed.key) {
         return iter_done('no PRIVATE key in ' + file.path);
       }
@@ -495,12 +495,12 @@ exports.load_tls_dir = function (tlsDir, done) {
       }
 
       // console.log(cert);
-      let x509args = { noout: true, text: true };
+      const x509args = { noout: true, text: true };
 
       openssl('x509', parsed.cert, x509args, function (e, as_str) {
         if (e) console.error(e);
 
-        let expire = nu.parse_x509_expire(file, as_str);
+        const expire = nu.parse_x509_expire(file, as_str);
         if (expire && expire < new Date()) {
           console.error(file.path + ' expired on ' + expire);
         }
