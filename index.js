@@ -423,7 +423,7 @@ exports.parse_x509_names = function (string) {
 
   // console.log(string);
 
-  let match = /Subject:.*?CN=([^\/\s]+)/.exec(string);
+  let match = /Subject:.*?CN=([^/\s]+)/.exec(string);
   if (match) {
     // console.log(match[0]);
     if (match[1]) {
@@ -459,7 +459,7 @@ exports.parse_x509 = function (string) {
 
   const res = {};
 
-  const match = /^([^\-]*)?([\-]+BEGIN (?:\w+\s)?PRIVATE KEY[\-]+[^\-]+[\-]+END (?:\w+\s)?PRIVATE KEY[\-]+\n)([^]*)$/.exec(string);
+  const match = /^([^-]*)?([-]+BEGIN (?:\w+\s)?PRIVATE KEY[-]+[^-]+[-]+END (?:\w+\s)?PRIVATE KEY[-]+\n)([^]*)$/.exec(string);
   if (!match) return res;
 
   if (match[1] && match[1].length) {
