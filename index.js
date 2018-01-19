@@ -3,12 +3,10 @@
 // node.js built-ins
 const dns    = require('dns');
 const net    = require('net');
-const path   = require('path');
 
 // npm modules
 const async    = require('async');
 const ipaddr   = require('ipaddr.js');
-const openssl  = require('openssl-wrapper').exec;
 const sprintf  = require('sprintf-js').sprintf;
 const tlds     = require('haraka-tld');
 
@@ -199,9 +197,7 @@ exports.same_ipv4_network = function (ip, ipList) {
 
 exports.get_public_ip = function (cb) {
   const nu = this;
-  if (nu.public_ip !== undefined) {
-    return cb(null, nu.public_ip);  // cache
-  }
+  if (nu.public_ip !== undefined) return cb(null, nu.public_ip);  // cache
 
   // manual config override, for the cases where we can't figure it out
   const smtpIni = exports.config.get('smtp.ini').main;
@@ -224,35 +220,30 @@ exports.get_public_ip = function (cb) {
   }
 
   const timeout = 10;
-  let timer;
-
-  const st_cb = function (error, socket) {
-    if (timer) clearTimeout(timer);
-    if (error) {
-      return cb(error);
-    }
-    socket.close();
-    /*          sample socket.stun response
-         *
-         *  { local: { host: '127.0.0.30', port: 26163 },
-         *  public: { host: '50.115.0.94', port: 57345, family: 'IPv4' },
-         *  type: 'Full Cone NAT'
-         *  }
-        */
-    if (!socket.stun.public) {
-      return cb(new Error('invalid STUN result'));
-    }
-    nu.public_ip = socket.stun.public.host;
-    return cb(null, socket.stun.public.host);
-  };
-
-    // Connect to STUN Server
-  nu.stun.connect({ host: get_stun_server(), port: 19302 }, st_cb);
-
-  timer = setTimeout(function () {
+  const timer = setTimeout(() => {
     return cb(new Error('STUN timeout'));
-  }, (timeout || 10) * 1000);
-};
+  }, timeout * 1000);
+
+  // Connect to STUN Server
+  nu.stun.connect({ host: get_stun_server(), port: 19302 }, (error, socket) => {
+    if (timer) clearTimeout(timer);
+    if (error) return cb(error);
+
+    socket.close();
+
+    /*          sample socket.stun response
+     *
+     *  { local: { host: '127.0.0.30', port: 26163 },
+     *  public: { host: '50.115.0.94', port: 57345, family: 'IPv4' },
+     *  type: 'Full Cone NAT'
+     *  }
+    */
+    if (!socket.stun.public) return cb(new Error('invalid STUN result'));
+
+    nu.public_ip = socket.stun.public.host;
+    cb(null, socket.stun.public.host);
+  })
+}
 
 function get_stun_server () {
   // STUN servers by Google
@@ -321,7 +312,7 @@ exports.get_ips_by_host = function (hostname, done) {
   );
 };
 
-exports.ipv6_reverse = function (ipv6){
+exports.ipv6_reverse = function (ipv6) {
   ipv6 = ipaddr.parse(ipv6);
   return ipv6.toNormalizedString()
     .split(':')
@@ -361,159 +352,4 @@ exports.ip_in_list = function (list, ip) {
   }
 
   return false;
-}
-
-exports.load_tls_ini = function (cb) {
-
-  const cfg = exports.config.get('tls.ini', {
-    booleans: [
-      '-redis.disable_for_failed_hosts',
-
-      // wildcards match in any section and are not initialized
-      '*.requestCert',
-      '*.rejectUnauthorized',
-      '*.honorCipherOrder',
-      '*.enableOCSPStapling',
-      '*.enableSNI',
-
-      // explicitely declared booleans are initialized
-      '+main.requestCert',
-      '-main.rejectUnauthorized',
-      '-main.honorCipherOrder',
-      '-main.enableOCSPStapling',
-      '-main.enableSNI',
-    ]
-  }, cb);
-
-  if (!cfg.no_tls_hosts) cfg.no_tls_hosts = {};
-
-  exports.tlsCfg = cfg;
-  return cfg;
-}
-
-exports.tls_ini_section_with_defaults = function (section) {
-  if (exports.tlsCfg === undefined) exports.load_tls_ini();
-
-  const inheritable_opts = [
-    'key', 'cert', 'ciphers', 'dhparam',
-    'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
-  ];
-
-  if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
-
-  const cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
-
-  for (const opt of inheritable_opts) {
-    if (cfg[opt] === undefined) {
-      // not declared in tls.ini[section]
-      if (exports.tlsCfg.main[opt] !== undefined) {
-        // use value from [main] section
-        cfg[opt] = exports.tlsCfg.main[opt];
-      }
-    }
-  }
-
-  return cfg;
-}
-
-exports.parse_x509_names = function (string) {
-  // receives the text value of a x509 certificate and returns are array of
-  // of names extracted from the Subject CN and the v3 Subject Alternate Names
-  const names_found = [];
-
-  // console.log(string);
-
-  let match = /Subject:.*?CN=([^/\s]+)/.exec(string);
-  if (match) {
-    // console.log(match[0]);
-    if (match[1]) {
-      // console.log(match[1]);
-      names_found.push(match[1]);
-    }
-  }
-
-  match = /X509v3 Subject Alternative Name:[^]*X509/.exec(string);
-  if (match) {
-    let dns_name;
-    const re = /DNS:([^,]+)[,\n]/g;
-    while ((dns_name = re.exec(match[0])) !== null) {
-      // console.log(dns_name);
-      if (names_found.indexOf(dns_name[1]) !== -1) continue; // ignore dupes
-      names_found.push(dns_name[1]);
-    }
-  }
-
-  return names_found;
-}
-
-exports.parse_x509_expire = function (file, string) {
-
-  const dateMatch = /Not After : (.*)/.exec(string);
-  if (!dateMatch) return;
-
-  // console.log(dateMatch[1]);
-  return new Date(dateMatch[1]);
-}
-
-exports.parse_x509 = function (string) {
-
-  const res = {};
-
-  const match = /^([^-]*)?([-]+BEGIN (?:\w+\s)?PRIVATE KEY[-]+[^-]+[-]+END (?:\w+\s)?PRIVATE KEY[-]+\n)([^]*)$/.exec(string);
-  if (!match) return res;
-
-  if (match[1] && match[1].length) {
-    console.error('leading garbage');
-    console.error(match[1]);
-  }
-  if (!match[2] || !match[2].length) return res;
-  res.key = Buffer.from(match[2]);
-
-  if (!match[3] || !match[3].length) return res;
-  res.cert = Buffer.from(match[3]);
-
-  return res;
-}
-
-exports.load_tls_dir = function (tlsDir, done) {
-  const nu = this;
-
-  nu.config.getDir(tlsDir, {}, (err, files) => {
-    if (err) return done(err);
-
-    async.map(files, (file, iter_done) => {
-      // console.log(file.path);
-      // console.log(file.data.toString());
-
-      const parsed = exports.parse_x509(file.data.toString());
-      if (!parsed.key) {
-        return iter_done(`no PRIVATE key in ${file.path}`);
-      }
-      if (!parsed.cert) {
-        console.error(`no CERT in ${file.path}`);
-        return iter_done(`no CERT in ${file.path}`);
-      }
-
-      // console.log(cert);
-      const x509args = { noout: true, text: true };
-
-      openssl('x509', parsed.cert, x509args, function (e, as_str) {
-        if (e) console.error(e);
-
-        const expire = nu.parse_x509_expire(file, as_str);
-        if (expire && expire < new Date()) {
-          console.error(`${file.path} expired on ${expire}`);
-        }
-
-        iter_done(e, {
-          file: path.basename(file.path),
-          key: parsed.key,
-          cert: parsed.cert,
-          names: nu.parse_x509_names(as_str),
-          expires: expire,
-        })
-      })
-    },
-    done);
-  })
 }

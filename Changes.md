@@ -1,11 +1,20 @@
 
+1.0.11 - 2018-01-19
+
+- get_public_ip: assign timer before calling connect #29
+  - avoid race where timeout isn't cleared because stun connect errors immediately
+- remove TLS functions that have been subsumed into Haraka/tls_socket: load_tls_ini, tls_ini_section_with_defaults, parse_x509_names, parse_x509_expire, parse_x509, load_tls_dir
+- convert concatenated strings to template literals #28
+- eslint updates #25, #27
+- improved x509 parser #22
+
 1.0.10 - 2017-07-27
 
-- added vs-stun as optional dep (from Haraka)
+- added vs-stun as optional dep (from Haraka) #21
 
 1.0.9 - 2017-06-16
 
-- lint fixes for compat with eslint 4
+- lint fixes for compat with eslint 4  #18
 
 1.0.8 - 2017-03-08
 
