@@ -146,15 +146,15 @@ exports.get_public_ip = {
   'normal': function (test) {
     this.net_utils.public_ip=undefined;
     const cb = function (err, ip) {
-      // console.log('ip: ' + ip);
-      // console.log('err: ' + err);
+      // console.log(`ip: ${ip}`);
+      // console.log(`err: ${err}`);
       if (has_stun()) {
         if (err) {
           console.log(err);
           test.expect(0);
         }
         else {
-          console.log("stun success: " + ip);
+          console.log(`stun success: ${ip}`);
           test.expect(2);
           test.equal(null, err);
           test.ok(ip, ip);
@@ -815,8 +815,8 @@ exports.get_ipany_re = {
     test.expect(ip_fixtures.length);
     for (const i in ip_fixtures) {
       const match = net_utils.get_ipany_re('^','$').test(ip_fixtures[i][1]);
-      // console.log('IP:', "'"+ip_fixtures[i][1]+"'" , 'Expected:', ip_fixtures[i][0] , 'Match:' , match);
-      test.ok((match===ip_fixtures[i][0]), ip_fixtures[i][1] + ' - Expected: ' + ip_fixtures[i][0] + ' - Match: ' + match);
+      // console.log('IP:', `'${ip_fixtures[i][1]}'` , 'Expected:', ip_fixtures[i][0] , 'Match:' , match);
+      test.ok((match===ip_fixtures[i][0]), `${ip_fixtures[i][1]} - Expected: ${ip_fixtures[i][0]} - Match: ${match}`);
     }
     test.done();
   },
