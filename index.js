@@ -353,3 +353,34 @@ exports.ip_in_list = function (list, ip) {
 
   return false;
 }
+
+// deprecated, moved to Haraka/tls_socket, but
+// Haraka versions < 2.8.17 require this to be here.
+exports.load_tls_ini = function (cb) {
+
+  const cfg = exports.config.get('tls.ini', {
+    booleans: [
+      '-redis.disable_for_failed_hosts',
+
+      // wildcards match in any section and are not initialized
+      '*.requestCert',
+      '*.rejectUnauthorized',
+      '*.honorCipherOrder',
+      '*.enableOCSPStapling',
+      '*.enableSNI',
+
+      // explicitely declared booleans are initialized
+      '+main.requestCert',
+      '-main.rejectUnauthorized',
+      '-main.honorCipherOrder',
+      '-main.enableOCSPStapling',
+      '-main.enableSNI',
+    ]
+  }, cb);
+
+  if (!cfg.no_tls_hosts) cfg.no_tls_hosts = {};
+
+  exports.tlsCfg = cfg;
+  return cfg;
+}
+
