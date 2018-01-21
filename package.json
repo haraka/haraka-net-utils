@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
@@ -35,6 +35,7 @@
     "haraka-config": ">=1.0.11",
     "haraka-tld": "*",
     "ipaddr.js": "^1.2.0",
+    "openssl-wrapper": "^0.3.4",
     "sprintf-js": "^1.0.3"
   },
   "optionalDependencies": {

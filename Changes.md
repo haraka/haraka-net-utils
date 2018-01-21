@@ -1,9 +1,14 @@
 
+1.0.12 - 2018-01-19
+
+- restore openssl-wrapper dependency (it's missing in Haraka's package.json)
+
 1.0.11 - 2018-01-19
 
 - get_public_ip: assign timer before calling connect #29
-  - avoid race where timeout isn't cleared because stun connect errors immediately
+    - avoid race where timeout isn't cleared because stun connect errors immediately
 - remove TLS functions that have been subsumed into Haraka/tls_socket: load_tls_ini, tls_ini_section_with_defaults, parse_x509_names, parse_x509_expire, parse_x509, load_tls_dir
+    - remove openssl-wrapper dependency
 - convert concatenated strings to template literals #28
 - eslint updates #25, #27
 - improved x509 parser #22
