@@ -1,4 +1,8 @@
 
+1.0.13 - 2018-01-19
+
+- restore load_tls_ini to index.js
+
 1.0.12 - 2018-01-19
 
 - restore openssl-wrapper dependency (it's missing in Haraka's package.json)
