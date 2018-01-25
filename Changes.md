@@ -1,4 +1,8 @@
 
+1.0.14 - 2018-01-25
+
+- restore tls_ini_section_with_defaults function (deprecated since Haraka 2.0.17)
+
 1.0.13 - 2018-01-19
 
 - get_public_ip: assign timer before calling connect #29
