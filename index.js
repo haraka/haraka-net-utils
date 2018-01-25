@@ -384,3 +384,29 @@ exports.load_tls_ini = function (cb) {
   return cfg;
 }
 
+// deprecated, moved to Haraka/tls_socket, but
+// Haraka 2.8.16 requires this to be here.
+exports.tls_ini_section_with_defaults = function (section) {
+  if (exports.tlsCfg === undefined) exports.load_tls_ini();
+
+  const inheritable_opts = [
+    'key', 'cert', 'ciphers', 'dhparam',
+    'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
+  ];
+
+  if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
+
+  const cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
+
+  for (const opt of inheritable_opts) {
+    if (cfg[opt] === undefined) {
+      // not declared in tls.ini[section]
+      if (exports.tlsCfg.main[opt] !== undefined) {
+        // use value from [main] section
+        cfg[opt] = exports.tlsCfg.main[opt];
+      }
+    }
+  }
+
+  return cfg;
+}
