@@ -384,6 +384,8 @@ exports.load_tls_ini = function (cb) {
   return cfg;
 }
 
+// deprecated, moved to Haraka/tls_socket, but
+// Haraka 2.8.16 requires this to be here.
 exports.tls_ini_section_with_defaults = function (section) {
   if (exports.tlsCfg === undefined) exports.load_tls_ini();
 
