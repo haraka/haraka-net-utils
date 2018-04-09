@@ -1,6 +1,7 @@
 
 const net  = require('net');
 const path = require('path');
+const os   = require('os');
 
 require('haraka-config').watch_files = false;
 const net_utils = require('../index');
@@ -956,3 +957,18 @@ exports.ip_in_list = {
     _check_list(test, { '1.2.3.4/400': undefined }, '1.2.3.4', true);
   }
 };
+
+exports.get_primary_host_name = {
+  setUp: setUp,
+  'with me config': function (test) {
+    test.expect(1);
+    test.equals(this.net_utils.get_primary_host_name(), 'test-hostname');
+    test.done();
+  },
+  'without me config': function (test) {
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('doesnt-exist'));
+    test.expect(1);
+    test.equals(this.net_utils.get_primary_host_name(), os.hostname());
+    test.done();
+  }
+}
