@@ -1,3 +1,6 @@
+1.1.0 - 2018-04-11
+
+- add get_primary_host_name haraka/Haraka#2380
 
 1.0.14 - 2018-01-25
 
@@ -48,4 +51,3 @@
 1.0.3 - 2016-10-25
 
 * added tls.ini loading
-

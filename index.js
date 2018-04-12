@@ -3,6 +3,7 @@
 // node.js built-ins
 const dns    = require('dns');
 const net    = require('net');
+const os     = require('os');
 
 // npm modules
 const async    = require('async');
@@ -409,4 +410,8 @@ exports.tls_ini_section_with_defaults = function (section) {
   }
 
   return cfg;
+}
+
+exports.get_primary_host_name = function () {
+  return exports.config.get('me') || os.hostname();
 }
