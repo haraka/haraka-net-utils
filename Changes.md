@@ -1,3 +1,7 @@
+1.1.1 - 2018-07-19
+
+- ip_in_list doesn't throw on empty list
+
 1.1.0 - 2018-04-11
 
 - add get_primary_host_name haraka/Haraka#2380
