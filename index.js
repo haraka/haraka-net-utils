@@ -333,6 +333,8 @@ exports.ipv6_bogus = function (ipv6){
 };
 
 exports.ip_in_list = function (list, ip) {
+  if (list === undefined) return false;
+
   if (!net.isIP(ip)) return (ip in list); // domain
 
   for (const string in list) {
