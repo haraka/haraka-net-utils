@@ -1,3 +1,7 @@
+1.1.2 - 2018-11-03
+
+- add is_local_ip
+
 1.1.1 - 2018-07-19
 
 - ip_in_list doesn't throw on empty list
