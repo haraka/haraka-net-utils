@@ -114,6 +114,15 @@ exports.is_private_ipv4 = function (ip) {
   return false;
 };
 
+exports.is_local_ip = function (ip) {
+
+  if (net.isIPv4(ip)) return this.is_local_ipv4(ip);
+  if (net.isIPv6(ip)) return this.is_local_ipv6(ip);
+
+  console.error(`invalid IP address: ${ip}`);
+  return false;
+}
+
 exports.is_local_ipv4 = function (ip) {
   // 127/8 (loopback)   # RFC 1122
   if (re_ipv4.loopback.test(ip)) return true;
@@ -147,20 +156,10 @@ exports.is_local_ipv6 = function (ip) {
 };
 
 exports.is_private_ip = function (ip) {
-  if (net.isIPv4(ip)) {
-    if (this.is_private_ipv4(ip)) return true;
-    if (this.is_local_ipv4(ip)) return true;
-    return false;
-  }
-
-  if (net.isIPv6(ip)) {
-    if (this.is_local_ipv6(ip)) return true;
-    return false;
-  }
-
-  console.error(`invalid IP address: ${ip}`);
+  if (this.is_local_ip(ip)) return true;
+  if (net.isIPv4(ip)) return this.is_private_ipv4(ip);
   return false;
-};
+}
 
 // backwards compatibility for non-public modules. Sunset: v3.0
 exports.is_rfc1918 = exports.is_private_ip;

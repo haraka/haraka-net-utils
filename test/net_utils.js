@@ -93,6 +93,39 @@ function _is_private_ip (test, ip, expected) {
   test.done();
 }
 
+function _is_local_ip (test, ip, expected) {
+  test.expect(1);
+  test.equals(expected, net_utils.is_local_ip(ip));
+  test.done();
+}
+
+exports.is_local_ip = {
+  '127.0.0.1': function (test) {
+    _is_local_ip(test, '127.0.0.1', true);
+  },
+  '::1': function (test) {
+    _is_local_ip(test, '::1', true);
+  },
+  '0:0:0:0:0:0:0:1': function (test) {
+    _is_local_ip(test, '0:0:0:0:0:0:0:1', true);
+  },
+  '0000:0000:0000:0000:0000:0000:0000:0001': function (test) {
+    _is_local_ip(test, '0000:0000:0000:0000:0000:0000:0000:0001', true);
+  },
+  '123.123.123.123 (!)': function (test) {
+    _is_local_ip(test, '123.123.123.123', false);
+  },
+  'dead::beef (!)': function (test) {
+    _is_local_ip(test, 'dead::beef', false);
+  },
+  '192.168.1 (missing octet)': function (test) {
+    _is_local_ip(test, '192.168.1', false);
+  },
+  '239.0.0.1 (multicast; not currently considered rfc1918)': function (test) {
+    _is_local_ip(test, '239.0.0.1', false);
+  },
+}
+
 exports.is_private_ip = {
   '127.0.0.1': function (test) {
     _is_private_ip(test, '127.0.0.1', true);
@@ -130,7 +163,7 @@ exports.is_private_ip = {
   '239.0.0.1 (multicast; not currently considered rfc1918)': function (test) {
     _is_private_ip(test, '239.0.0.1', false);
   },
-};
+}
 
 exports.get_public_ip = {
   setUp: setUp,
