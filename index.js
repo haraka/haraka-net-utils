@@ -11,7 +11,7 @@ const ipaddr   = require('ipaddr.js');
 const sprintf  = require('sprintf-js').sprintf;
 const tlds     = require('haraka-tld');
 
-let ifList;
+const locallyBoundIPs = [];
 
 // export config, so config base path can be overloaded by tests
 exports.config = require('haraka-config');
@@ -117,14 +117,17 @@ exports.is_private_ipv4 = function (ip) {
 }
 
 exports.on_local_interface = function (ip) {
-  if (ifList === undefined) ifList = os.networkInterfaces();
 
-  for (const ifName of Object.keys(ifList)) {
-    for (const addr of ifList[ifName]) {
-      if (addr.address === ip) return true;
+  if (locallyBoundIPs.length === 0) {
+    const ifList = os.networkInterfaces();
+    for (const ifName of Object.keys(ifList)) {
+      for (const addr of ifList[ifName]) {
+        locallyBoundIPs.push(addr.address);
+      }
     }
   }
-  return false;
+
+  return locallyBoundIPs.includes(ip);
 }
 
 exports.is_local_ip = function (ip) {
