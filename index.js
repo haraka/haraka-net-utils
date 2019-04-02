@@ -11,6 +11,8 @@ const ipaddr   = require('ipaddr.js');
 const sprintf  = require('sprintf-js').sprintf;
 const tlds     = require('haraka-tld');
 
+let ifList;
+
 // export config, so config base path can be overloaded by tests
 exports.config = require('haraka-config');
 
@@ -21,22 +23,22 @@ exports.long_to_ip = function (n) {
     d = `${n%256}.${d}`;
   }
   return d;
-};
+}
 
 exports.dec_to_hex = function (d) {
   return d.toString(16);
-};
+}
 
 exports.hex_to_dec = function (h) {
   return parseInt(h, 16);
-};
+}
 
 exports.ip_to_long = function (ip) {
   if (!net.isIPv4(ip)) { return false; }
 
   const d = ip.split('.');
   return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
-};
+}
 
 exports.octets_in_string = function (str, oct1, oct2) {
   let oct1_idx;
@@ -62,7 +64,7 @@ exports.octets_in_string = function (str, oct1, oct2) {
   if (oct2_idx === -1) return false;
 
   return true;
-};
+}
 
 exports.is_ip_in_str = function (ip, str) {
   if (!str) return false;
@@ -92,7 +94,7 @@ exports.is_ip_in_str = function (ip, str) {
             host_part_copy.substring(part+2);
   }
   return false;
-};
+}
 
 const re_ipv4 = {
   loopback: /^127\./,
@@ -102,7 +104,7 @@ const re_ipv4 = {
   private192: /^192\.168\./,   // 192.168/16
   // 172.16/16 .. 172.31/16
   private172: /^172\.(1[6-9]|2[0-9]|3[01])\./,  // 172.16/12
-};
+}
 
 exports.is_private_ipv4 = function (ip) {
 
@@ -112,9 +114,22 @@ exports.is_private_ipv4 = function (ip) {
   if (re_ipv4.private172.test(ip)) return true;
 
   return false;
-};
+}
+
+exports.on_local_interface = function (ip) {
+  if (ifList === undefined) ifList = os.networkInterfaces();
+
+  for (const ifName of Object.keys(ifList)) {
+    for (const addr of ifList[ifName]) {
+      if (addr.address === ip) return true;
+    }
+  }
+  return false;
+}
 
 exports.is_local_ip = function (ip) {
+
+  if (this.on_local_interface(ip)) return true;
 
   if (net.isIPv4(ip)) return this.is_local_ipv4(ip);
   if (net.isIPv6(ip)) return this.is_local_ipv6(ip);
@@ -131,13 +146,13 @@ exports.is_local_ipv4 = function (ip) {
   if (re_ipv4.link_local.test(ip)) return true;
 
   return false;
-};
+}
 
 const re_ipv6 = {
   loopback:     /^(0{1,4}:){7}0{0,3}1$/,
   link_local:   /^fe80::/i,
   unique_local: /^f(c|d)[a-f0-9]{2}:/i,
-};
+}
 
 exports.is_local_ipv6 = function (ip) {
   if (ip === '::1') return true;   // RFC 4291
@@ -153,7 +168,7 @@ exports.is_local_ipv6 = function (ip) {
   if (re_ipv6.unique_local.test(ip)) return true;
 
   return false;
-};
+}
 
 exports.is_private_ip = function (ip) {
   if (this.is_local_ip(ip)) return true;
@@ -166,11 +181,11 @@ exports.is_rfc1918 = exports.is_private_ip;
 
 exports.is_ip_literal = function (host) {
   return exports.get_ipany_re('^\\[(IPv6:)?','\\]$','').test(host) ? true : false;
-};
+}
 
 exports.is_ipv4_literal = function (host) {
   return /^\[(\d{1,3}\.){3}\d{1,3}\]$/.test(host) ? true : false;
-};
+}
 
 exports.same_ipv4_network = function (ip, ipList) {
   if (!ipList || !ipList.length) {
@@ -193,7 +208,7 @@ exports.same_ipv4_network = function (ip, ipList) {
       return true;
   }
   return false;
-};
+}
 
 exports.get_public_ip = function (cb) {
   const nu = this;
@@ -270,7 +285,7 @@ exports.get_ipany_re = function (prefix, suffix, modifier) {
         `${suffix}`,
     modifier
   );
-};
+}
 
 exports.get_ips_by_host = function (hostname, done) {
   const ips = [];
@@ -310,7 +325,7 @@ exports.get_ips_by_host = function (hostname, done) {
       done(errors, ips);
     }
   );
-};
+}
 
 exports.ipv6_reverse = function (ipv6) {
   ipv6 = ipaddr.parse(ipv6);
@@ -323,13 +338,13 @@ exports.ipv6_reverse = function (ipv6) {
     .split('')
     .reverse()
     .join('.');
-};
+}
 
 exports.ipv6_bogus = function (ipv6){
   const ipCheck = ipaddr.parse(ipv6);
   if (ipCheck.range() !== 'unicast') { return true; }
   return false;
-};
+}
 
 exports.ip_in_list = function (list, ip) {
   if (list === undefined) return false;
