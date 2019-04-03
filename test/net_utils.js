@@ -1005,3 +1005,25 @@ exports.get_primary_host_name = {
     test.done();
   }
 }
+
+exports.on_local_interface = {
+  setUp: setUp,
+  'localhost 127.0.0.1': function (test) {
+    test.expect(1);
+    test.equals(this.net_utils.on_local_interface('127.0.0.1'), true);
+    test.done();
+  },
+  'multicast 1.1.1.1': function (test) {
+    test.expect(1);
+    test.equals(this.net_utils.on_local_interface('1.1.1.1'), false);
+    test.done();
+  },
+  'ipv6 localhost ::1': function (test) {
+    const r = this.net_utils.on_local_interface('::1');
+    if (r) {
+      test.expect(1);
+      test.equals(r, true);
+    }
+    test.done();
+  },
+}
