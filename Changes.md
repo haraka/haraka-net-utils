@@ -1,4 +1,8 @@
 
+### 1.1.4 - 2019-04-04
+
+- stop is_private_ip from checking if the IP is bound to a local network interface
+
 ### 1.1.3 - 2019-03-01
 
 - is_local_ip checks local network interfaces too
