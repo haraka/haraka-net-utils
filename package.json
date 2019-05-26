@@ -31,7 +31,7 @@
     "eslint-plugin-haraka": "*"
   },
   "dependencies": {
-    "async": "^2.3.0",
+    "async": "^3.0.1",
     "haraka-config": ">=1.0.11",
     "haraka-tld": "*",
     "ipaddr.js": "^1.2.0",
