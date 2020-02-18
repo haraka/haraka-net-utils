@@ -923,6 +923,12 @@ exports.get_ipany_re = {
     test.equal(match.length, 2);
     test.done();
   },
+  'IPv6 bogus': function (test) {
+    test.expect(1);
+    const is_bogus = net_utils.ipv6_bogus('::192.41.13.251'); // From https://github.com/haraka/Haraka/issues/2763
+    test.equal(is_bogus, true);
+    test.done();
+  }
 };
 
 exports.get_ips_by_host = {
