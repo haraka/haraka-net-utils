@@ -2,7 +2,7 @@
 [![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
 [![Windows Build status][apv-img]][apv-url]
-[![Greenkeeper badge][gk-img]](https://greenkeeper.io/)
+
 [![NPM][npm-img]][npm-url]
 
 # Net-Utils
