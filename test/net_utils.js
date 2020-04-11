@@ -932,7 +932,7 @@ describe('get_ipany_re', function () {
     done();
   })
 
-  it('IPv6 bogus', function (test) {
+  it('IPv6 bogus', function (done) {
     const is_bogus = net_utils.ipv6_bogus('::192.41.13.251'); // From https://github.com/haraka/Haraka/issues/2763
     assert.equal(is_bogus, true);
     done();
