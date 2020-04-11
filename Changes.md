@@ -1,4 +1,9 @@
 
+### 1.1.5 - 2020-04-11
+
+- ipv6_bogus: handle parsing broken ipv6 addresses #49
+- update async to version 3.0.1 #43
+
 ### 1.1.4 - 2019-04-04
 
 - stop is_private_ip from checking if the IP is bound to a local network interface

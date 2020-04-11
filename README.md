@@ -1,7 +1,7 @@
-[![Build Status][ci-img]][ci-url]
+![CI Linux][ci-img]
+![CI Windows][ci-win-img]
 [![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
-[![Windows Build status][apv-img]][apv-url]
 
 [![NPM][npm-img]][npm-url]
 
@@ -73,14 +73,11 @@ Checks to see if an IP is bound locally or an IPv4 or IPv6 localhost address.
     net_utils.ip_in_list(tls.no_tls_hosts, '127.0.0.5');
 
 
-[ci-img]: https://travis-ci.org/haraka/haraka-net-utils.svg
-[ci-url]: https://travis-ci.org/haraka/haraka-net-utils
+[ci-img]: https://github.com/haraka/haraka-net-utils/workflows/CI%20Linux/badge.svg
+[ci-win-img]: https://github.com/haraka/haraka-net-utils/workflows/CI%20Windows/badge.svg
 [cov-img]: https://codecov.io/github/haraka/haraka-net-utils/coverage.svg
 [cov-url]: https://codecov.io/github/haraka/haraka-net-utils
 [clim-img]: https://codeclimate.com/github/haraka/haraka-net-utils/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-net-utils
-[gk-img]: https://badges.greenkeeper.io/haraka/haraka-net-utils.svg
 [npm-img]: https://nodei.co/npm/haraka-net-utils.png
 [npm-url]: https://www.npmjs.com/package/haraka-net-utils
-[apv-img]: https://ci.appveyor.com/api/projects/status/wkvydwu9odfxxr3v?svg=true
-[apv-url]: https://ci.appveyor.com/project/msimerson/haraka-net-utils

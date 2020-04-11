@@ -1,183 +1,210 @@
 
-const net  = require('net');
-const path = require('path');
-const os   = require('os');
+const assert = require('assert')
+const net    = require('net')
+const os     = require('os')
+const path   = require('path')
 
 require('haraka-config').watch_files = false;
 const net_utils = require('../index');
 
-function _check (test, ip, host, res) {
-  test.expect(1);
-  test.equals(net_utils.is_ip_in_str(ip, host), res);
-  test.done();
-}
-
-function setUp (done) {
-  this.net_utils = require('../index');
-  this.net_utils.config =
-      this.net_utils.config.module_config(path.resolve('test'));
+function _check (done, ip, host, res) {
+  assert.equal(net_utils.is_ip_in_str(ip, host), res);
   done();
 }
 
-exports.long_to_ip = {
-  '185999660': function (test) {
-    test.expect(1);
-    test.equals(net_utils.long_to_ip(185999660), '11.22.33.44');
-    test.done();
-  }
-};
+describe('long_to_ip', function () {
+  it('185999660', function (done) {
+    assert.equal(net_utils.long_to_ip(185999660), '11.22.33.44');
+    done();
+  })
+})
 
-exports.static_rdns = {
-  '74.125.82.182': function (test) {
-    _check(test, '74.125.82.182', 'mail-we0-f182.google.com', false);
-  },
-  '74.125.82.53': function (test) {
-    _check(test, '74.125.82.53', 'mail-ww0-f53.google.com', false);
-  }
-};
+describe('static_rdns', function () {
+  it('74.125.82.182', function (done) {
+    _check(done, '74.125.82.182', 'mail-we0-f182.google.com', false);
+  })
+  it('74.125.82.53', function (done) {
+    _check(done, '74.125.82.53', 'mail-ww0-f53.google.com', false);
+  })
+})
 
-exports.dynamic_rdns = {
-  '109.168.232.131': function (test) {
-    _check(test, '109.168.232.131', 'host-109-168-232-131.stv.ru', true);
-  },
-  '62.198.236.129': function (test) {
-    _check(test, '62.198.236.129', '0x3ec6ec81.inet.dsl.telianet.dk', true);
-  },
-  '123.58.178.17': function (test) {
-    _check(test, '123.58.178.17', 'm17-178.vip.126.com', true);
-  },
-  '100.42.67.92': function (test) {
-    _check(test, '100.42.67.92', '92-67-42-100-dedicated.multacom.com',
+describe('dynamic_rdns', function () {
+
+  it('109.168.232.131', function (done) {
+    _check(done, '109.168.232.131', 'host-109-168-232-131.stv.ru', true);
+  })
+  it('62.198.236.129', function (done) {
+    _check(done, '62.198.236.129', '0x3ec6ec81.inet.dsl.telianet.dk', true);
+  })
+  it('123.58.178.17', function (done) {
+    _check(done, '123.58.178.17', 'm17-178.vip.126.com', true);
+  })
+
+  it('100.42.67.92', function (done) {
+    _check(done, '100.42.67.92', '92-67-42-100-dedicated.multacom.com',
       true);
-  },
-  '101.0.57.5': function (test) {
-    _check(test, '101.0.57.5', 'static-bpipl-101.0.57-5.com', true);
+  })
+
+  it('101.0.57.5', function (done) {
+    _check(done, '101.0.57.5', 'static-bpipl-101.0.57-5.com', true);
+  })
+})
+
+function _same_ipv4_network (done, addr, addrList, expected) {
+  assert.equal(expected, net_utils.same_ipv4_network(addr, addrList));
+  done();
+}
+
+describe('same_ipv4_network', function () {
+  it('199.176.179.3 <-> [199.176.179.4]', function (done) {
+    _same_ipv4_network(done, '199.176.179.3', ['199.176.179.4'], true);
+  })
+
+  it('199.176.179.3 <-> [199.177.179.4', function (done) {
+    _same_ipv4_network(done, '199.176.179.3', ['199.177.179.4'], false);
+  })
+
+  it('199.176.179 <-> [199.176.179.4] (missing octet)', function (done) {
+    _same_ipv4_network(done, '199.176.179', ['199.176.179.4'], false);
+  })
+
+  it('199.176.179.3.5 <-> [199.176.179.4] (extra octet)', function (done) {
+    _same_ipv4_network(done, '199.176.179.3.5', ['199.176.179.4'], false);
+  })
+})
+
+describe('is_ipv4_literal', function () {
+  it('3 ways ', function (done) {
+    assert.equal(true,  net_utils.is_ipv4_literal('[127.0.0.1]'));
+    assert.equal(false, net_utils.is_ipv4_literal('127.0.0.1'));
+    assert.equal(false, net_utils.is_ipv4_literal('test.host'));
+    done();
+  })
+})
+
+function _is_private_ip (done, ip, expected) {
+  assert.equal(expected, net_utils.is_private_ip(ip));
+  done();
+}
+
+function _is_local_ip (done, ip, expected) {
+  assert.equal(expected, net_utils.is_local_ip(ip));
+  done();
+}
+
+describe('is_local_ip', function () {
+  it('127.0.0.1', function (done) {
+    _is_local_ip(done, '127.0.0.1', true);
+  })
+
+  it('::1', function (done) {
+    _is_local_ip(done, '::1', true);
+  })
+
+  it('0:0:0:0:0:0:0:1', function (done) {
+    _is_local_ip(done, '0:0:0:0:0:0:0:1', true);
+  })
+
+  it('0000:0000:0000:0000:0000:0000:0000:0001', function (done) {
+    _is_local_ip(done, '0000:0000:0000:0000:0000:0000:0000:0001', true);
+  })
+
+  it('123.123.123.123 (!)', function (done) {
+    _is_local_ip(done, '123.123.123.123', false);
+  })
+
+  it('dead::beef (!)', function (done) {
+    _is_local_ip(done, 'dead::beef', false);
+  })
+
+  it('192.168.1 (missing octet)', function (done) {
+    _is_local_ip(done, '192.168.1', false);
+  })
+
+  it('239.0.0.1 (multicast; not currently considered rfc1918)', function (done) {
+    _is_local_ip(done, '239.0.0.1', false);
+  })
+})
+
+describe('is_private_ip', function () {
+  it('127.0.0.1', function (done) {
+    _is_private_ip(done, '127.0.0.1', true);
+  })
+
+  it('10.255.31.23', function (done) {
+    _is_private_ip(done, '10.255.31.23', true);
+  })
+
+  it('172.16.255.254', function (done) {
+    _is_private_ip(done, '172.16.255.254', true);
+  })
+
+  it('192.168.123.123', function (done) {
+    _is_private_ip(done, '192.168.123.123', true);
+  })
+
+  it('169.254.23.54 (APIPA)', function (done) {
+    _is_private_ip(done, '169.254.23.54', true);
+  })
+
+  it('::1', function (done) {
+    _is_private_ip(done, '::1', true);
+  })
+
+  it('0:0:0:0:0:0:0:1', function (done) {
+    _is_private_ip(done, '0:0:0:0:0:0:0:1', true);
+  })
+
+  it('0000:0000:0000:0000:0000:0000:0000:0001', function (done) {
+    _is_private_ip(done, '0000:0000:0000:0000:0000:0000:0000:0001', true);
+  })
+
+  it('123.123.123.123', function (done) {
+    _is_private_ip(done, '123.123.123.123', false);
+  })
+
+  it('dead::beef', function (done) {
+    _is_private_ip(done, 'dead::beef', false);
+  })
+
+  it('192.168.1 (missing octet)', function (done) {
+    _is_private_ip(done, '192.168.1', false);
+  })
+
+  it('239.0.0.1 (multicast; not currently considered rfc1918)', function (done) {
+    _is_private_ip(done, '239.0.0.1', false);
+  })
+})
+
+describe('get_public_ip', function () {
+
+  beforeEach(function (done) {
+    this.net_utils = require('../index');
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
+    done();
+  })
+
+  function has_stun () {
+    try {
+      require('vs-stun');
+    }
+    catch (e) {
+      return false;
+    }
+    return true;
   }
-};
 
-function _same_ipv4_network (test, addr, addrList, expected) {
-  test.expect(1);
-  test.equals(expected, net_utils.same_ipv4_network(addr, addrList));
-  test.done();
-}
-
-exports.same_ipv4_network = {
-  '199.176.179.3 <-> [199.176.179.4]': function (test) {
-    _same_ipv4_network(test, '199.176.179.3', ['199.176.179.4'], true);
-  },
-  '199.176.179.3 <-> [199.177.179.4': function (test) {
-    _same_ipv4_network(test, '199.176.179.3', ['199.177.179.4'], false);
-  },
-
-  '199.176.179 <-> [199.176.179.4] (missing octet)': function (test) {
-    _same_ipv4_network(test, '199.176.179', ['199.176.179.4'], false);
-  },
-  '199.176.179.3.5 <-> [199.176.179.4] (extra octet)': function (test) {
-    _same_ipv4_network(test, '199.176.179.3.5', ['199.176.179.4'], false);
-  },
-};
-
-exports.is_ipv4_literal = {
-  '3 ways ': function (test) {
-    test.expect(3);
-    test.equal(true,  net_utils.is_ipv4_literal('[127.0.0.1]'));
-    test.equal(false, net_utils.is_ipv4_literal('127.0.0.1'));
-    test.equal(false, net_utils.is_ipv4_literal('test.host'));
-    test.done();
-  },
-};
-
-function _is_private_ip (test, ip, expected) {
-  test.expect(1);
-  test.equals(expected, net_utils.is_private_ip(ip));
-  test.done();
-}
-
-function _is_local_ip (test, ip, expected) {
-  test.expect(1);
-  test.equals(expected, net_utils.is_local_ip(ip));
-  test.done();
-}
-
-exports.is_local_ip = {
-  '127.0.0.1': function (test) {
-    _is_local_ip(test, '127.0.0.1', true);
-  },
-  '::1': function (test) {
-    _is_local_ip(test, '::1', true);
-  },
-  '0:0:0:0:0:0:0:1': function (test) {
-    _is_local_ip(test, '0:0:0:0:0:0:0:1', true);
-  },
-  '0000:0000:0000:0000:0000:0000:0000:0001': function (test) {
-    _is_local_ip(test, '0000:0000:0000:0000:0000:0000:0000:0001', true);
-  },
-  '123.123.123.123 (!)': function (test) {
-    _is_local_ip(test, '123.123.123.123', false);
-  },
-  'dead::beef (!)': function (test) {
-    _is_local_ip(test, 'dead::beef', false);
-  },
-  '192.168.1 (missing octet)': function (test) {
-    _is_local_ip(test, '192.168.1', false);
-  },
-  '239.0.0.1 (multicast; not currently considered rfc1918)': function (test) {
-    _is_local_ip(test, '239.0.0.1', false);
-  },
-}
-
-exports.is_private_ip = {
-  '127.0.0.1': function (test) {
-    _is_private_ip(test, '127.0.0.1', true);
-  },
-  '10.255.31.23': function (test) {
-    _is_private_ip(test, '10.255.31.23', true);
-  },
-  '172.16.255.254': function (test) {
-    _is_private_ip(test, '172.16.255.254', true);
-  },
-  '192.168.123.123': function (test) {
-    _is_private_ip(test, '192.168.123.123', true);
-  },
-  '169.254.23.54 (APIPA)': function (test) {
-    _is_private_ip(test, '169.254.23.54', true);
-  },
-  '::1': function (test) {
-    _is_private_ip(test, '::1', true);
-  },
-  '0:0:0:0:0:0:0:1': function (test) {
-    _is_private_ip(test, '0:0:0:0:0:0:0:1', true);
-  },
-  '0000:0000:0000:0000:0000:0000:0000:0001': function (test) {
-    _is_private_ip(test, '0000:0000:0000:0000:0000:0000:0000:0001', true);
-  },
-  '123.123.123.123': function (test) {
-    _is_private_ip(test, '123.123.123.123', false);
-  },
-  'dead::beef': function (test) {
-    _is_private_ip(test, 'dead::beef', false);
-  },
-  '192.168.1 (missing octet)': function (test) {
-    _is_private_ip(test, '192.168.1', false);
-  },
-  '239.0.0.1 (multicast; not currently considered rfc1918)': function (test) {
-    _is_private_ip(test, '239.0.0.1', false);
-  },
-}
-
-exports.get_public_ip = {
-  setUp: setUp,
-  'cached': function (test) {
-    test.expect(2);
+  it('cached', function (done) {
     this.net_utils.public_ip='1.1.1.1';
     const cb = function (err, ip) {
-      test.equal(null, err);
-      test.equal('1.1.1.1', ip);
-      test.done();
+      assert.equal(null, err);
+      assert.equal('1.1.1.1', ip);
+      done();
     };
     this.net_utils.get_public_ip(cb);
-  },
-  'normal': function (test) {
+  })
+
+  it('normal', function (done) {
     this.net_utils.public_ip=undefined;
     const cb = function (err, ip) {
       // console.log(`ip: ${ip}`);
@@ -185,163 +212,145 @@ exports.get_public_ip = {
       if (has_stun()) {
         if (err) {
           console.log(err);
-          test.expect(0);
         }
         else {
           console.log(`stun success: ${ip}`);
-          test.expect(2);
-          test.equal(null, err);
-          test.ok(ip, ip);
+          assert.equal(null, err);
+          assert.ok(ip, ip);
         }
       }
       else {
         console.log("stun skipped");
-        test.expect(0);
       }
-      test.done();
+      done();
     };
     this.net_utils.get_public_ip(cb);
-  },
-};
+  })
+})
 
-function has_stun () {
-  try {
-    require('vs-stun');
-  }
-  catch (e) {
-    return false;
-  }
-  return true;
-}
-
-exports.octets_in_string = {
-  'c-24-18-98-14.hsd1.wa.comcast.net': function (test) {
+describe('octets_in_string', function () {
+  it('c-24-18-98-14.hsd1.wa.comcast.net', function (done) {
     const str = 'c-24-18-98-14.hsd1.wa.comcast.net';
-    test.expect(3);
-    test.equal(net_utils.octets_in_string(str, 98, 14), true );
-    test.equal(net_utils.octets_in_string(str, 24, 18), true );
-    test.equal(net_utils.octets_in_string(str, 2, 7), false );
-    test.done();
-  },
-  '149.213.210.203.in-addr.arpa': function (test) {
+    assert.equal(net_utils.octets_in_string(str, 98, 14), true );
+    assert.equal(net_utils.octets_in_string(str, 24, 18), true );
+    assert.equal(net_utils.octets_in_string(str, 2, 7), false );
+    done();
+  })
+
+  it('149.213.210.203.in-addr.arpa', function (done) {
     const str = '149.213.210.203.in-addr.arpa';
-    test.expect(3);
-    test.equal(net_utils.octets_in_string(str, 149, 213), true );
-    test.equal(net_utils.octets_in_string(str, 210, 20), true );
-    test.equal(net_utils.octets_in_string(str, 2, 7), false );
-    test.done();
-  }
-};
+    assert.equal(net_utils.octets_in_string(str, 149, 213), true );
+    assert.equal(net_utils.octets_in_string(str, 210, 20), true );
+    assert.equal(net_utils.octets_in_string(str, 2, 7), false );
+    done();
+  })
+})
 
-exports.is_ip_literal = {
-  'ipv4 is_ip_literal': function (test) {
-    test.expect(6);
-    test.equal(net_utils.is_ip_literal('[127.0.0.0]'), true);
-    test.equal(net_utils.is_ip_literal('[127.0.0.1]'), true);
-    test.equal(net_utils.is_ip_literal('[127.1.0.255]'), true);
-    test.equal(net_utils.is_ip_literal('127.0.0.0'), false);
-    test.equal(net_utils.is_ip_literal('127.0.0.1'), false);
-    test.equal(net_utils.is_ip_literal('127.1.0.255'), false);
+describe('is_ip_literal', function () {
+  it('ipv4 is_ip_literal', function (done) {
+    assert.equal(net_utils.is_ip_literal('[127.0.0.0]'), true);
+    assert.equal(net_utils.is_ip_literal('[127.0.0.1]'), true);
+    assert.equal(net_utils.is_ip_literal('[127.1.0.255]'), true);
+    assert.equal(net_utils.is_ip_literal('127.0.0.0'), false);
+    assert.equal(net_utils.is_ip_literal('127.0.0.1'), false);
+    assert.equal(net_utils.is_ip_literal('127.1.0.255'), false);
 
-    test.done();
-  },
-  'ipv6 is_ip_literal': function (test) {
-    test.expect(7);
-    test.equal(net_utils.is_ip_literal('[::5555:6666:7777:8888]'), true);
-    test.equal(net_utils.is_ip_literal('[1111::4444:5555:6666:7777:8888]'), true);
-    test.equal(net_utils.is_ip_literal('[2001:0:1234::C1C0:ABCD:876]'), true);
-    test.equal(net_utils.is_ip_literal('[IPv6:2607:fb90:4c28:f9e9:4ca2:2658:db85:f1a]'), true);
-    test.equal(net_utils.is_ip_literal('::5555:6666:7777:8888'), false);
-    test.equal(net_utils.is_ip_literal('1111::4444:5555:6666:7777:8888'), false);
-    test.equal(net_utils.is_ip_literal('2001:0:1234::C1C0:ABCD:876'), false);
+    done();
+  })
 
-    test.done();
-  }
-};
+  it('ipv6 is_ip_literal', function (done) {
+    assert.equal(net_utils.is_ip_literal('[::5555:6666:7777:8888]'), true);
+    assert.equal(net_utils.is_ip_literal('[1111::4444:5555:6666:7777:8888]'), true);
+    assert.equal(net_utils.is_ip_literal('[2001:0:1234::C1C0:ABCD:876]'), true);
+    assert.equal(net_utils.is_ip_literal('[IPv6:2607:fb90:4c28:f9e9:4ca2:2658:db85:f1a]'), true);
+    assert.equal(net_utils.is_ip_literal('::5555:6666:7777:8888'), false);
+    assert.equal(net_utils.is_ip_literal('1111::4444:5555:6666:7777:8888'), false);
+    assert.equal(net_utils.is_ip_literal('2001:0:1234::C1C0:ABCD:876'), false);
 
-exports.is_local_ipv4 = {
-  '127/8': function (test) {
-    test.expect(3);
-    test.equal(net_utils.is_local_ipv4('127.0.0.0'), true);
-    test.equal(net_utils.is_local_ipv4('127.0.0.1'), true);
-    test.equal(net_utils.is_local_ipv4('127.1.0.255'), true);
+    done();
+  })
+})
 
-    test.done();
-  },
-  '0/8': function (test) {
-    test.expect(4);
-    test.equal(net_utils.is_local_ipv4('0.0.0.1'), false);
-    test.equal(net_utils.is_local_ipv4('0.255.0.1'), false);
-    test.equal(net_utils.is_local_ipv4('1.255.0.1'), false);
-    test.equal(net_utils.is_local_ipv4('10.255.0.1'), false);
-    test.done();
-  },
-};
+describe('is_local_ipv4', function () {
+  it('127/8', function (done) {
+    assert.equal(net_utils.is_local_ipv4('127.0.0.0'), true);
+    assert.equal(net_utils.is_local_ipv4('127.0.0.1'), true);
+    assert.equal(net_utils.is_local_ipv4('127.1.0.255'), true);
 
-exports.is_private_ipv4 = {
-  '10/8': function (test) {
-    test.expect(4);
-    test.equal(net_utils.is_private_ipv4('10.0.0.0'), true);
-    test.equal(net_utils.is_private_ipv4('10.255.0.0'), true);
-    test.equal(net_utils.is_private_ipv4('9.255.0.0'), false);
-    test.equal(net_utils.is_private_ipv4('11.255.0.0'), false);
-    test.done();
-  },
-  '192.168/16': function (test) {
-    test.expect(3);
-    test.equal(net_utils.is_private_ipv4('192.168.0.0'), true);
-    test.equal(net_utils.is_private_ipv4('192.169.0.0'), false);
-    test.equal(net_utils.is_private_ipv4('192.167.0.0'), false);
-    test.done();
-  },
-  '172.16-31': function (test) {
-    test.expect(5);
-    test.equal(net_utils.is_private_ipv4('172.16.0.0'), true);
-    test.equal(net_utils.is_private_ipv4('172.20.0.0'), true);
-    test.equal(net_utils.is_private_ipv4('172.31.0.0'), true);
-    test.equal(net_utils.is_private_ipv4('172.15.0.0'), false);
-    test.equal(net_utils.is_private_ipv4('172.32.0.0'), false);
-    test.done();
-  },
-};
+    done();
+  })
 
-exports.is_local_ipv6 = {
-  '::1': function (test) {
-    test.expect(3);
-    test.equal(net_utils.is_local_ipv6('::1'), true);
-    test.equal(net_utils.is_local_ipv6('0:0:0:0:0:0:0:1'), true);
-    test.equal(net_utils.is_local_ipv6(
+  it('0/8', function (done) {
+    assert.equal(net_utils.is_local_ipv4('0.0.0.1'), false);
+    assert.equal(net_utils.is_local_ipv4('0.255.0.1'), false);
+    assert.equal(net_utils.is_local_ipv4('1.255.0.1'), false);
+    assert.equal(net_utils.is_local_ipv4('10.255.0.1'), false);
+    done();
+  })
+})
+
+describe('is_private_ipv4', function () {
+  it('10/8', function (done) {
+    assert.equal(net_utils.is_private_ipv4('10.0.0.0'), true);
+    assert.equal(net_utils.is_private_ipv4('10.255.0.0'), true);
+    assert.equal(net_utils.is_private_ipv4('9.255.0.0'), false);
+    assert.equal(net_utils.is_private_ipv4('11.255.0.0'), false);
+    done();
+  })
+
+  it('192.168/16', function (done) {
+    assert.equal(net_utils.is_private_ipv4('192.168.0.0'), true);
+    assert.equal(net_utils.is_private_ipv4('192.169.0.0'), false);
+    assert.equal(net_utils.is_private_ipv4('192.167.0.0'), false);
+    done();
+  })
+
+  it('172.16-31', function (done) {
+    assert.equal(net_utils.is_private_ipv4('172.16.0.0'), true);
+    assert.equal(net_utils.is_private_ipv4('172.20.0.0'), true);
+    assert.equal(net_utils.is_private_ipv4('172.31.0.0'), true);
+    assert.equal(net_utils.is_private_ipv4('172.15.0.0'), false);
+    assert.equal(net_utils.is_private_ipv4('172.32.0.0'), false);
+    done();
+  })
+})
+
+describe('is_local_ipv6', function () {
+  it('::1', function (done) {
+    assert.equal(net_utils.is_local_ipv6('::1'), true);
+    assert.equal(net_utils.is_local_ipv6('0:0:0:0:0:0:0:1'), true);
+    assert.equal(net_utils.is_local_ipv6(
       '0000:0000:0000:0000:0000:0000:0000:0001'), true);
-    test.done();
-  },
-  'fe80::/10': function (test) {
-    test.expect(4);
-    test.equal(net_utils.is_local_ipv6('fe80::'), true);
-    test.equal(net_utils.is_local_ipv6('fe80:'), false);
-    test.equal(net_utils.is_local_ipv6('fe8:'), false);
-    test.equal(net_utils.is_local_ipv6(':fe80:'), false);
-    test.done();
-  },
-  'fc80::/7': function (test) {
-    test.expect(10);
-    test.equal(net_utils.is_local_ipv6('fc00:'), true);
-    test.equal(net_utils.is_local_ipv6('fcff:'), true);
+    done();
+  })
+
+  it('fe80::/10', function (done) {
+    assert.equal(net_utils.is_local_ipv6('fe80::'), true);
+    assert.equal(net_utils.is_local_ipv6('fe80:'), false);
+    assert.equal(net_utils.is_local_ipv6('fe8:'), false);
+    assert.equal(net_utils.is_local_ipv6(':fe80:'), false);
+    done();
+  })
+
+  it('fc80::/7', function (done) {
+    assert.equal(net_utils.is_local_ipv6('fc00:'), true);
+    assert.equal(net_utils.is_local_ipv6('fcff:'), true);
 
     // examples from https://en.wikipedia.org/wiki/Unique_local_address
-    test.equal(net_utils.is_local_ipv6('fde4:8dba:82e1::'), true);
-    test.equal(net_utils.is_local_ipv6('fde4:8dba:82e1:ffff::'), true);
+    assert.equal(net_utils.is_local_ipv6('fde4:8dba:82e1::'), true);
+    assert.equal(net_utils.is_local_ipv6('fde4:8dba:82e1:ffff::'), true);
 
-    test.equal(net_utils.is_local_ipv6('fd00:'), true);
-    test.equal(net_utils.is_local_ipv6('fdff:'), true);
+    assert.equal(net_utils.is_local_ipv6('fd00:'), true);
+    assert.equal(net_utils.is_local_ipv6('fdff:'), true);
 
-    test.equal(net_utils.is_local_ipv6('fb00:'), false);
-    test.equal(net_utils.is_local_ipv6('fe00:'), false);
+    assert.equal(net_utils.is_local_ipv6('fb00:'), false);
+    assert.equal(net_utils.is_local_ipv6('fe00:'), false);
 
-    test.equal(net_utils.is_local_ipv6('fe8:'), false);
-    test.equal(net_utils.is_local_ipv6(':fe80:'), false);
-    test.done();
-  },
-};
+    assert.equal(net_utils.is_local_ipv6('fe8:'), false);
+    assert.equal(net_utils.is_local_ipv6(':fe80:'), false);
+    done();
+  })
+})
 
 const ip_fixtures = [
   [false , " 2001:0000:1234:0000:0000:C1C0:ABCD:0876  "],
@@ -835,201 +844,217 @@ const ip_fixtures = [
   [true , "ff02::1"]
 ];
 
-exports.get_ipany_re = {
-  'IPv6, Prefix': function (test) {
-    /* for x-*-ip headers */
-    test.expect(2);
+describe('get_ipany_re', function () {
+  it('IPv6, Prefix', function (done) {
+    // for x-*-ip headers
     // it must fail as of not valide
-    test.ok(!net.isIPv6('IPv6:2001:db8:85a3::8a2e:370:7334'));
+    assert.ok(!net.isIPv6('IPv6:2001:db8:85a3::8a2e:370:7334'));
     // must okay!
-    test.ok(net.isIPv6('2001:db8:85a3::8a2e:370:7334'));
-    test.done();
-  },
-  'IP fixtures check': function (test) {
-    test.expect(ip_fixtures.length);
+    assert.ok(net.isIPv6('2001:db8:85a3::8a2e:370:7334'));
+    done();
+  })
+
+  it('IP fixtures check', function (done) {
     for (const i in ip_fixtures) {
       const match = net_utils.get_ipany_re('^','$').test(ip_fixtures[i][1]);
       // console.log('IP:', `'${ip_fixtures[i][1]}'` , 'Expected:', ip_fixtures[i][0] , 'Match:' , match);
-      test.ok((match===ip_fixtures[i][0]), `${ip_fixtures[i][1]} - Expected: ${ip_fixtures[i][0]} - Match: ${match}`);
+      assert.ok((match===ip_fixtures[i][0]), `${ip_fixtures[i][1]} - Expected: ${ip_fixtures[i][0]} - Match: ${match}`);
     }
-    test.done();
-  },
-  'IPv4, bare': function (test) {
-    /* for x-*-ip headers */
-    test.expect(2);
+    done();
+  })
+
+  it('IPv4, bare', function (done) {
+    // for x-*-ip headers
     const match = net_utils.get_ipany_re().exec('127.0.0.1');
-    test.equal(match[1], '127.0.0.1');
-    test.equal(match.length, 2);
-    test.done();
-  },
-  'IPv4, Received header, parens': function (test) {
-    test.expect(2);
+    assert.equal(match[1], '127.0.0.1');
+    assert.equal(match.length, 2);
+    done();
+  })
+
+  it('IPv4, Received header, parens', function (done) {
     const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
     const match = received_re.exec('Received: from unknown (HELO mail.theartfarm.com) (127.0.0.30) by mail.theartfarm.com with SMTP; 5 Sep 2015 14:29:00 -0000');
-    test.equal(match[1], '127.0.0.30');
-    test.equal(match.length, 2);
-    test.done();
-  },
-  'IPv4, Received header, bracketed, expedia': function (test) {
-    test.expect(2);
+    assert.equal(match[1], '127.0.0.30');
+    assert.equal(match.length, 2);
+    done();
+  })
+
+  it('IPv4, Received header, bracketed, expedia', function (done) {
     const received_header = 'Received: from mta2.expediamail.com (mta2.expediamail.com [66.231.89.19]) by mail.theartfarm.com (Haraka/2.6.2-toaster) with ESMTPS id C669CF18-1C1C-484C-8A5B-A89088B048CB.1 envelope-from <bounce-857_HTML-202764435-1098240-260085-60@bounce.global.expediamail.com> (version=TLSv1/SSLv3 cipher=AES256-SHA verify=NO); Sat, 05 Sep 2015 07:28:57 -0700';
     const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
     const match = received_re.exec(received_header);
-    test.equal(match[1], '66.231.89.19');
-    test.equal(match.length, 2);
-    test.done();
-  },
-  'IPv4, Received header, bracketed, github': function (test) {
-    test.expect(2);
+    assert.equal(match[1], '66.231.89.19');
+    assert.equal(match.length, 2);
+    done();
+  })
+
+  it('IPv4, Received header, bracketed, github', function (done) {
     const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
     const match = received_re.exec('Received: from github-smtp2a-ext-cp1-prd.iad.github.net (github-smtp2-ext5.iad.github.net [192.30.252.196])');
-    test.equal(match[1], '192.30.252.196');
-    test.equal(match.length, 2);
-    test.done();
-  },
-  'IPv6, Received header, bracketed': function (test) {
-    test.expect(2);
+    assert.equal(match[1], '192.30.252.196');
+    assert.equal(match.length, 2);
+    done();
+  })
+
+  it('IPv6, Received header, bracketed', function (done) {
     const received_header = 'Received: from ?IPv6:2601:184:c001:5cf7:a53f:baf7:aaf3:bce7? ([2601:184:c001:5cf7:a53f:baf7:aaf3:bce7])';
     const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]');
     const match = received_re.exec(received_header);
-    test.equal(match[1], '2601:184:c001:5cf7:a53f:baf7:aaf3:bce7');
-    test.equal(match.length, 2);
-    test.done();
-  },
-  'IPv6, Received header, bracketed, IPv6 prefix': function (test) {
-    test.expect(2);
+    assert.equal(match[1], '2601:184:c001:5cf7:a53f:baf7:aaf3:bce7');
+    assert.equal(match.length, 2);
+    done();
+  })
+
+  it('IPv6, Received header, bracketed, IPv6 prefix', function (done) {
     const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
     const match = received_re.exec('Received: from hub.freebsd.org (hub.freebsd.org [IPv6:2001:1900:2254:206c::16:88])');
-    test.equal(match[1], '2001:1900:2254:206c::16:88');
-    test.equal(match.length, 2);
-    test.done();
-  },
-  'IPv6, folded Received header, bracketed, IPv6 prefix': function (test) {
-    test.expect(2);
-    /* note the use of [\s\S], '.' doesn't match newlines in JS regexp */
+    assert.equal(match[1], '2001:1900:2254:206c::16:88');
+    assert.equal(match.length, 2);
+    done();
+  })
+
+  it('IPv6, folded Received header, bracketed, IPv6 prefix', function (done) {
+    // note the use of [\s\S], '.' doesn't match newlines in JS regexp
     const received_re = net_utils.get_ipany_re('^Received:[\\s\\S]*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
     const match = received_re.exec('Received: from freefall.freebsd.org (freefall.freebsd.org\r\n [IPv6:2001:1900:2254:206c::16:87])');
     if (match) {
-      test.equal(match[1], '2001:1900:2254:206c::16:87');
-      test.equal(match.length, 2);
+      assert.equal(match[1], '2001:1900:2254:206c::16:87');
+      assert.equal(match.length, 2);
     }
-    test.done();
-  },
-  'IPv6, Received header, bracketed, IPv6 prefix, localhost compressed': function (test) {
-    test.expect(2);
+    done();
+  })
+
+  it('IPv6, Received header, bracketed, IPv6 prefix, localhost compressed', function (done) {
     const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(](?:IPv6:)?', '[\\]\\)]');
     const match = received_re.exec('Received: from ietfa.amsl.com (localhost [IPv6:::1])');
-    test.equal(match[1], '::1');
-    test.equal(match.length, 2);
-    test.done();
-  },
-  'IPv6 bogus': function (test) {
-    test.expect(1);
-    const is_bogus = net_utils.ipv6_bogus('::192.41.13.251'); // From https://github.com/haraka/Haraka/issues/2763
-    test.equal(is_bogus, true);
-    test.done();
-  }
-};
+    assert.equal(match[1], '::1');
+    assert.equal(match.length, 2);
+    done();
+  })
 
-exports.get_ips_by_host = {
-  'get_ips_by_host, servedby.tnpi.net': function (test) {
-    test.expect(2);
+  it('IPv6 bogus', function (done) {
+    const is_bogus = net_utils.ipv6_bogus('::192.41.13.251'); // From https://github.com/haraka/Haraka/issues/2763
+    assert.equal(is_bogus, true);
+    done();
+  })
+})
+
+describe('get_ips_by_host', function () {
+  it('get_ips_by_host, servedby.tnpi.net', function (done) {
     net_utils.get_ips_by_host('servedby.tnpi.net', function (err, res) {
       // console.log(arguments);
       if (err && err.length) {
         console.error(err);
       }
-      test.deepEqual(err, []);
-      test.deepEqual(res.sort(), [
+      assert.deepEqual(err, []);
+      assert.deepEqual(res.sort(), [
         '192.48.85.146',
         '192.48.85.147',
         '192.48.85.148',
         '192.48.85.149',
         '2607:f060:b008:feed::2'
       ].sort());
-      test.done();
+      done();
     });
-  },
-};
+  })
+})
 
-function _check_list (test, list, ip, res) {
-  test.expect(1);
-  test.equals(net_utils.ip_in_list(list, ip), res);
-  test.done();
+function _check_list (done, list, ip, res) {
+  assert.equal(net_utils.ip_in_list(list, ip), res);
+  done();
 }
 
-exports.ip_in_list = {
-  'domain.com': function (test) {
-    _check_list(test, { 'domain.com': undefined }, 'domain.com', true);
-  },
-  'foo.com': function (test) {
-    _check_list(test, { }, 'foo.com', false);
-  },
-  '1.2.3.4': function (test) {
-    _check_list(test, { '1.2.3.4': undefined }, '1.2.3.4', true);
-  },
-  '1.2.3.4/32': function (test) {
-    _check_list(test, { '1.2.3.4/32': undefined }, '1.2.3.4', true);
-  },
-  '1.2.0.0/16 <-> 1.2.3.4': function (test) {
-    _check_list(test, { '1.2.0.0/16': undefined }, '1.2.3.4', true);
-  },
-  '1.2.0.0/16 <-> 5.6.7.8': function (test) {
-    _check_list(test, { '1.2.0.0/16': undefined }, '5.6.7.8', false);
-  },
-  '0000:0000:0000:0000:0000:0000:0000:0001': function (test) {
-    _check_list(test, { '0000:0000:0000:0000:0000:0000:0000:0001': undefined }, '0000:0000:0000:0000:0000:0000:0000:0001', true);
-  },
-  '0:0:0:0:0:0:0:1': function (test) {
-    _check_list(test, { '0:0:0:0:0:0:0:1': undefined }, '0000:0000:0000:0000:0000:0000:0000:0001', true);
-  },
-  '1.2 (bad config)': function (test) {
-    _check_list(test, { '1.2': undefined }, '1.2.3.4', false);
-  },
-  '1.2.3.4/ (mask ignored)': function (test) {
-    _check_list(test, { '1.2.3.4/': undefined }, '1.2.3.4', true);
-  },
-  '1.2.3.4/gr (mask ignored)': function (test) {
-    _check_list(test, { '1.2.3.4/gr': undefined }, '1.2.3.4', true);
-  },
-  '1.2.3.4/400 (mask read as 400 bits)': function (test) {
-    _check_list(test, { '1.2.3.4/400': undefined }, '1.2.3.4', true);
-  }
-};
+describe('ip_in_list', function () {
+  it('domain.com', function (done) {
+    _check_list(done, { 'domain.com': undefined }, 'domain.com', true);
+  })
 
-exports.get_primary_host_name = {
-  setUp: setUp,
-  'with me config': function (test) {
-    test.expect(1);
-    test.equals(this.net_utils.get_primary_host_name(), 'test-hostname');
-    test.done();
-  },
-  'without me config': function (test) {
+  it('foo.com', function (done) {
+    _check_list(done, { }, 'foo.com', false);
+  })
+
+  it('1.2.3.4', function (done) {
+    _check_list(done, { '1.2.3.4': undefined }, '1.2.3.4', true);
+  })
+
+  it('1.2.3.4/32', function (done) {
+    _check_list(done, { '1.2.3.4/32': undefined }, '1.2.3.4', true);
+  })
+
+  it('1.2.0.0/16 <-> 1.2.3.4', function (done) {
+    _check_list(done, { '1.2.0.0/16': undefined }, '1.2.3.4', true);
+  })
+
+  it('1.2.0.0/16 <-> 5.6.7.8', function (done) {
+    _check_list(done, { '1.2.0.0/16': undefined }, '5.6.7.8', false);
+  })
+
+  it('0000:0000:0000:0000:0000:0000:0000:0001', function (done) {
+    _check_list(done, { '0000:0000:0000:0000:0000:0000:0000:0001': undefined }, '0000:0000:0000:0000:0000:0000:0000:0001', true);
+  })
+
+  it('0:0:0:0:0:0:0:1', function (done) {
+    _check_list(done, { '0:0:0:0:0:0:0:1': undefined }, '0000:0000:0000:0000:0000:0000:0000:0001', true);
+  })
+
+  it('1.2 (bad config)', function (done) {
+    _check_list(done, { '1.2': undefined }, '1.2.3.4', false);
+  })
+
+  it('1.2.3.4/ (mask ignored)', function (done) {
+    _check_list(done, { '1.2.3.4/': undefined }, '1.2.3.4', true);
+  })
+
+  it('1.2.3.4/gr (mask ignored)', function (done) {
+    _check_list(done, { '1.2.3.4/gr': undefined }, '1.2.3.4', true);
+  })
+
+  it('1.2.3.4/400 (mask read as 400 bits)', function (done) {
+    _check_list(done, { '1.2.3.4/400': undefined }, '1.2.3.4', true);
+  })
+})
+
+describe('get_primary_host_name', function () {
+  beforeEach(function (done) {
+    this.net_utils = require('../index');
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
+    done();
+  })
+
+  it('with me config', function (done) {
+    assert.equal(this.net_utils.get_primary_host_name(), 'test-hostname');
+    done();
+  })
+
+  it('without me config', function (done) {
     this.net_utils.config = this.net_utils.config.module_config(path.resolve('doesnt-exist'));
-    test.expect(1);
-    test.equals(this.net_utils.get_primary_host_name(), os.hostname());
-    test.done();
-  }
-}
+    assert.equal(this.net_utils.get_primary_host_name(), os.hostname());
+    done();
+  })
+})
 
-exports.on_local_interface = {
-  setUp: setUp,
-  'localhost 127.0.0.1': function (test) {
-    test.expect(1);
-    test.equals(this.net_utils.on_local_interface('127.0.0.1'), true);
-    test.done();
-  },
-  'multicast 1.1.1.1': function (test) {
-    test.expect(1);
-    test.equals(this.net_utils.on_local_interface('1.1.1.1'), false);
-    test.done();
-  },
-  'ipv6 localhost ::1': function (test) {
+describe('on_local_interface', function () {
+  beforeEach(function (done) {
+    this.net_utils = require('../index');
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
+    done();
+  })
+
+  it('localhost 127.0.0.1', function (done) {
+    assert.equal(this.net_utils.on_local_interface('127.0.0.1'), true);
+    done();
+  })
+
+  it('multicast 1.1.1.1', function (done) {
+    assert.equal(this.net_utils.on_local_interface('1.1.1.1'), false);
+    done();
+  })
+
+  it('ipv6 localhost ::1', function (done) {
     const r = this.net_utils.on_local_interface('::1');
     if (r) {
-      test.expect(1);
-      test.equals(r, true);
+      assert.equal(r, true);
     }
-    test.done();
-  },
-}
+    done();
+  })
+})
