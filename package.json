@@ -1,10 +1,10 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
-    "test": "node run_tests",
+    "test": "npx mocha",
     "lint": "node node_modules/.bin/eslint *.js test",
     "lintfix": "node node_modules/.bin/eslint --fix *.js test",
     "cover": "node node_modules/.bin/istanbul cover ./run_tests"
@@ -27,7 +27,7 @@
   "homepage": "https://github.com/haraka/haraka-net-utils#readme",
   "devDependencies": {
     "eslint": "*",
-    "nodeunit": "*",
+    "mocha": "*",
     "eslint-plugin-haraka": "*"
   },
   "dependencies": {
