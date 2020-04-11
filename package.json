@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "npx mocha",
-    "lint": "node node_modules/.bin/eslint *.js test",
-    "lintfix": "node node_modules/.bin/eslint --fix *.js test",
-    "cover": "node node_modules/.bin/istanbul cover ./run_tests"
+    "lint": "npx eslint *.js test",
+    "lintfix": "npx eslint --fix *.js test",
+    "cover": "NODE_ENV=cov npx nyc --reporter=lcovonly -x tests npm run test"
   },
   "repository": {
     "type": "git",
