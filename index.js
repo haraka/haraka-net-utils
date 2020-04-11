@@ -344,9 +344,16 @@ exports.ipv6_reverse = function (ipv6) {
 }
 
 exports.ipv6_bogus = function (ipv6){
-  const ipCheck = ipaddr.parse(ipv6);
-  if (ipCheck.range() !== 'unicast') { return true; }
-  return false;
+  try {
+    const ipCheck = ipaddr.parse(ipv6);
+    if (ipCheck.range() !== 'unicast') { return true; }
+    return false;
+  }
+  catch (e) {
+    // If we get an error from parsing, return true for bogus.
+    console.error(e);
+    return true;
+  }
 }
 
 exports.ip_in_list = function (list, ip) {

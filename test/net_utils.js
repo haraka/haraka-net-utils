@@ -931,6 +931,12 @@ describe('get_ipany_re', function () {
     assert.equal(match.length, 2);
     done();
   })
+
+  it('IPv6 bogus', function (test) {
+    const is_bogus = net_utils.ipv6_bogus('::192.41.13.251'); // From https://github.com/haraka/Haraka/issues/2763
+    assert.equal(is_bogus, true);
+    done();
+  })
 })
 
 describe('get_ips_by_host', function () {
