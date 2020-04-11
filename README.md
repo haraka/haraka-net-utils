@@ -73,8 +73,8 @@ Checks to see if an IP is bound locally or an IPv4 or IPv6 localhost address.
     net_utils.ip_in_list(tls.no_tls_hosts, '127.0.0.5');
 
 
-[ci-img]: 
-[ci-win-img]: 
+[ci-img]: https://github.com/haraka/haraka-net-utils/workflows/CI%20Linux/badge.svg
+[ci-win-img]: https://github.com/haraka/haraka-net-utils/workflows/CI%20Windows/badge.svg
 [cov-img]: https://codecov.io/github/haraka/haraka-net-utils/coverage.svg
 [cov-url]: https://codecov.io/github/haraka/haraka-net-utils
 [clim-img]: https://codeclimate.com/github/haraka/haraka-net-utils/badges/gpa.svg
