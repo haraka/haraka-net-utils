@@ -1,4 +1,8 @@
 
+### 1.1.6 - 2020-06-23
+
+- added get_mx
+
 ### 1.1.5 - 2020-04-11
 
 - ipv6_bogus: handle parsing broken ipv6 addresses #49

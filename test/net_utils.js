@@ -1058,3 +1058,43 @@ describe('on_local_interface', function () {
     done();
   })
 })
+
+describe.only('get_mx', function () {
+  beforeEach(function (done) {
+    this.net_utils = require('../index');
+    done();
+  })
+
+  it('gets MX records for a domain', function (done) {
+    this.net_utils.get_mx('tnpi.net', (err, mxlist) => {
+      assert.ifError(err);
+      assert.ok(mxlist.length);
+      assert.equal(mxlist[0].exchange, 'mail.theartfarm.com');
+      done();
+    })
+  })
+
+  it('gets MX records for an email address', function (done) {
+    this.net_utils.get_mx('matt@tnpi.net', (err, mxlist) => {
+      assert.ifError(err);
+      assert.ok(mxlist.length);
+      done();
+    })
+  })
+
+  it('gets MX records for example.com', function (done) {
+    this.net_utils.get_mx('example.com', (err, mxlist) => {
+      assert.equal(mxlist.length, 1);
+      assert.equal(mxlist[0].exchange, '');
+      done();
+    })
+  })
+
+  it('gets an IP (no MX) for mail-toaster.org', function (done) {
+    this.net_utils.get_mx('mail-toaster.org', (err, mxlist) => {
+      assert.equal(mxlist.length, 1);
+      assert.equal(mxlist[0].exchange, '66.128.51.170');
+      done();
+    })
+  })
+})
