@@ -21,6 +21,9 @@
   ],
   "author": "Matt Simerson <matt@tnpi.net>",
   "license": "MIT",
+  "engines": {
+    "node": ">= v10.21.0"
+  },
   "bugs": {
     "url": "https://github.com/haraka/haraka-net-utils/issues"
   },
