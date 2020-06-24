@@ -72,6 +72,15 @@ Checks to see if an IP is bound locally or an IPv4 or IPv6 localhost address.
     net_utils.ip_in_list(object, ip);
     net_utils.ip_in_list(tls.no_tls_hosts, '127.0.0.5');
 
+### get_mx
+
+    net_utils.get_mx(domain, (err, mxList) => {
+        if (err)  // handle any errors
+        for (const mx of mxList) {
+            // do something with each mx
+        }
+    })
+
 
 [ci-img]: https://github.com/haraka/haraka-net-utils/workflows/CI%20Linux/badge.svg
 [ci-win-img]: https://github.com/haraka/haraka-net-utils/workflows/CI%20Windows/badge.svg
