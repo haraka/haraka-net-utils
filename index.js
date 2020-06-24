@@ -382,67 +382,9 @@ exports.ip_in_list = function (list, ip) {
   return false;
 }
 
-// deprecated, moved to Haraka/tls_socket, but
-// Haraka versions < 2.8.17 require this to be here.
-exports.load_tls_ini = function (cb) {
-
-  const cfg = exports.config.get('tls.ini', {
-    booleans: [
-      '-redis.disable_for_failed_hosts',
-
-      // wildcards match in any section and are not initialized
-      '*.requestCert',
-      '*.rejectUnauthorized',
-      '*.honorCipherOrder',
-      '*.enableOCSPStapling',
-      '*.enableSNI',
-
-      // explicitely declared booleans are initialized
-      '+main.requestCert',
-      '-main.rejectUnauthorized',
-      '-main.honorCipherOrder',
-      '-main.enableOCSPStapling',
-      '-main.enableSNI',
-    ]
-  }, cb);
-
-  if (!cfg.no_tls_hosts) cfg.no_tls_hosts = {};
-
-  exports.tlsCfg = cfg;
-  return cfg;
-}
-
-// deprecated, moved to Haraka/tls_socket, but
-// Haraka 2.8.16 requires this to be here.
-exports.tls_ini_section_with_defaults = function (section) {
-  if (exports.tlsCfg === undefined) exports.load_tls_ini();
-
-  const inheritable_opts = [
-    'key', 'cert', 'ciphers', 'dhparam',
-    'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
-  ];
-
-  if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
-
-  const cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
-
-  for (const opt of inheritable_opts) {
-    if (cfg[opt] === undefined) {
-      // not declared in tls.ini[section]
-      if (exports.tlsCfg.main[opt] !== undefined) {
-        // use value from [main] section
-        cfg[opt] = exports.tlsCfg.main[opt];
-      }
-    }
-  }
-
-  return cfg;
-}
-
 exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname();
 }
-
 
 exports.get_mx = function get_mx (domain, cb) {
   let decoded_domain = domain;

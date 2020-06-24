@@ -11,27 +11,27 @@ This module provides network utility functions.
 
 ## Usage
 
-    var net_utils = require('haraka-net-utils');
+    const net_utils = require('haraka-net-utils');
 
 ### ip_to_long
 
     // Convert IPv4 to long
-    var long = net_utils.ip_to_long('11.22.33.44');  // 185999660
+    const long = net_utils.ip_to_long('11.22.33.44');  // 185999660
 
 ### long_to_ip
 
     // Convert long to IPv4
-    var ip = net_utils.long_to_ip(185999660);  // 11.22.33.44
+    const ip = net_utils.long_to_ip(185999660);  // 11.22.33.44
 
 ### dec_to_hex
 
     // Convert decimal to hex
-    var hex = net_utils.dec_to_hex(20111104);  // 132df00
+    const hex = net_utils.dec_to_hex(20111104);  // 132df00
 
 ### hex_to_dec
 
     // Convert hex to decimal
-    var dec = net_utils.hex_to_dec('132df00');  // 20111104
+    const dec = net_utils.hex_to_dec('132df00');  // 20111104
 
 ### is_local_ipv4
 
