@@ -277,10 +277,10 @@ function get_stun_server () {
 }
 
 exports.get_ipany_re = function (prefix, suffix, modifier) {
-  /* jshint maxlen: false */
   if (prefix === undefined) prefix = '';
   if (suffix === undefined) suffix = '';
   if (modifier === undefined) modifier = 'mg';
+  /* eslint-disable prefer-template */
   return new RegExp(
     prefix +
         `(` +    // capture group
@@ -409,8 +409,9 @@ exports.get_mx = function get_mx (domain, cb) {
     // console.log(`\treduced ${domain} to ${decoded_domain}.`)
   }
 
+  // punycode ACE, ASCII Compatible Encoding
   if ( /^xn--/.test(decoded_domain) ) {
-    decoded_domain = punycode.toASCII(decoded_domain);
+    decoded_domain = punycode.toUnicode(decoded_domain);
     // console.log(`\tdecoded: ${domain} to ${decoded_domain}.`)
   }
 
