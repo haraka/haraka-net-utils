@@ -38,6 +38,7 @@
     "haraka-config": ">=1.0.11",
     "haraka-tld": "*",
     "ipaddr.js": "^1.9.1",
+    "punycode": "^2.1.1",
     "openssl-wrapper": "^0.3.4",
     "sprintf-js": "^1.1.2"
   },
