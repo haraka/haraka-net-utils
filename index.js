@@ -409,7 +409,7 @@ exports.get_mx = function get_mx (domain, cb) {
     // console.log(`\treduced ${domain} to ${decoded_domain}.`)
   }
 
-  // punycode ACE, ASCII Compatible Encoding
+  // punycode IDN with ACE, ASCII Compatible Encoding
   if ( /^xn--/.test(decoded_domain) ) {
     decoded_domain = punycode.toUnicode(decoded_domain);
     // console.log(`\tdecoded: ${domain} to ${decoded_domain}.`)
