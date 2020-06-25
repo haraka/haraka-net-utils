@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    name: Lint Code Base
+    name: Lint JS & MD
     runs-on: ubuntu-latest
 
     steps:
@@ -29,7 +29,7 @@ jobs:
       - name: Lint Code Base
         uses: docker://github/super-linter:v2.2.0
         env:
-          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_MD: true
 ...
