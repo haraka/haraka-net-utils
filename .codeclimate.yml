@@ -22,4 +22,4 @@ checks:
       threshold: 45
   method-complexity:
     config:
-      threshold: 6%
+      threshold: 6
