@@ -1,9 +1,10 @@
 'use strict';
 
 // node.js built-ins
-const dns    = require('dns');
-const net    = require('net');
-const os     = require('os');
+const dns      = require('dns');
+const net      = require('net');
+const os       = require('os');
+const punycode = require('punycode')
 
 // npm modules
 const async    = require('async');
@@ -276,10 +277,10 @@ function get_stun_server () {
 }
 
 exports.get_ipany_re = function (prefix, suffix, modifier) {
-  /* jshint maxlen: false */
   if (prefix === undefined) prefix = '';
   if (suffix === undefined) suffix = '';
   if (modifier === undefined) modifier = 'mg';
+  /* eslint-disable prefer-template */
   return new RegExp(
     prefix +
         `(` +    // capture group
@@ -381,63 +382,83 @@ exports.ip_in_list = function (list, ip) {
   return false;
 }
 
-// deprecated, moved to Haraka/tls_socket, but
-// Haraka versions < 2.8.17 require this to be here.
-exports.load_tls_ini = function (cb) {
-
-  const cfg = exports.config.get('tls.ini', {
-    booleans: [
-      '-redis.disable_for_failed_hosts',
-
-      // wildcards match in any section and are not initialized
-      '*.requestCert',
-      '*.rejectUnauthorized',
-      '*.honorCipherOrder',
-      '*.enableOCSPStapling',
-      '*.enableSNI',
-
-      // explicitely declared booleans are initialized
-      '+main.requestCert',
-      '-main.rejectUnauthorized',
-      '-main.honorCipherOrder',
-      '-main.enableOCSPStapling',
-      '-main.enableSNI',
-    ]
-  }, cb);
-
-  if (!cfg.no_tls_hosts) cfg.no_tls_hosts = {};
-
-  exports.tlsCfg = cfg;
-  return cfg;
-}
-
-// deprecated, moved to Haraka/tls_socket, but
-// Haraka 2.8.16 requires this to be here.
-exports.tls_ini_section_with_defaults = function (section) {
-  if (exports.tlsCfg === undefined) exports.load_tls_ini();
-
-  const inheritable_opts = [
-    'key', 'cert', 'ciphers', 'dhparam',
-    'requestCert', 'honorCipherOrder', 'rejectUnauthorized'
-  ];
-
-  if (exports.tlsCfg[section] === undefined) exports.tlsCfg[section] = {};
-
-  const cfg = JSON.parse(JSON.stringify(exports.tlsCfg[section]));
-
-  for (const opt of inheritable_opts) {
-    if (cfg[opt] === undefined) {
-      // not declared in tls.ini[section]
-      if (exports.tlsCfg.main[opt] !== undefined) {
-        // use value from [main] section
-        cfg[opt] = exports.tlsCfg.main[opt];
-      }
-    }
-  }
-
-  return cfg;
-}
-
 exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname();
+}
+
+exports.get_mx = function get_mx (domain, cb) {
+  let decoded_domain = domain;
+  const mxs = [];
+
+  // Possible DNS errors
+  // NODATA
+  // FORMERR
+  // BADRESP
+  // NOTFOUND
+  // BADNAME
+  // TIMEOUT
+  // CONNREFUSED
+  // NOMEM
+  // DESTRUCTION
+  // NOTIMP
+  // EREFUSED
+  // SERVFAIL
+
+  if ( /@/.test(decoded_domain) ) {
+    decoded_domain = decoded_domain.split('@').pop();
+    // console.log(`\treduced ${domain} to ${decoded_domain}.`)
+  }
+
+  // punycode IDN with ACE, ASCII Compatible Encoding
+  if ( /^xn--/.test(decoded_domain) ) {
+    decoded_domain = punycode.toUnicode(decoded_domain);
+    // console.log(`\tdecoded: ${domain} to ${decoded_domain}.`)
+  }
+
+  // wrap_mx returns our object with "priority" and "exchange" keys
+  let wrap_mx = a => a;
+
+  function process_dns (err, addresses) {
+    if (err) {
+      // Most likely this is a hostname with no MX record
+      // Drop through and we'll get the A record instead.
+      switch (err.code) {
+        case 'ENODATA':
+        case 'ENOTFOUND':
+          return 0;
+        default:
+      }
+
+      cb(err, mxs);
+    }
+    else if (addresses && addresses.length) {
+      for (const addr of addresses) {
+        mxs.push(wrap_mx(addr));
+      }
+
+      cb(null, mxs);
+    }
+    else {
+      // return zero if we need to keep trying next option
+      return 0;
+    }
+    return 1;
+  }
+
+  dns.resolveMx(decoded_domain, (err, addresses) => {
+    if (process_dns(err, addresses)) return;
+
+    // if MX lookup failed, we lookup an A record. To do that we change
+    // wrap_mx() to return same thing as resolveMx() does.
+    wrap_mx = a => ({ priority: 0, exchange: a });
+
+    // IS: IPv6 compatible
+    dns.resolve(decoded_domain, (err2, addresses2) => {
+      if (process_dns(err2, addresses2)) return;
+
+      err2 = new Error("Found nowhere to deliver to");
+      err2.code = 'NOMX';
+      cb(err2, mxs);
+    })
+  })
 }

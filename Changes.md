@@ -1,4 +1,10 @@
 
+### 1.2.0 - 2020-06-23
+
+- added get_mx
+- remove deprecated load_tls_ini
+- remove deprecated tls_ini_section_with_defaults
+
 ### 1.1.5 - 2020-04-11
 
 - ipv6_bogus: handle parsing broken ipv6 addresses #49
