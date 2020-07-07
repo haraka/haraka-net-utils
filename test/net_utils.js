@@ -1059,7 +1059,7 @@ describe('on_local_interface', function () {
   })
 })
 
-describe.only('get_mx', function () {
+describe('get_mx', function () {
   beforeEach(function (done) {
     this.net_utils = require('../index');
     done();
@@ -1094,6 +1094,14 @@ describe.only('get_mx', function () {
     this.net_utils.get_mx('mail-toaster.org', (err, mxlist) => {
       assert.equal(mxlist.length, 1);
       assert.equal(mxlist[0].exchange, '66.128.51.170');
+      done();
+    })
+  })
+
+  it('gets a MX for über.cadillac.net', function (done) {
+    this.net_utils.get_mx('über.cadillac.net', (err, mxlist) => {
+      assert.equal(mxlist.length, 1);
+      assert.equal(mxlist[0].exchange, '127.0.0.1');
       done();
     })
   })

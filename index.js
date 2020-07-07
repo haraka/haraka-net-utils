@@ -386,8 +386,8 @@ exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname();
 }
 
-exports.get_mx = function get_mx (domain, cb) {
-  let decoded_domain = domain;
+exports.get_mx = function get_mx (raw_domain, cb) {
+  let domain = raw_domain;
   const mxs = [];
 
   // Possible DNS errors
@@ -404,15 +404,17 @@ exports.get_mx = function get_mx (domain, cb) {
   // EREFUSED
   // SERVFAIL
 
-  if ( /@/.test(decoded_domain) ) {
-    decoded_domain = decoded_domain.split('@').pop();
-    // console.log(`\treduced ${domain} to ${decoded_domain}.`)
+  if ( /@/.test(domain) ) {
+    domain = domain.split('@').pop();
+    // console.log(`\treduced ${raw_domain} to ${domain}.`)
   }
 
-  // punycode IDN with ACE, ASCII Compatible Encoding
-  if ( /^xn--/.test(decoded_domain) ) {
-    decoded_domain = punycode.toUnicode(decoded_domain);
-    // console.log(`\tdecoded: ${domain} to ${decoded_domain}.`)
+  if ( /^xn--/.test(domain) ) {
+    // is punycode IDN with ACE, ASCII Compatible Encoding
+  }
+  else if (domain !== punycode.toASCII(domain)) {
+    domain = punycode.toASCII(domain);
+    console.log(`\tACE encoded '${raw_domain}' to '${domain}'`)
   }
 
   // wrap_mx returns our object with "priority" and "exchange" keys
@@ -445,7 +447,7 @@ exports.get_mx = function get_mx (domain, cb) {
     return 1;
   }
 
-  dns.resolveMx(decoded_domain, (err, addresses) => {
+  dns.resolveMx(domain, (err, addresses) => {
     if (process_dns(err, addresses)) return;
 
     // if MX lookup failed, we lookup an A record. To do that we change
@@ -453,7 +455,7 @@ exports.get_mx = function get_mx (domain, cb) {
     wrap_mx = a => ({ priority: 0, exchange: a });
 
     // IS: IPv6 compatible
-    dns.resolve(decoded_domain, (err2, addresses2) => {
+    dns.resolve(domain, (err2, addresses2) => {
       if (process_dns(err2, addresses2)) return;
 
       err2 = new Error("Found nowhere to deliver to");
