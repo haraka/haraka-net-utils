@@ -344,10 +344,10 @@ exports.ipv6_reverse = function (ipv6) {
     .join('.');
 }
 
-exports.ipv6_bogus = function (ipv6){
+exports.ipv6_bogus = function (ipv6) {
   try {
     const ipCheck = ipaddr.parse(ipv6);
-    if (ipCheck.range() !== 'unicast') { return true; }
+    if (ipCheck.range() !== 'unicast') return true;
     return false;
   }
   catch (e) {
@@ -418,49 +418,14 @@ exports.get_mx = function get_mx (raw_domain, cb) {
   }
 
   // wrap_mx returns our object with "priority" and "exchange" keys
-  let wrap_mx = a => a;
-
-  function process_dns (err, addresses) {
-    if (err) {
-      // Most likely this is a hostname with no MX record
-      // Drop through and we'll get the A record instead.
-      switch (err.code) {
-        case 'ENODATA':
-        case 'ENOTFOUND':
-          return 0;
-        default:
-      }
-
-      cb(err, mxs);
-    }
-    else if (addresses && addresses.length) {
-      for (const addr of addresses) {
-        mxs.push(wrap_mx(addr));
-      }
-
-      cb(null, mxs);
-    }
-    else {
-      // return zero if we need to keep trying next option
-      return 0;
-    }
-    return 1;
-  }
+  const wrap_mx = a => a;
 
   dns.resolveMx(domain, (err, addresses) => {
-    if (process_dns(err, addresses)) return;
 
-    // if MX lookup failed, we lookup an A record. To do that we change
-    // wrap_mx() to return same thing as resolveMx() does.
-    wrap_mx = a => ({ priority: 0, exchange: a });
+    for (const addr of addresses) {
+      mxs.push(wrap_mx(addr));
+    }
 
-    // IS: IPv6 compatible
-    dns.resolve(domain, (err2, addresses2) => {
-      if (process_dns(err2, addresses2)) return;
-
-      err2 = new Error("Found nowhere to deliver to");
-      err2.code = 'NOMX';
-      cb(err2, mxs);
-    })
+    cb(err, mxs);
   })
 }

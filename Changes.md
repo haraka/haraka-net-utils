@@ -1,4 +1,8 @@
 
+### 1.2.2 - 2020-12-15
+
+- get_mx: do not include implicit MX
+
 ### 1.2.1 - 2020-11-17
 
 - bump ipaddr.js to 2.0.0 #56

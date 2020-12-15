@@ -1066,6 +1066,7 @@ describe('get_mx', function () {
   })
 
   it('gets MX records for a domain', function (done) {
+    this.timeout(3000)
     this.net_utils.get_mx('tnpi.net', (err, mxlist) => {
       assert.ifError(err);
       assert.ok(mxlist.length);
@@ -1086,22 +1087,6 @@ describe('get_mx', function () {
     this.net_utils.get_mx('example.com', (err, mxlist) => {
       assert.equal(mxlist.length, 1);
       assert.equal(mxlist[0].exchange, '');
-      done();
-    })
-  })
-
-  it('gets an IP (no MX) for mail-toaster.org', function (done) {
-    this.net_utils.get_mx('mail-toaster.org', (err, mxlist) => {
-      assert.equal(mxlist.length, 1);
-      assert.equal(mxlist[0].exchange, '66.128.51.170');
-      done();
-    })
-  })
-
-  it('gets a MX for über.cadillac.net', function (done) {
-    this.net_utils.get_mx('über.cadillac.net', (err, mxlist) => {
-      assert.equal(mxlist.length, 1);
-      assert.equal(mxlist[0].exchange, '127.0.0.1');
       done();
     })
   })
