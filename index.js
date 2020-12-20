@@ -422,8 +422,10 @@ exports.get_mx = function get_mx (raw_domain, cb) {
 
   dns.resolveMx(domain, (err, addresses) => {
 
-    for (const addr of addresses) {
-      mxs.push(wrap_mx(addr));
+    if (addresses && addresses.length) {
+      for (const addr of addresses) {
+        mxs.push(wrap_mx(addr));
+      }
     }
 
     cb(err, mxs);
