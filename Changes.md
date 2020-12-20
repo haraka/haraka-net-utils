@@ -1,4 +1,8 @@
 
+### 1.2.3 - 2020-12-19
+
+- fix: restore the tests wrapping the resolveMX iterable
+
 ### 1.2.2 - 2020-12-15
 
 - get_mx: do not include implicit MX
