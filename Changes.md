@@ -1,4 +1,9 @@
 
+### 1.2.4 - 2021-01-14
+
+- add "any" IP to is_local_ip
+- add TEST-NET-[1-3] to is_private_ip
+
 ### 1.2.3 - 2020-12-19
 
 - fix: restore the tests wrapping the resolveMX iterable
