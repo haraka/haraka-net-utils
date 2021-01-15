@@ -74,7 +74,7 @@ describe('same_ipv4_network', function () {
 })
 
 describe('is_ipv4_literal', function () {
-  it('3 ways ', function (done) {
+  it('3 ways', function (done) {
     assert.equal(true,  net_utils.is_ipv4_literal('[127.0.0.1]'));
     assert.equal(false, net_utils.is_ipv4_literal('127.0.0.1'));
     assert.equal(false, net_utils.is_ipv4_literal('test.host'));
@@ -123,6 +123,14 @@ describe('is_local_ip', function () {
 
   it('239.0.0.1 (multicast; not currently considered rfc1918)', function (done) {
     _is_local_ip(done, '239.0.0.1', false);
+  })
+
+  it('0.0.0.0', function (done) {
+    _is_local_ip(done, '0.0.0.0', true);
+  })
+
+  it('::', function (done) {
+    _is_local_ip(done, '::', true);
   })
 })
 
@@ -173,6 +181,18 @@ describe('is_private_ip', function () {
 
   it('239.0.0.1 (multicast; not currently considered rfc1918)', function (done) {
     _is_private_ip(done, '239.0.0.1', false);
+  })
+
+  it('192.0.2.1 TEST-NET-1', function (done) {
+    _is_private_ip(done, '192.0.2.1', true);
+  })
+
+  it('198.51.100.0 TEST-NET-2', function (done) {
+    _is_private_ip(done, '198.51.100.0', true);
+  })
+
+  it('203.0.113.0 TEST-NET-3', function (done) {
+    _is_private_ip(done, '203.0.113.0', true);
   })
 })
 
@@ -316,6 +336,11 @@ describe('is_private_ipv4', function () {
 })
 
 describe('is_local_ipv6', function () {
+  it('::', function (done) {
+    assert.equal(net_utils.is_local_ipv6('::'), true);
+    done();
+  })
+
   it('::1', function (done) {
     assert.equal(net_utils.is_local_ipv6('::1'), true);
     assert.equal(net_utils.is_local_ipv6('0:0:0:0:0:0:0:1'), true);

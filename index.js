@@ -105,6 +105,11 @@ const re_ipv4 = {
   private192: /^192\.168\./,   // 192.168/16
   // 172.16/16 .. 172.31/16
   private172: /^172\.(1[6-9]|2[0-9]|3[01])\./,  // 172.16/12
+
+  // RFC 5735
+  testnet1: /^192\.0\.2\./,    // 192.0.2.0/24
+  testnet2: /^198\.51\.100\./, // 198.51.100.0/24
+  testnet3: /^203\.0\.113\./,  // 203.0.113.0/24
 }
 
 exports.is_private_ipv4 = function (ip) {
@@ -113,6 +118,10 @@ exports.is_private_ipv4 = function (ip) {
   if (re_ipv4.private10.test(ip)) return true;
   if (re_ipv4.private192.test(ip)) return true;
   if (re_ipv4.private172.test(ip)) return true;
+
+  if (re_ipv4.testnet1.test(ip)) return true;
+  if (re_ipv4.testnet2.test(ip)) return true;
+  if (re_ipv4.testnet3.test(ip)) return true;
 
   return false;
 }
@@ -143,6 +152,8 @@ exports.is_local_ip = function (ip) {
 }
 
 exports.is_local_ipv4 = function (ip) {
+  if ('0.0.0.0' === ip) return true;  // RFC 5735
+
   // 127/8 (loopback)   # RFC 1122
   if (re_ipv4.loopback.test(ip)) return true;
 
@@ -159,6 +170,7 @@ const re_ipv6 = {
 }
 
 exports.is_local_ipv6 = function (ip) {
+  if (ip === '::') return true;    // RFC 5735
   if (ip === '::1') return true;   // RFC 4291
 
   // 2 more IPv6 notations for ::1
