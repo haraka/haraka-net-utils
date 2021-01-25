@@ -1,26 +1,35 @@
+### 1.3.0 - 2021-01-23
+
+- Support passing an array to ip_in_list #60
+
 
 ### 1.2.4 - 2021-01-14
 
 - add "any" IP to is_local_ip
 - add TEST-NET-[1-3] to is_private_ip
 
+
 ### 1.2.3 - 2020-12-19
 
 - fix: restore the tests wrapping the resolveMX iterable
+
 
 ### 1.2.2 - 2020-12-15
 
 - get_mx: do not include implicit MX
 
+
 ### 1.2.1 - 2020-11-17
 
 - bump ipaddr.js to 2.0.0 #56
+
 
 ### 1.2.0 - 2020-06-23
 
 - added get_mx
 - remove deprecated load_tls_ini
 - remove deprecated tls_ini_section_with_defaults
+
 
 ### 1.1.5 - 2020-04-11
 
