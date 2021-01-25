@@ -372,8 +372,8 @@ exports.ipv6_bogus = function (ipv6) {
 exports.ip_in_list = function (list, ip) {
   if (list === undefined) return false;
 
-  let isHostname = !net.isIP(ip);
-  let isArray = Array.isArray(list);
+  const isHostname = !net.isIP(ip);
+  const isArray = Array.isArray(list);
 
   // Quick lookup
   if (!isArray) {
