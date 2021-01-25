@@ -372,12 +372,24 @@ exports.ipv6_bogus = function (ipv6) {
 exports.ip_in_list = function (list, ip) {
   if (list === undefined) return false;
 
-  if (!net.isIP(ip)) return (ip in list); // domain
+  const isHostname = !net.isIP(ip);
+  const isArray = Array.isArray(list);
 
-  for (const string in list) {
-    if (string === ip) return true; // exact match
+  // Quick lookup
+  if (!isArray) {
+    if (ip in list) return true;   // domain or literal IP
+    if (isHostname) return false;  // skip CIDR match
+  }
 
-    const cidr = string.split('/');
+  // Iterate: arrays and CIDR matches
+  for (let item in list) {
+    if (isArray) {
+      item = list[item];             // item is index
+      if (item === ip) return true;  // exact match
+    }
+    if (isHostname) continue;  // skip CIDR match
+
+    const cidr = item.split('/');
     const c_net  = cidr[0];
 
     if (!net.isIP(c_net)) continue;  // bad config entry
