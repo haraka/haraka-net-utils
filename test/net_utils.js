@@ -985,7 +985,8 @@ describe('get_ips_by_host', function () {
 })
 
 function _check_list (done, list, ip, res) {
-  assert.equal(net_utils.ip_in_list(list, ip), res);
+  assert.equal(net_utils.ip_in_list(list, ip), res);  // keys of object
+  assert.equal(net_utils.ip_in_list(Object.keys(list), ip), res);  // array
   done();
 }
 
