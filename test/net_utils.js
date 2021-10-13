@@ -1116,4 +1116,11 @@ describe('get_mx', function () {
       done();
     })
   })
+
+  it('does not crash on invalid IDN name', function (done) {
+    this.net_utils.get_mx('gmail.xn--com-0da', (err, mxlist) => {
+      assert.strictEqual(err.message, 'Cannot convert name to ASCII')
+      done()
+    })
+  })
 })

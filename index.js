@@ -457,7 +457,6 @@ exports.get_mx = function get_mx (raw_domain, cb) {
     })
   }
   catch (e) {
-    console.error(e)
     cb(e, mxs)
   }
 }
