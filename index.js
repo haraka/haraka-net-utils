@@ -444,14 +444,20 @@ exports.get_mx = function get_mx (raw_domain, cb) {
   // wrap_mx returns our object with "priority" and "exchange" keys
   const wrap_mx = a => a;
 
-  dns.resolveMx(domain, (err, addresses) => {
+  try {
+    dns.resolveMx(domain, (err, addresses) => {
 
-    if (addresses && addresses.length) {
-      for (const addr of addresses) {
-        mxs.push(wrap_mx(addr));
+      if (addresses && addresses.length) {
+        for (const addr of addresses) {
+          mxs.push(wrap_mx(addr));
+        }
       }
-    }
 
-    cb(err, mxs);
-  })
+      cb(err, mxs);
+    })
+  }
+  catch (e) {
+    console.error(e)
+    cb(e, mxs)
+  }
 }
