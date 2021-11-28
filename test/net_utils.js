@@ -82,6 +82,13 @@ describe('is_ipv4_literal', function () {
   })
 })
 
+function _is_local_host (done, host, expected) {
+  net_utils.is_local_host(host, function (errors, is_local_host) {
+    assert.strictEqual(expected, is_local_host);
+    done();
+  });
+}
+
 function _is_private_ip (done, ip, expected) {
   assert.equal(expected, net_utils.is_private_ip(ip));
   done();
@@ -91,6 +98,32 @@ function _is_local_ip (done, ip, expected) {
   assert.equal(expected, net_utils.is_local_ip(ip));
   done();
 }
+
+describe('is_local_host', function () {
+  it('127.0.0.1', function (done) {
+    _is_local_host(done, '127.0.0.1', true);
+  })
+
+  it('0.0.0.0', function (done) {
+    _is_local_host(done, '0.0.0.0', true);
+  })
+
+  it('::1', function (done) {
+    _is_local_host(done, '::1', true);
+  })
+
+  it('google.com', function (done) {
+    _is_local_host(done, 'google.com', false);
+  })
+
+  it('8.8.8.8', function (done) {
+    _is_local_host(done, '8.8.8.8', false);
+  })
+
+  it('invalid host string', function (done) {
+    _is_local_host(done, 'invalid host string', undefined);
+  })
+})
 
 describe('is_local_ip', function () {
   it('127.0.0.1', function (done) {
