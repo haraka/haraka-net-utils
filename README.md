@@ -61,6 +61,10 @@ This module provides network utility functions.
     // For IPv4, returns true if is_private_ipv4 or is_local_ipv4 are true
     // For IPv6, returns true if is_local_ipv6 is true
 
+### is_local_host
+
+Checks to see if a host name resolves to a local ip.
+
 ### is_local_ip
 
 Checks to see if an IP is bound locally or an IPv4 or IPv6 localhost address.

@@ -140,6 +140,23 @@ exports.on_local_interface = function (ip) {
   return locallyBoundIPs.includes(ip);
 }
 
+exports.is_local_host = function (host, done) {
+  if (net.isIP(host)) {
+    done([], this.is_local_ip(host));
+    return;
+  }
+
+  const self = this;
+  this.get_ips_by_host(host, function (errors, ips) {
+    if (errors.length) {
+      done(errors, undefined);
+    }
+    else {
+      done([], ips.length ? self.is_local_ip(ips[0]) : false);
+    }
+  });
+}
+
 exports.is_local_ip = function (ip) {
 
   if (this.on_local_interface(ip)) return true;
