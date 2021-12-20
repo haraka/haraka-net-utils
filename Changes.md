@@ -2,6 +2,11 @@
 #### 1.N.N - YYYY-MM-DD
 
 
+#### 1.3.2 - 2021-12-20
+
+- add is_local_host function #63
+
+
 #### 1.3.1 - 2021-10-13
 
 - get_mx: wrap dns.resolveMx in a try haraka/Haraka#2985
