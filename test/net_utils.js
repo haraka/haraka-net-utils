@@ -82,11 +82,10 @@ describe('is_ipv4_literal', function () {
   })
 })
 
-function _is_local_host (done, host, expected) {
-  net_utils.is_local_host(host, function (errors, is_local_host) {
-    assert.strictEqual(expected, is_local_host);
-    done();
-  });
+async function _is_local_host (done, host, expected) {
+  const is_local_host = await net_utils.is_local_host(host);
+  assert.strictEqual(expected, is_local_host);
+  done();
 }
 
 function _is_private_ip (done, ip, expected) {
@@ -120,8 +119,13 @@ describe('is_local_host', function () {
     _is_local_host(done, '8.8.8.8', false);
   })
 
-  it('invalid host string', function (done) {
-    _is_local_host(done, 'invalid host string', undefined);
+  // test that a hostname resolving to IPs of a single version (IPv4 in this case) doesn't fail
+  it('outlook-com.olc.protection.outlook.com', function (done) {
+    _is_local_host(done, 'outlook-com.olc.protection.outlook.com', false);
+  })
+
+  it('invalid host string', async function () {
+    await assert.rejects(net_utils.is_local_host('invalid host string'));
   })
 })
 

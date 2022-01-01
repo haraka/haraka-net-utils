@@ -140,20 +140,20 @@ exports.on_local_interface = function (ip) {
   return locallyBoundIPs.includes(ip);
 }
 
-exports.is_local_host = function (host, done) {
+exports.is_local_host = async function (host) {
   if (net.isIP(host)) {
-    done([], this.is_local_ip(host));
-    return;
+    return this.is_local_ip(host);
   }
+  return new Promise((resolve, reject) => {
+    const self = this;
 
-  const self = this;
-  this.get_ips_by_host(host, function (errors, ips) {
-    if (errors.length) {
-      done(errors, undefined);
-    }
-    else {
-      done([], ips.length ? self.is_local_ip(ips[0]) : false);
-    }
+    this.get_ips_by_host(host, function (errors, ips) {
+      // don't reject if some IPs have been found (get_ips_by_host can return errors say for IPv6 but work for IPv4)
+      if (errors && errors.length && (!ips || !ips.length)) {
+        return reject(errors);
+      }
+      resolve(ips.length ? self.is_local_ip(ips[0]) : false);
+    });
   });
 }
 
