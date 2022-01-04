@@ -164,7 +164,7 @@ exports.is_local_ip = function (ip) {
   if (net.isIPv4(ip)) return this.is_local_ipv4(ip);
   if (net.isIPv6(ip)) return this.is_local_ipv6(ip);
 
-  console.error(`invalid IP address: ${ip}`);
+  // console.error(`invalid IP address: ${ip}`);
   return false;
 }
 
