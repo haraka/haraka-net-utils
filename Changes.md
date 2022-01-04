@@ -1,6 +1,9 @@
 
 #### 1.N.N - YYYY-MM-DD
 
+#### 1.3.3 - 2021-12-20
+
+- refactored is_local_host function to return a promise instead of using a callback #65
 
 #### 1.3.2 - 2021-12-20
 
