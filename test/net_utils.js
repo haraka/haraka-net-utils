@@ -119,11 +119,6 @@ describe('is_local_host', function () {
     _is_local_host(done, '8.8.8.8', false);
   })
 
-  // test that a hostname resolving to IPs of a single version (IPv4 in this case) doesn't fail
-  it('outlook-com.olc.protection.outlook.com', function (done) {
-    _is_local_host(done, 'outlook-com.olc.protection.outlook.com', false);
-  })
-
   it('invalid host string', async function () {
     await assert.rejects(net_utils.is_local_host('invalid host string'));
   })
