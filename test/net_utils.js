@@ -120,7 +120,8 @@ describe('is_local_host', function () {
   })
 
   it('invalid host string', async function () {
-    await assert.rejects(net_utils.is_local_host('invalid host string'));
+    const r = await net_utils.is_local_host('invalid host string')
+    assert.ok(!r);
   })
 })
 
@@ -997,23 +998,40 @@ describe('get_ipany_re', function () {
 })
 
 describe('get_ips_by_host', function () {
-  it('get_ips_by_host, servedby.tnpi.net', function (done) {
-    net_utils.get_ips_by_host('servedby.tnpi.net', function (err, res) {
-      // console.log(arguments);
-      if (err && err.length) {
-        console.error(err);
+  const tests = {
+    'servedby.tnpi.net': [
+      '192.48.85.146',
+      '192.48.85.147',
+      '192.48.85.148',
+      '192.48.85.149',
+      '2607:f060:b008:feed::2'
+    ],
+    'localhost.simerson.net': [ '127.0.0.1', '::1' ]
+  }
+
+  for (const t in tests) {
+
+    it(`get_ips_by_host, ${t}`, function (done) {
+      net_utils.get_ips_by_host(t, function (err, res) {
+        if (err && err.length) {
+          console.error(err);
+        }
+        assert.deepEqual(err, []);
+        assert.deepEqual(res.sort(), tests[t].sort());
+        done();
+      });
+    })
+
+    it(`get_ips_by_host, promise, ${t}`, async function () {
+      try {
+        const res = await net_utils.get_ips_by_host(t)
+        assert.deepEqual(res.sort(), tests[t].sort());
       }
-      assert.deepEqual(err, []);
-      assert.deepEqual(res.sort(), [
-        '192.48.85.146',
-        '192.48.85.147',
-        '192.48.85.148',
-        '192.48.85.149',
-        '2607:f060:b008:feed::2'
-      ].sort());
-      done();
-    });
-  })
+      catch (e) {
+        console.error(e);
+      }
+    })
+  }
 })
 
 function _check_list (done, list, ip, res) {
