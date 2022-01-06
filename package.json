@@ -23,7 +23,7 @@
   "author": "Matt Simerson <matt@tnpi.net>",
   "license": "MIT",
   "engines": {
-    "node": ">= v10.23.0"
+    "node": ">= v14.18.2"
   },
   "bugs": {
     "url": "https://github.com/haraka/haraka-net-utils/issues"
@@ -35,7 +35,7 @@
     "eslint-plugin-haraka": "*"
   },
   "dependencies": {
-    "async": "^3.2.1",
+    "async": "^3.2.2",
     "haraka-config": ">=1.0.11",
     "haraka-tld": "*",
     "ipaddr.js": "^2.0.1",
