@@ -141,20 +141,17 @@ exports.on_local_interface = function (ip) {
 }
 
 exports.is_local_host = async function (host) {
-  if (net.isIP(host)) {
-    return this.is_local_ip(host);
-  }
-  return new Promise((resolve, reject) => {
-    const self = this;
 
-    this.get_ips_by_host(host, function (errors, ips) {
-      // don't reject if some IPs have been found (get_ips_by_host can return errors say for IPv6 but work for IPv4)
-      if (errors && errors.length && (!ips || !ips.length)) {
-        return reject(errors);
-      }
-      resolve(ips.length ? self.is_local_ip(ips[0]) : false);
-    });
-  });
+  if (net.isIP(host)) return this.is_local_ip(host);
+
+  try {
+    const ips = await this.get_ips_by_host(host)
+    return ips.length ? this.is_local_ip(ips[0]) : false
+  }
+  catch (e) {
+    // console.error(e)
+    return false
+  }
 }
 
 exports.is_local_ip = function (ip) {
@@ -321,43 +318,51 @@ exports.get_ipany_re = function (prefix, suffix, modifier) {
 }
 
 exports.get_ips_by_host = function (hostname, done) {
-  const ips = [];
+  const ips = new Set();
   const errors = [];
 
-  async.parallel(
-    [
-      function (iter_done) {
-        dns.resolve4(hostname, (err, res) => {
-          if (err) {
-            errors.push(err);
-            return iter_done();
-          }
-          for (let i=0; i<res.length; i++) {
-            ips.push(res[i]);
-          }
-          iter_done(null, true);
-        });
-      },
-      function (iter_done) {
-        dns.resolve6(hostname, (err, res) => {
-          if (err) {
-            errors.push(err);
-            return iter_done();
-          }
-          for (let j=0; j<res.length; j++) {
-            ips.push(res[j]);
-          }
-          iter_done(null, true);
-        });
-      },
-    ],
-    function (err, async_list) {
-      // if multiple IPs are included in the iterations, then the async
-      // result here will be an array of nested arrays. Not quite what
-      // we want. Return the merged ips array.
-      done(errors, ips);
-    }
-  );
+  function resolve4 (iter_done) {
+    dns.resolve4(hostname, (err, addrs) => {
+      if (err) {
+        errors.push(err);
+        return iter_done();
+      }
+      for (const a of addrs) {
+        ips.add(a);
+      }
+      iter_done(null, true);
+    });
+  }
+
+  function resolve6 (iter_done) {
+    dns.resolve6(hostname, (err, addrs) => {
+      if (err) {
+        errors.push(err);
+        return iter_done();
+      }
+      for (const a of addrs) {
+        ips.add(a);
+      }
+      iter_done(null, true);
+    });
+  }
+
+  // if multiple IPs are returned in the iterations, then the async_list
+  // will be an array of nested arrays. Not what we want. Instead,
+  // return the unique IPs in the combined flattened array.
+  if (done) {
+    async.parallel([ resolve4, resolve6 ], function (err, async_list) {
+      done(errors, Array.from(ips));
+    })
+  }
+  else {
+    return new Promise((resolve, reject) => {
+      async.parallel([ resolve4, resolve6 ], function (err, async_list) {
+        if (!ips.size && errors?.length) return reject(errors)
+        resolve(Array.from(ips));
+      })
+    })
+  }
 }
 
 exports.ipv6_reverse = function (ipv6) {
