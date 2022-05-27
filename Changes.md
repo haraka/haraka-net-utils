@@ -2,6 +2,11 @@
 #### 1.N.N - YYYY-MM-DD
 
 
+#### 1.3.5 - 2022-05-27
+
+- chore(ci): use shared GHA workflows
+
+
 #### 1.3.4 - 2022-01-05
 
 - promisify get_ips_by_host (backwards compatible)
