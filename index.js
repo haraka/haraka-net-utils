@@ -1,13 +1,12 @@
 'use strict';
 
 // node.js built-ins
-const dns      = require('dns');
+const dns      = require('dns').promises;
 const net      = require('net');
 const os       = require('os');
 const punycode = require('punycode')
 
 // npm modules
-const async    = require('async');
 const ipaddr   = require('ipaddr.js');
 const sprintf  = require('sprintf-js').sprintf;
 const tlds     = require('haraka-tld');
@@ -318,51 +317,34 @@ exports.get_ipany_re = function (prefix, suffix, modifier) {
 }
 
 exports.get_ips_by_host = function (hostname, done) {
-  const ips = new Set();
-  const errors = [];
+  const ips = new Set()
+  const errors = []
+  const promises = []
 
-  function resolve4 (iter_done) {
-    dns.resolve4(hostname, (err, addrs) => {
-      if (err) {
-        errors.push(err);
-        return iter_done();
-      }
+  async function resolveAny (ver) {
+    try {
+      const addrs = await dns[`resolve${ver}`](hostname)
       for (const a of addrs) {
         ips.add(a);
       }
-      iter_done(null, true);
-    });
+      return addrs
+    }
+    catch (err) {
+      errors.push(err);
+    }
   }
 
-  function resolve6 (iter_done) {
-    dns.resolve6(hostname, (err, addrs) => {
-      if (err) {
-        errors.push(err);
-        return iter_done();
-      }
-      for (const a of addrs) {
-        ips.add(a);
-      }
-      iter_done(null, true);
-    });
-  }
+  promises.push(resolveAny('4'))
+  promises.push(resolveAny('6'))
 
-  // if multiple IPs are returned in the iterations, then the async_list
-  // will be an array of nested arrays. Not what we want. Instead,
-  // return the unique IPs in the combined flattened array.
+  // for callback API
   if (done) {
-    async.parallel([ resolve4, resolve6 ], function (err, async_list) {
-      done(errors, Array.from(ips));
-    })
+    Promise.all(promises).then((r) => { done(errors, Array.from(ips)) })
+    return
   }
-  else {
-    return new Promise((resolve, reject) => {
-      async.parallel([ resolve4, resolve6 ], function (err, async_list) {
-        if (!ips.size && errors?.length) return reject(errors)
-        resolve(Array.from(ips));
-      })
-    })
-  }
+
+  // promise API
+  return Promise.all(promises).then(r => { return Array.from(ips) })
 }
 
 exports.ipv6_reverse = function (ipv6) {
@@ -466,19 +448,17 @@ exports.get_mx = function get_mx (raw_domain, cb) {
   // wrap_mx returns our object with "priority" and "exchange" keys
   const wrap_mx = a => a;
 
-  try {
-    dns.resolveMx(domain, (err, addresses) => {
-
+  dns.resolveMx(domain)
+    .then(addresses => {
       if (addresses && addresses.length) {
         for (const addr of addresses) {
           mxs.push(wrap_mx(addr));
         }
       }
 
-      cb(err, mxs);
+      cb(null, mxs);
     })
-  }
-  catch (e) {
-    cb(e, mxs)
-  }
+    .catch(err => {
+      cb(err)
+    })
 }
