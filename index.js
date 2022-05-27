@@ -7,7 +7,6 @@ const os       = require('os');
 const punycode = require('punycode')
 
 // npm modules
-const async    = require('async');
 const ipaddr   = require('ipaddr.js');
 const sprintf  = require('sprintf-js').sprintf;
 const tlds     = require('haraka-tld');
@@ -318,42 +317,34 @@ exports.get_ipany_re = function (prefix, suffix, modifier) {
 }
 
 exports.get_ips_by_host = function (hostname, done) {
-  const ips = new Set();
-  const errors = [];
+  const ips = new Set()
+  const errors = []
+  const promises = []
 
-  function resolveAny (ver, iter_done) {
-    dns[`resolve${ver}`](hostname)
-      .then(addrs => {
-        for (const a of addrs) {
-          ips.add(a);
-        }
-        iter_done(null, true);
-      })
-      .catch(err => {
-        errors.push(err);
-        iter_done();
-      })
+  async function resolveAny (ver) {
+    try {
+      const addrs = await dns[`resolve${ver}`](hostname)
+      for (const a of addrs) {
+        ips.add(a);
+      }
+      return addrs
+    }
+    catch (err) {
+      errors.push(err);
+    }
   }
 
-  function resolve4 (iter_done) { resolveAny('4', iter_done); }
-  function resolve6 (iter_done) { resolveAny('6', iter_done); }
+  promises.push(resolveAny('4'))
+  promises.push(resolveAny('6'))
 
-  // if multiple IPs are returned in the iterations, then the async_list
-  // will be an array of nested arrays. Not what we want. Instead,
-  // return the unique IPs in the combined flattened array.
+  // for callback API
   if (done) {
-    async.parallel([ resolve4, resolve6 ], function (err, async_list) {
-      done(errors, Array.from(ips));
-    })
+    Promise.all(promises).then((r) => { done(errors, Array.from(ips)) })
+    return
   }
-  else {
-    return new Promise((resolve, reject) => {
-      async.parallel([ resolve4, resolve6 ], function (err, async_list) {
-        if (!ips.size && errors?.length) return reject(errors)
-        resolve(Array.from(ips));
-      })
-    })
-  }
+
+  // promise API
+  return Promise.all(promises).then(r => { return Array.from(ips) })
 }
 
 exports.ipv6_reverse = function (ipv6) {

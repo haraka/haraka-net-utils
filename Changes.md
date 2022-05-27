@@ -6,7 +6,7 @@
 
 - chore(ci): use shared GHA workflows
 - style(es6): use dns.promises internally
-- dep(async): bump 3.2.2 -> 3.2.3
+- dep(async): replace async dependency with Promise.all
 - doc(README): use code fences around examples (vs indention)
 
 
