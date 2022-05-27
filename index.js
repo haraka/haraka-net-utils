@@ -1,7 +1,7 @@
 'use strict';
 
 // node.js built-ins
-const dns      = require('dns');
+const dns      = require('dns').promises;
 const net      = require('net');
 const os       = require('os');
 const punycode = require('punycode')
@@ -321,31 +321,22 @@ exports.get_ips_by_host = function (hostname, done) {
   const ips = new Set();
   const errors = [];
 
-  function resolve4 (iter_done) {
-    dns.resolve4(hostname, (err, addrs) => {
-      if (err) {
+  function resolveAny (ver, iter_done) {
+    dns[`resolve${ver}`](hostname)
+      .then(addrs => {
+        for (const a of addrs) {
+          ips.add(a);
+        }
+        iter_done(null, true);
+      })
+      .catch(err => {
         errors.push(err);
-        return iter_done();
-      }
-      for (const a of addrs) {
-        ips.add(a);
-      }
-      iter_done(null, true);
-    });
+        iter_done();
+      })
   }
 
-  function resolve6 (iter_done) {
-    dns.resolve6(hostname, (err, addrs) => {
-      if (err) {
-        errors.push(err);
-        return iter_done();
-      }
-      for (const a of addrs) {
-        ips.add(a);
-      }
-      iter_done(null, true);
-    });
-  }
+  function resolve4 (iter_done) { resolveAny('4', iter_done); }
+  function resolve6 (iter_done) { resolveAny('6', iter_done); }
 
   // if multiple IPs are returned in the iterations, then the async_list
   // will be an array of nested arrays. Not what we want. Instead,
@@ -466,19 +457,17 @@ exports.get_mx = function get_mx (raw_domain, cb) {
   // wrap_mx returns our object with "priority" and "exchange" keys
   const wrap_mx = a => a;
 
-  try {
-    dns.resolveMx(domain, (err, addresses) => {
-
+  dns.resolveMx(domain)
+    .then(addresses => {
       if (addresses && addresses.length) {
         for (const addr of addresses) {
           mxs.push(wrap_mx(addr));
         }
       }
 
-      cb(err, mxs);
+      cb(null, mxs);
     })
-  }
-  catch (e) {
-    cb(e, mxs)
-  }
+    .catch(err => {
+      cb(err)
+    })
 }
