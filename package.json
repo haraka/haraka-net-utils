@@ -30,7 +30,7 @@
   "homepage": "https://github.com/haraka/haraka-net-utils#readme",
   "devDependencies": {
     "eslint": "8",
-    "mocha": "9",
+    "mocha": "10",
     "eslint-plugin-haraka": "*"
   },
   "dependencies": {
