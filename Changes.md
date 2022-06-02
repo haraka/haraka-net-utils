@@ -1,5 +1,21 @@
 
-#### 1.N.N - YYYY-MM-DD
+#### N.N.N - YYYY-MM-DD
+
+
+### [1.3.6] - 2022-06-01
+
+#### Added
+
+- 
+
+#### Fixed
+
+- 
+
+#### Changed
+
+- 
+- release 1.3.5
 
 
 #### 1.3.5 - 2022-05-27
@@ -154,3 +170,4 @@
 #### 1.0.3 - 2016-10-25
 
 * added tls.ini loading
+[1.3.6]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.6
