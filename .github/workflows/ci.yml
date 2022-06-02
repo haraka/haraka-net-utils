@@ -19,14 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: get-tls
-        name: get-tls
         uses: msimerson/node-lts-versions@v1.2.2
     outputs:
       lts: ${{ steps.get-tls.outputs.lts }}
       active: ${{ steps.get-tls.outputs.active }}
 
   test:
-    needs: get-tls
+    needs: get-lts
     runs-on: ${{ matrix.os }}
     # services:
     #   redis:
