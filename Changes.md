@@ -2,6 +2,11 @@
 #### N.N.N - YYYY-MM-DD
 
 
+### [1.3.7] - 2022-06-03
+
+- ci: fix the dependabot allow syntax
+
+
 ### [1.3.6] - 2022-06-01
 
 - chore: replace .release with submodule
@@ -164,3 +169,4 @@
 
 
 [1.3.6]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.6
+[1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.7
