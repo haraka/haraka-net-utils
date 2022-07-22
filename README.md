@@ -92,15 +92,34 @@ net_utils.ip_in_list(array, ip);
 net_utils.ip_in_list(tls.no_tls_hosts, '127.0.0.5');
 ```
 
+### get_ips_by_host
+
+Returns an array of all the IPv4 and IPv6 addresses of the provided hostname.
+
+```js
+try {
+    const ips = await net_utils.get_ips_by_host(domain)
+    for (const ip of ips) {
+        // do something with the IPs
+    }
+}
+catch (err) {
+    // handle any errors
+}
+```
+
 ### get_mx
 
 ```js
-net_utils.get_mx(domain, (err, mxList) => {
-    if (err)  // handle any errors
+try {
+    const mxList = await net_utils.get_mx(domain)
     for (const mx of mxList) {
         // do something with each mx
     }
-})
+}
+catch (err) {
+    // handle any errors
+}
 ```
 
 [ci-img]: https://github.com/haraka/haraka-net-utils/actions/workflows/ci.yml/badge.svg

@@ -1,8 +1,7 @@
 
 #### N.N.N - YYYY-MM-DD
 
-
-### [1.4.0] - 2022-07-22
+### [1.4.1] - 2022-07-22
 
 - feat(get_mx): use async/await
 - feat(get_mx): call w/o callback for promise API
@@ -178,4 +177,4 @@
 
 [1.3.6]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.6
 [1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.7
-[1.4.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.4.0
+[1.4.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.4.1

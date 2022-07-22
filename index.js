@@ -337,15 +337,13 @@ exports.get_ips_by_host = function (hostname, done) {
   promises.push(resolveAny('4'))
   promises.push(resolveAny('6'))
 
-  // for callback API
-  if (done) {
+  if (done) {  // legacy callback API
     Promise.all(promises).then((r) => { done(errors, Array.from(ips)) })
-    return
   }
-
-  // promise API
-  // if (process.env.DEBUG && errors.length) console.error(errors)
-  return Promise.all(promises).then(r => { return Array.from(ips) })
+  else {       // promise API
+    // if (process.env.DEBUG && errors.length) console.error(errors)
+    return Promise.all(promises).then(r => { return Array.from(ips) })
+  }
 }
 
 exports.ipv6_reverse = function (ipv6) {
