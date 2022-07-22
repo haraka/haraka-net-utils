@@ -2,6 +2,14 @@
 #### N.N.N - YYYY-MM-DD
 
 
+### [1.4.0] - 2022-07-22
+
+- feat(get_mx): use async/await
+- feat(get_mx): call w/o callback for promise API
+- test(get_mx): expand and improve test coverage
+- chore(ci): use more shared haraka/.github workflows
+
+
 ### [1.3.7] - 2022-06-03
 
 - ci: fix the dependabot allow syntax
@@ -10,8 +18,8 @@
 ### [1.3.6] - 2022-06-01
 
 - chore: replace .release with submodule
-- ci: populate test matrix with Node.js LTS versions
-- ci: limit dependabot updates to production deps
+- chore(ci): populate test matrix with Node.js LTS versions
+- chore(ci): limit dependabot updates to production deps
 
 
 #### 1.3.5 - 2022-05-27
@@ -170,3 +178,4 @@
 
 [1.3.6]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.6
 [1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.7
+[1.4.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.4.0

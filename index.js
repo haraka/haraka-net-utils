@@ -344,6 +344,7 @@ exports.get_ips_by_host = function (hostname, done) {
   }
 
   // promise API
+  // if (process.env.DEBUG && errors.length) console.error(errors)
   return Promise.all(promises).then(r => { return Array.from(ips) })
 }
 
@@ -414,7 +415,7 @@ exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname();
 }
 
-exports.get_mx = function get_mx (raw_domain, cb) {
+exports.get_mx = async function get_mx (raw_domain, cb) {
   let domain = raw_domain;
   const mxs = [];
 
@@ -447,18 +448,21 @@ exports.get_mx = function get_mx (raw_domain, cb) {
 
   // wrap_mx returns our object with "priority" and "exchange" keys
   const wrap_mx = a => a;
+  let err = null
 
-  dns.resolveMx(domain)
-    .then(addresses => {
-      if (addresses && addresses.length) {
-        for (const addr of addresses) {
-          mxs.push(wrap_mx(addr));
-        }
+  try {
+    const addresses = await dns.resolveMx(domain)
+    if (addresses?.length) {
+      for (const addr of addresses) {
+        mxs.push(wrap_mx(addr));
       }
+    }
+  }
+  catch (e) {
+    err = e
+  }
 
-      cb(null, mxs);
-    })
-    .catch(err => {
-      cb(err)
-    })
+  if (cb) return cb(err, mxs)
+  if (err) throw err
+  return mxs
 }

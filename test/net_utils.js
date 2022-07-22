@@ -1141,36 +1141,75 @@ describe('get_mx', function () {
     done();
   })
 
-  it('gets MX records for a domain', function (done) {
-    this.timeout(3000)
-    this.net_utils.get_mx('tnpi.net', (err, mxlist) => {
-      assert.ifError(err);
-      assert.ok(mxlist.length);
-      assert.equal(mxlist[0].exchange, 'mail.theartfarm.com');
-      done();
-    })
-  })
+  const validCases = {
+    'tnpi.net'     : 'mail.theartfarm.com',
+    'matt@tnpi.net': 'mail.theartfarm.com',
+    'matt.simerson@gmail.com': /google.com/,
+    'example.com'  : '',
+  }
 
-  it('gets MX records for an email address', function (done) {
-    this.net_utils.get_mx('matt@tnpi.net', (err, mxlist) => {
-      assert.ifError(err);
-      assert.ok(mxlist.length);
-      done();
-    })
-  })
+  function checkValid (c, mxlist) {
+    if ('string' === typeof c) {
+      assert.equal(mxlist[0].exchange, c);
+    }
+    else {
+      assert.ok(c.test(mxlist[0].exchange))
+    }
+  }
 
-  it('gets MX records for example.com', function (done) {
-    this.net_utils.get_mx('example.com', (err, mxlist) => {
-      assert.equal(mxlist.length, 1);
-      assert.equal(mxlist[0].exchange, '');
-      done();
+  for (const c in validCases) {
+    it(`gets MX records for ${c}`, function (done) {
+      this.timeout(3000)
+      this.net_utils.get_mx(c, (err, mxlist) => {
+        if (err) console.error(err)
+        assert.ifError(err);
+        // assert.ok(mxlist.length);
+        checkValid(validCases[c], mxlist)
+        done()
+      })
     })
-  })
 
-  it('does not crash on invalid IDN name', function (done) {
-    this.net_utils.get_mx('gmail.xn--com-0da', (err, mxlist) => {
-      assert.strictEqual(err.message, 'Cannot convert name to ASCII')
-      done()
+    it(`awaits MX records for ${c}`, async function () {
+      this.timeout(3000)
+      const mxlist = await this.net_utils.get_mx(c)
+      // assert.ok(mxlist.length);
+      checkValid(validCases[c], mxlist)
     })
-  })
+  }
+
+  // macOS: ENODATA, win: ENOTOUND, ubuntu: ESERVFAIL
+  const invalidCases = {
+    'invalid': /queryMx (ENODATA|ENOTFOUND|ESERVFAIL) invalid/,
+    'gmail.xn--com-0da': 'Cannot convert name to ASCII',
+  }
+
+  function checkInvalid (expected, actual) {
+    if ('string' === typeof expected) {
+      assert.strictEqual(actual, expected)
+    }
+    else {
+      assert.equal(expected.test(actual), true)
+    }
+  }
+
+  for (const c in invalidCases) {
+    it(`cb does not crash on invalid name: ${c}`, function () {
+      this.net_utils.get_mx(c, (err, mxlist) => {
+        // console.error(err)
+        assert.equal(mxlist.length, 0)
+        checkInvalid(invalidCases[c], err.message)
+      })
+    })
+
+    it(`async does not crash on invalid name: ${c}`, async function () {
+      try {
+        const mxlist = await this.net_utils.get_mx(c)
+        assert.equal(mxlist.length, 0)
+      }
+      catch (err) {
+        // console.error(err)
+        checkInvalid(invalidCases[c], err.message)
+      }
+    })
+  }
 })
