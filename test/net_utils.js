@@ -239,7 +239,7 @@ describe('get_public_ip', function () {
 
   function has_stun () {
     try {
-      require('vs-stun');
+      require('stun');
     }
     catch (e) {
       return false;
@@ -278,6 +278,48 @@ describe('get_public_ip', function () {
       done();
     };
     this.net_utils.get_public_ip(cb);
+  })
+})
+
+describe('get_public_ip_async', function () {
+
+  beforeEach(() => {
+    this.net_utils = require('../index');
+    this.net_utils.config = this.net_utils.config.module_config(path.resolve('test'));
+  })
+
+  function has_stun () {
+    try {
+      require('stun');
+    }
+    catch (e) {
+      return false;
+    }
+    return true;
+  }
+
+  it('cached', async () => {
+    this.net_utils.public_ip='1.1.1.1';
+    const ip = await this.net_utils.get_public_ip()
+    assert.equal('1.1.1.1', ip);
+  })
+
+  it('normal', async () => {
+    this.net_utils.public_ip=undefined;
+
+    if (!has_stun()) {
+      console.log("stun skipped");
+      return
+    }
+
+    try {
+      const ip = await this.net_utils.get_public_ip()
+      console.log(`stun success: ${ip}`);
+      assert.ok(ip, ip);
+    }
+    catch (e) {
+      console.error(e);
+    }
   })
 })
 
@@ -1012,6 +1054,7 @@ describe('get_ips_by_host', function () {
   for (const t in tests) {
 
     it(`get_ips_by_host, ${t}`, function (done) {
+      this.timeout(4000)
       net_utils.get_ips_by_host(t, function (err, res) {
         if (err && err.length) {
           console.error(err);

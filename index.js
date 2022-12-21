@@ -239,7 +239,45 @@ exports.same_ipv4_network = function (ip, ipList) {
   return false;
 }
 
-exports.get_public_ip = function (cb) {
+exports.get_public_ip_async = async function () {
+
+  if (this.public_ip !== undefined) return this.public_ip;  // cache
+
+  // manual config override, for the cases where we can't figure it out
+  const smtpIni = exports.config.get('smtp.ini').main;
+  if (smtpIni.public_ip) {
+    this.public_ip = smtpIni.public_ip;
+    return this.public_ip;
+  }
+
+  // Initialise cache value to null to prevent running
+  // should we hit a timeout or the module isn't installed.
+  this.public_ip = null;
+
+  try {
+    this.stun = require('stun');
+  }
+  catch (e) {
+    e.install = 'Please install stun: "npm install -g stun"';
+    console.error(`${e.msg}\n${e.install}`);
+    return
+  }
+
+  const timeout = 10;
+  const timer = setTimeout(() => {
+    return new Error('STUN timeout')
+  }, timeout * 1000);
+
+  // Connect to STUN Server
+  const res = await this.stun.request(get_stun_server())
+  this.public_ip = res.getXorAddress().address
+  clearTimeout(timer)
+  return this.public_ip
+}
+
+exports.get_public_ip = async function (cb) {
+  if (!cb) return exports.get_public_ip_async()
+
   const nu = this;
   if (nu.public_ip !== undefined) return cb(null, nu.public_ip);  // cache
 
@@ -255,10 +293,10 @@ exports.get_public_ip = function (cb) {
   nu.public_ip = null;
 
   try {
-    nu.stun = require('vs-stun');
+    nu.stun = require('stun');
   }
   catch (e) {
-    e.install = 'Please install stun: "npm install -g vs-stun"';
+    e.install = 'Please install stun: "npm install -g stun"';
     console.error(`${e.msg}\n${e.install}`);
     return cb(e);
   }
@@ -269,34 +307,23 @@ exports.get_public_ip = function (cb) {
   }, timeout * 1000);
 
   // Connect to STUN Server
-  nu.stun.connect({ host: get_stun_server(), port: 19302 }, (error, socket) => {
+  nu.stun.request(get_stun_server(), (error, res) => {
     if (timer) clearTimeout(timer);
     if (error) return cb(error);
 
-    socket.close();
-
-    /*          sample socket.stun response
-     *
-     *  { local: { host: '127.0.0.30', port: 26163 },
-     *  public: { host: '50.115.0.94', port: 57345, family: 'IPv4' },
-     *  type: 'Full Cone NAT'
-     *  }
-    */
-    if (!socket.stun.public) return cb(new Error('invalid STUN result'));
-
-    nu.public_ip = socket.stun.public.host;
-    cb(null, socket.stun.public.host);
+    nu.public_ip = res.getXorAddress().address
+    cb(null, nu.public_ip);
   })
 }
 
 function get_stun_server () {
   // STUN servers by Google
   const servers = [
-    'stun.l.google.com',
-    'stun1.l.google.com',
-    'stun2.l.google.com',
-    'stun3.l.google.com',
-    'stun4.l.google.com',
+    'stun.l.google.com:19302',
+    'stun1.l.google.com:19302',
+    'stun2.l.google.com:19302',
+    'stun3.l.google.com:19302',
+    'stun4.l.google.com:19302',
   ];
   return servers[Math.floor(Math.random()*servers.length)];
 }
