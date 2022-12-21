@@ -1,6 +1,14 @@
 
 #### N.N.N - YYYY-MM-DD
 
+
+### [1.5.0] - 2022-12-20
+
+- feat: add async support for get_public_ip
+- dep: replace vs-stun with stun
+- doc: use async/await syntax in examples (#74)
+
+
 ### [1.4.1] - 2022-07-22
 
 - feat(get_mx): use async/await
@@ -178,3 +186,4 @@
 [1.3.6]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.6
 [1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.7
 [1.4.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.4.1
+[1.5.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.0

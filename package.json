@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "haraka network utilities",
   "main": "index.js",
   "scripts": {
@@ -42,6 +42,6 @@
     "sprintf-js": "^1.1.2"
   },
   "optionalDependencies": {
-    "vs-stun": "~0.0.7"
+    "stun": "2.1.0"
   }
 }
