@@ -2,6 +2,10 @@
 #### N.N.N - YYYY-MM-DD
 
 
+### [1.6.0] - 2023-04-04
+
+- feat: add is_self_host function
+
 ### [1.5.0] - 2022-12-20
 
 - feat: add async support for get_public_ip

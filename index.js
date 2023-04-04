@@ -139,6 +139,21 @@ exports.on_local_interface = function (ip) {
   return locallyBoundIPs.includes(ip);
 }
 
+exports.is_self_host = async function (host) {
+  try {
+    if (await this.is_local_host(host)) {
+      return true;
+    }
+    const public_ip = await this.get_public_ip();
+    const host_ips = net.isIP(host) ? [host] : await this.get_ips_by_host(host);
+    return await this.ip_in_list(host_ips, public_ip);
+  }
+  catch (e) {
+    // console.error(e)
+    return false
+  }
+}
+
 exports.is_local_host = async function (host) {
 
   if (net.isIP(host)) return this.is_local_ip(host);

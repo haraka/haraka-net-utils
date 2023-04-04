@@ -74,6 +74,10 @@ Determines if an IPv4 or IPv6 address is on a "private" network.
 For IPv4, returns true if is_private_ipv4 or is_local_ipv4 are true
 For IPv6, returns true if is_local_ipv6 is true
 
+### is_self_host
+
+Checks to see if a host name resolves to itself.
+
 ### is_local_host
 
 Checks to see if a host name resolves to a local ip.
