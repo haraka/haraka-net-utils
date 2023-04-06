@@ -4,7 +4,7 @@
 
 ### [1.6.0] - 2023-04-04
 
-- feat: add is_self_host function
+- feat: update is_local_host to return true also if host ip matches self public ip
 
 ### [1.5.0] - 2022-12-20
 

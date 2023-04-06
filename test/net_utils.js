@@ -88,12 +88,6 @@ async function _is_local_host (done, host, expected) {
   done();
 }
 
-async function _is_self_host (done, host, expected) {
-  const is_self_host = await net_utils.is_self_host(host);
-  assert.strictEqual(expected, is_self_host);
-  done();
-}
-
 function _is_private_ip (done, ip, expected) {
   assert.equal(expected, net_utils.is_private_ip(ip));
   done();
@@ -117,6 +111,17 @@ describe('is_local_host', function () {
     _is_local_host(done, '::1', true);
   })
 
+  it('self hostname', function (done) {
+    const hostname = require('../index').get_primary_host_name();
+    _is_local_host(done, hostname, true);
+  })
+
+  it('self ip', function (done) {
+    require('../index').get_public_ip().then(ip => {
+      _is_local_host(done, ip, true);
+    });
+  })
+
   it('google.com', function (done) {
     _is_local_host(done, 'google.com', false);
   })
@@ -127,44 +132,6 @@ describe('is_local_host', function () {
 
   it('invalid host string', async function () {
     const r = await net_utils.is_local_host('invalid host string')
-    assert.ok(!r);
-  })
-})
-
-describe('is_self_host', function () {
-  it('127.0.0.1', function (done) {
-    _is_self_host(done, '127.0.0.1', true);
-  })
-
-  it('0.0.0.0', function (done) {
-    _is_self_host(done, '0.0.0.0', true);
-  })
-
-  it('::1', function (done) {
-    _is_self_host(done, '::1', true);
-  })
-
-  it('self hostname', function (done) {
-    const hostname = require('../index').get_primary_host_name();
-    _is_self_host(done, hostname, true);
-  })
-
-  it('self ip', function (done) {
-    require('../index').get_public_ip().then(ip => {
-      _is_self_host(done, ip, true);
-    });
-  })
-
-  it('google.com', function (done) {
-    _is_self_host(done, 'google.com', false);
-  })
-
-  it('8.8.8.8', function (done) {
-    _is_self_host(done, '8.8.8.8', false);
-  })
-
-  it('invalid host string', async function () {
-    const r = await net_utils.is_self_host('invalid host string')
     assert.ok(!r);
   })
 })
