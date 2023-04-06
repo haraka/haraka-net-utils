@@ -1213,7 +1213,7 @@ describe('get_mx', function () {
     })
 
     it(`awaits MX records for ${c}`, async function () {
-      this.timeout(3000)
+      this.timeout(4000)
       const mxlist = await this.net_utils.get_mx(c)
       // assert.ok(mxlist.length);
       checkValid(validCases[c], mxlist)
