@@ -141,11 +141,16 @@ exports.on_local_interface = function (ip) {
 
 exports.is_local_host = async function (host) {
 
-  if (net.isIP(host)) return this.is_local_ip(host) || host === await this.get_public_ip();
+  if (net.isIP(host)) {
+    const public_ip = await this.get_public_ip()
+    if (public_ip && public_ip === host) return true
+
+    return this.is_local_ip(host);
+  }
 
   try {
     const ips = await this.get_ips_by_host(host);
-    return ips.length ? this.is_local_ip(ips[0]) || await this.ip_in_list(host_ips, await this.get_public_ip()) : false;
+    return ips.length ? this.is_local_ip(ips[0]) || await this.ip_in_list(ips, await this.get_public_ip()) : false;
   }
   catch (e) {
     // console.error(e)

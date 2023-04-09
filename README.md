@@ -76,7 +76,7 @@ For IPv6, returns true if is_local_ipv6 is true
 
 ### is_local_host
 
-Checks to see if a host name resolves to itself.
+Checks to see if a host name resolves to any IP address locally bound or looked up via STUN.
 
 ### is_local_ip
 
