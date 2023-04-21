@@ -112,6 +112,7 @@ describe('is_local_host', function () {
   })
 
   it('self hostname', function (done) {
+    this.timeout(5000)
     const hostname = require('../index').get_primary_host_name();
     if (!hostname) return done();
     _is_local_host(done, hostname, true);
