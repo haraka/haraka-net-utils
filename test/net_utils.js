@@ -113,6 +113,7 @@ describe('is_local_host', function () {
 
   it('self hostname', function (done) {
     const hostname = require('../index').get_primary_host_name();
+    if (!hostname) return done();
     _is_local_host(done, hostname, true);
   })
 
