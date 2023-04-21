@@ -140,17 +140,20 @@ exports.on_local_interface = function (ip) {
 }
 
 exports.is_local_host = async function (host) {
+  const public_ip = await this.get_public_ip()
 
   if (net.isIP(host)) {
-    const public_ip = await this.get_public_ip()
     if (public_ip && public_ip === host) return true
-
-    return this.is_local_ip(host);
+    return this.is_local_ip(host)
   }
 
   try {
     const ips = await this.get_ips_by_host(host);
-    return ips.length ? this.is_local_ip(ips[0]) || await this.ip_in_list(ips, await this.get_public_ip()) : false;
+    if (public_ip) ips.push(public_ip)
+    for (const ip of ips) {
+      if (this.is_local_ip(ip)) return true
+    }
+    return false
   }
   catch (e) {
     // console.error(e)
