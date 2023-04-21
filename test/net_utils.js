@@ -1215,7 +1215,7 @@ describe('get_mx', function () {
 
   for (const c in validCases) {
     it(`gets MX records for ${c}`, function (done) {
-      this.timeout(3000)
+      this.timeout(5000)
       this.net_utils.get_mx(c, (err, mxlist) => {
         if (err) console.error(err)
         assert.ifError(err);
@@ -1226,7 +1226,7 @@ describe('get_mx', function () {
     })
 
     it(`awaits MX records for ${c}`, async function () {
-      this.timeout(3000)
+      this.timeout(5000)
       const mxlist = await this.net_utils.get_mx(c)
       // assert.ok(mxlist.length);
       checkValid(validCases[c], mxlist)
@@ -1242,6 +1242,7 @@ describe('get_mx', function () {
 
   for (const c in invalidCases) {
     it(`cb does not crash on invalid name: ${c}`, function () {
+      this.timeout(5000)
       this.net_utils.get_mx(c, (err, mxlist) => {
         // console.error(err)
         assert.equal(mxlist.length, 0)
@@ -1250,6 +1251,7 @@ describe('get_mx', function () {
     })
 
     it(`async does not crash on invalid name: ${c}`, async function () {
+      this.timeout(5000)
       try {
         const mxlist = await this.net_utils.get_mx(c)
         assert.equal(mxlist.length, 0)
