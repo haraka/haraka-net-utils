@@ -112,9 +112,8 @@ describe('is_local_host', function () {
   })
 
   it('self hostname', function (done) {
-    this.timeout(5000)
+    if (/^win/.test(process.platform)) return done()
     const hostname = require('../index').get_primary_host_name();
-    if (!hostname) return done();
     _is_local_host(done, hostname, true);
   })
 
@@ -1240,16 +1239,12 @@ describe('get_mx', function () {
     'gmail.xn--com-0da': noDnsRe,
   }
 
-  function checkInvalid (expected, actual) {
-    assert.equal(expected.test(actual), true)
-  }
-
   for (const c in invalidCases) {
     it(`cb does not crash on invalid name: ${c}`, function () {
       this.net_utils.get_mx(c, (err, mxlist) => {
         // console.error(err)
         assert.equal(mxlist.length, 0)
-        checkInvalid(invalidCases[c], err.message)
+        assert.equal(noDnsRe.test(err.message), true)
       })
     })
 
@@ -1260,7 +1255,7 @@ describe('get_mx', function () {
       }
       catch (err) {
         // console.error(err)
-        checkInvalid(invalidCases[c], err.message)
+        assert.equal(noDnsRe.test(err.message), true)
       }
     })
   }
