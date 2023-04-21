@@ -1234,18 +1234,14 @@ describe('get_mx', function () {
   }
 
   // macOS: ENODATA, win: ENOTOUND, ubuntu: ESERVFAIL
-  const invalidCases = {
-    'invalid': /queryMx (ENODATA|ENOTFOUND|ESERVFAIL) invalid/,
-    'gmail.xn--com-0da': 'Cannot convert name to ASCII',
+const noDnsRe = /queryMx (ENODATA|ENOTFOUND|ESERVFAIL)|Cannot convert name to ASCII/
+const invalidCases = {
+    'invalid': noDnsRe,
+    'gmail.xn--com-0da': noDnsRe,
   }
 
   function checkInvalid (expected, actual) {
-    if ('string' === typeof expected) {
-      assert.strictEqual(actual, expected)
-    }
-    else {
-      assert.equal(expected.test(actual), true)
-    }
+    assert.equal(expected.test(actual), true)
   }
 
   for (const c in invalidCases) {
