@@ -1234,8 +1234,8 @@ describe('get_mx', function () {
   }
 
   // macOS: ENODATA, win: ENOTOUND, ubuntu: ESERVFAIL
-const noDnsRe = /queryMx (ENODATA|ENOTFOUND|ESERVFAIL)|Cannot convert name to ASCII/
-const invalidCases = {
+  const noDnsRe = /queryMx (ENODATA|ENOTFOUND|ESERVFAIL)|Cannot convert name to ASCII/
+  const invalidCases = {
     'invalid': noDnsRe,
     'gmail.xn--com-0da': noDnsRe,
   }
