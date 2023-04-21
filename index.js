@@ -148,7 +148,7 @@ exports.is_local_host = async function (host) {
   }
 
   try {
-    const ips = await this.get_ips_by_host(host);
+    const ips = await this.get_ips_by_host(host)
     if (public_ip) ips.push(public_ip)
     for (const ip of ips) {
       if (this.is_local_ip(ip)) return true
