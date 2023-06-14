@@ -1223,7 +1223,7 @@ describe('get_mx', function () {
   // macOS: ENODATA, win: ENOTOUND, ubuntu: ESERVFAIL
   const invalidCases = {
     'invalid': /queryMx (ENODATA|ENOTFOUND|ESERVFAIL) invalid/,
-    'gmail.xn--com-0da': 'Cannot convert name to ASCII',
+    'gmail.xn--com-0da': /(ENOTFOUND|Cannot convert name to ASCII)/,
   }
 
   function checkInvalid (expected, actual) {
