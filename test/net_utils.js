@@ -1054,7 +1054,7 @@ describe('get_ips_by_host', function () {
   for (const t in tests) {
 
     it(`get_ips_by_host, ${t}`, function (done) {
-      this.timeout(5000)
+      this.timeout(7000)
       net_utils.get_ips_by_host(t, function (err, res) {
         if (err && err.length) {
           console.error(err);
