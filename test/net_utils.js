@@ -1054,7 +1054,7 @@ describe('get_ips_by_host', function () {
   for (const t in tests) {
 
     it(`get_ips_by_host, ${t}`, function (done) {
-      this.timeout(5000)
+      this.timeout(7000)
       net_utils.get_ips_by_host(t, function (err, res) {
         if (err && err.length) {
           console.error(err);
@@ -1202,7 +1202,7 @@ describe('get_mx', function () {
 
   for (const c in validCases) {
     it(`gets MX records for ${c}`, function (done) {
-      this.timeout(5000)
+      this.timeout(7000)
       this.net_utils.get_mx(c, (err, mxlist) => {
         if (err) console.error(err)
         assert.ifError(err);
@@ -1213,7 +1213,7 @@ describe('get_mx', function () {
     })
 
     it(`awaits MX records for ${c}`, async function () {
-      this.timeout(5000)
+      this.timeout(7000)
       const mxlist = await this.net_utils.get_mx(c)
       // assert.ok(mxlist.length);
       checkValid(validCases[c], mxlist)
@@ -1223,7 +1223,7 @@ describe('get_mx', function () {
   // macOS: ENODATA, win: ENOTOUND, ubuntu: ESERVFAIL
   const invalidCases = {
     'invalid': /queryMx (ENODATA|ENOTFOUND|ESERVFAIL) invalid/,
-    'gmail.xn--com-0da': 'Cannot convert name to ASCII',
+    'gmail.xn--com-0da': /(ENOTFOUND|Cannot convert name to ASCII)/,
   }
 
   function checkInvalid (expected, actual) {
