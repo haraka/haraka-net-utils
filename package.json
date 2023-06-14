@@ -29,19 +29,19 @@
   },
   "homepage": "https://github.com/haraka/haraka-net-utils#readme",
   "devDependencies": {
-    "eslint": "8",
-    "mocha": "9",
+    "eslint": "^8.42.0",
+    "mocha": "^9.2.2",
     "eslint-plugin-haraka": "*"
   },
   "dependencies": {
-    "haraka-config": "^1.0.11",
+    "haraka-config": "^1.1.0",
     "haraka-tld": "*",
-    "ipaddr.js": "^2.0.1",
-    "punycode": "^2.1.1",
+    "ipaddr.js": "^2.1.0",
+    "punycode": "^2.3.0",
     "openssl-wrapper": "^0.3.4",
     "sprintf-js": "^1.1.2"
   },
   "optionalDependencies": {
-    "stun": "2.1.0"
+    "stun": "^2.1.0"
   }
 }
