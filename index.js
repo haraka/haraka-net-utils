@@ -139,18 +139,38 @@ exports.on_local_interface = function (ip) {
   return locallyBoundIPs.includes(ip);
 }
 
-exports.is_local_host = async function (host) {
+exports.is_local_host = async function (dst_host) {
 
-  if (net.isIP(host)) return this.is_local_ip(host);
+  // Is the destination hostname/IP delivered to a hostname or IP
+  // that's local to _this_ mail server?
+  const local_ips = [];
+  const dest_ips = [];
 
   try {
-    const ips = await this.get_ips_by_host(host)
-    return ips.length ? this.is_local_ip(ips[0]) : false
+    const public_ip = await this.get_public_ip()
+    if (public_ip) local_ips.push(public_ip)
+
+    const local_hostname = this.get_primary_host_name()
+    local_ips.push(...await this.get_ips_by_host(local_hostname));
+
+    if (net.isIP(dst_host)) {   // an IP address
+      dest_ips.push(dst_host)
+    }
+    else {                      // a hostname
+      if (dst_host === local_hostname) return true
+      dest_ips.push(...await this.get_ips_by_host(dst_host));
+    }
   }
   catch (e) {
     // console.error(e)
     return false
   }
+
+  for (const ip of dest_ips) {
+    if (this.is_local_ip(ip)) return true
+    if (local_ips.includes(ip)) return true
+  }
+  return false
 }
 
 exports.is_local_ip = function (ip) {
@@ -484,10 +504,10 @@ exports.get_mx = async function get_mx (raw_domain, cb) {
     }
   }
   catch (e) {
+    // console.error(e.message)
     err = e
   }
 
   if (cb) return cb(err, mxs)
-  if (err) throw err
   return mxs
 }

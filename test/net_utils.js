@@ -111,6 +111,18 @@ describe('is_local_host', function () {
     _is_local_host(done, '::1', true);
   })
 
+  it('self hostname', function (done) {
+    if (/^win/.test(process.platform)) return done()
+    const hostname = require('../index').get_primary_host_name();
+    _is_local_host(done, hostname, true);
+  })
+
+  it('self ip', function (done) {
+    require('../index').get_public_ip().then(ip => {
+      _is_local_host(done, ip, true);
+    });
+  })
+
   it('google.com', function (done) {
     _is_local_host(done, 'google.com', false);
   })

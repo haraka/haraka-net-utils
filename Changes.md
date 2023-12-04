@@ -2,11 +2,22 @@
 #### N.N.N - YYYY-MM-DD
 
 
+### [1.5.1] - 2023-12-03
+
+- feat(is_local_host): also match when
+    - the mx dest is a hostname that matches our hostname
+    - the mx dest matches our public IP (may not be locally bound)
+- bump dep versions #78
+- test update for node v20 #78
+- ci: enable CI tests on PRs #77
+- test: increase DNS timeouts from 3s to 5s #77
+
+
 ### [1.5.0] - 2022-12-20
 
-- feat: add async support for get_public_ip
+- feat: add async support for get_public_ip #75
 - dep: replace vs-stun with stun
-- doc: use async/await syntax in examples (#74)
+- doc: use async/await syntax in examples #74
 
 
 ### [1.4.1] - 2022-07-22
@@ -187,3 +198,4 @@
 [1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.7
 [1.4.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.4.1
 [1.5.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.0
+[1.5.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.1
