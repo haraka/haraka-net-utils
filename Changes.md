@@ -2,6 +2,11 @@
 #### N.N.N - YYYY-MM-DD
 
 
+### [1.5.2] - 2023-12-11
+
+- dep(stun): install from matt's updated git repo
+
+
 ### [1.5.1] - 2023-12-03
 
 - feat(is_local_host): also match when
@@ -199,3 +204,4 @@
 [1.4.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.4.1
 [1.5.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.0
 [1.5.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.1
+[1.5.2]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.2
