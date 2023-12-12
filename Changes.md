@@ -4,7 +4,7 @@
 
 ### [1.5.2] - 2023-12-11
 
-- dep(stun): install from matt's updated git repo
+- dep(stun): use updated @msimerson/stun
 
 
 ### [1.5.1] - 2023-12-03
