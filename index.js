@@ -275,7 +275,7 @@ exports.get_public_ip_async = async function () {
   this.public_ip = null;
 
   try {
-    this.stun = require('stun');
+    this.stun = require('@msimerson/stun');
   }
   catch (e) {
     e.install = 'Please install stun: "npm install -g stun"';
@@ -313,7 +313,7 @@ exports.get_public_ip = async function (cb) {
   nu.public_ip = null;
 
   try {
-    nu.stun = require('stun');
+    nu.stun = require('@msimerson/stun');
   }
   catch (e) {
     e.install = 'Please install stun: "npm install -g stun"';
