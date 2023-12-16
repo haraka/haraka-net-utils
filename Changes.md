@@ -2,6 +2,11 @@
 #### N.N.N - YYYY-MM-DD
 
 
+### [1.5.3] - 2023-12-15
+
+- dep(punycode): override built-in with trailing /
+
+
 ### [1.5.2] - 2023-12-11
 
 - dep(stun): use updated @msimerson/stun
@@ -205,3 +210,4 @@
 [1.5.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.0
 [1.5.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.1
 [1.5.2]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.2
+[1.5.3]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.3
