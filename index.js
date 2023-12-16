@@ -4,7 +4,7 @@
 const dns      = require('dns').promises;
 const net      = require('net');
 const os       = require('os');
-const punycode = require('punycode')
+const punycode = require('punycode/')
 
 // npm modules
 const ipaddr   = require('ipaddr.js');
