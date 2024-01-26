@@ -1,10 +1,12 @@
 'use strict';
 
 // node.js built-ins
-const dns      = require('dns').promises;
 const net      = require('net');
 const os       = require('os');
 const punycode = require('punycode/')
+
+const { Resolver }  = require('node:dns').promises;
+const resolver = new Resolver({timeout: 25000, tries: 1});
 
 // npm modules
 const ipaddr   = require('ipaddr.js');
@@ -370,7 +372,7 @@ exports.get_ips_by_host = function (hostname, done) {
 
   async function resolveAny (ver) {
     try {
-      const addrs = await dns[`resolve${ver}`](hostname)
+      const addrs = await resolver[`resolve${ver}`](hostname)
       for (const a of addrs) {
         ips.add(a);
       }
@@ -496,7 +498,7 @@ exports.get_mx = async function get_mx (raw_domain, cb) {
   let err = null
 
   try {
-    const addresses = await dns.resolveMx(domain)
+    const addresses = await resolver.resolveMx(domain)
     if (addresses?.length) {
       for (const addr of addresses) {
         mxs.push(wrap_mx(addr));
