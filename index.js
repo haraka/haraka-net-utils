@@ -1,15 +1,16 @@
 'use strict';
 
 // node.js built-ins
-const dns      = require('dns').promises;
-const net      = require('net');
-const os       = require('os');
-const punycode = require('punycode/')
+const {Resolver} = require('dns').promises;
+const dns        = new Resolver({timeout: 25000, tries: 1});
+const net        = require('net');
+const os         = require('os');
+const punycode   = require('punycode/')
 
 // npm modules
-const ipaddr   = require('ipaddr.js');
-const sprintf  = require('sprintf-js').sprintf;
-const tlds     = require('haraka-tld');
+const ipaddr     = require('ipaddr.js');
+const sprintf    = require('sprintf-js').sprintf;
+const tlds       = require('haraka-tld');
 
 const locallyBoundIPs = [];
 
