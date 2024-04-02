@@ -1,6 +1,10 @@
 
 #### N.N.N - YYYY-MM-DD
 
+### [1.5.4] - 2024-04-02
+
+- Add timeout to DNS Resolver (#83)
+
 
 ### [1.5.3] - 2023-12-15
 
@@ -211,3 +215,4 @@
 [1.5.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.1
 [1.5.2]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.2
 [1.5.3]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.3
+[1.5.4]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.4
