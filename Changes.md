@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - feat: added get_implicit_mx
 - feat: added resolve_mx_hosts
 - doc(Changes): fixed broken tag version links
+- chore: populate [files] in package.json. Delete .npmignore.
 
 ### [1.5.4] - 2024-04-02
 
