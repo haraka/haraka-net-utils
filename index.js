@@ -367,31 +367,23 @@ exports.get_ipany_re = function (prefix, suffix, modifier) {
 exports.get_ips_by_host = function (hostname, done) {
   const ips = new Set()
   const errors = []
-  const promises = []
 
-  async function resolveAny (ver) {
-    try {
-      const addrs = await dns[`resolve${ver}`](hostname)
-      for (const a of addrs) {
-        ips.add(a);
-      }
-      return addrs
-    }
-    catch (err) {
-      errors.push(err);
-    }
-  }
+  return Promise.allSettled([
+    dns.resolve6(hostname),
+    dns.resolve4(hostname),
+  ])
+    .then((res) => {
+      res
+        .filter(a => a.status === 'rejected')
+        .map(a => errors.push(a.reason))
 
-  promises.push(resolveAny('4'))
-  promises.push(resolveAny('6'))
+      res
+        .filter(a => a.status === 'fulfilled')
+        .map(a => a.value.map(ip => ips.add(ip)))
 
-  if (done) {  // legacy callback API
-    Promise.all(promises).then((r) => { done(errors, Array.from(ips)) })
-  }
-  else {       // promise API
-    // if (process.env.DEBUG && errors.length) console.error(errors)
-    return Promise.all(promises).then(r => { return Array.from(ips) })
-  }
+        if (done) done(errors, Array.from(ips))
+        return Array.from(ips)
+    })
 }
 
 exports.ipv6_reverse = function (ipv6) {
@@ -506,7 +498,7 @@ function fatal_mx_err (err) {
 }
 
 exports.get_mx = async (raw_domain, cb) => {
-  let domain = normalizeDomain(raw_domain);
+  const domain = normalizeDomain(raw_domain);
 
   try {
     const exchanges = await dns.resolveMx(domain)

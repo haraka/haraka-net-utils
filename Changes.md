@@ -6,13 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.6.0] - 2024-04-17
 
-- add timeout to DNS Resolver #83
 - feat: normalizeDomain, for punycode/IDN names
 - feat: get_mx now *also* returns implicit MX records
 - feat: added get_implicit_mx
 - feat: added resolve_mx_hosts
 - doc(Changes): fixed broken tag version links
-- chore: populate [files] in package.json. Delete .npmignore.
+- chore: populate [files] in package.json. Delete .npmignore
+- chore(lint): remove duplicate / stale rules from .eslintrc
+- dep(punycode): punycode -> punycode.js (avoid name collission)
+- chore: refactored get_ips_by_host using Promise.allSettled
 
 ### [1.5.4] - 2024-04-02
 
@@ -21,7 +23,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### [1.5.3] - 2023-12-15
 
 - dep(punycode): override built-in with trailing /
-
 
 ### [1.5.2] - 2023-12-11
 

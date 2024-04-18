@@ -1060,7 +1060,8 @@ describe('get_ips_by_host', function () {
       '192.48.85.149',
       '2607:f060:b008:feed::2'
     ],
-    'localhost.haraka.tnpi.net': [ '127.0.0.1', '::1' ]
+    'localhost.haraka.tnpi.net': [ '127.0.0.1', '::1' ],
+    // 'non-exist.haraka.tnpi.net': [],
   }
 
   for (const t in tests) {
@@ -1070,6 +1071,7 @@ describe('get_ips_by_host', function () {
       net_utils.get_ips_by_host(t, function (err, res) {
         if (err && err.length) {
           console.error(err);
+          return done()
         }
         assert.deepEqual(err, []);
         assert.deepEqual(res.sort(), tests[t].sort());
