@@ -1,13 +1,20 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "haraka network utilities",
   "main": "index.js",
+  "files": [
+    "CHANGELOG.md"
+  ],
   "scripts": {
-    "test": "npx mocha",
-    "lint": "npx eslint *.js test",
-    "lintfix": "npx eslint --fix *.js test",
-    "versions": "npx dependency-version-checker check"
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "lint": "npx eslint@^8 *.js test",
+    "lint:fix": "npx eslint@^8 *.js test --fix",
+    "prettier": "npx prettier . --check",
+    "prettier:fix": "npx prettier . --write --log-level=warn",
+    "test": "npx mocha@10",
+    "versions": "npx dependency-version-checker check",
+    "versions:fix": "npx dependency-version-checker update && npm run prettier:fix"
   },
   "repository": {
     "type": "git",
@@ -29,15 +36,13 @@
   },
   "homepage": "https://github.com/haraka/haraka-net-utils#readme",
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "mocha": "^10.4.0",
-    "eslint-plugin-haraka": "1.0.15"
+    "@haraka/eslint-config": "^1.1.3"
   },
   "dependencies": {
     "haraka-config": "^1.1.0",
-    "haraka-tld": "^1.2.0",
+    "haraka-tld": "^1.2.1",
     "ipaddr.js": "^2.1.0",
-    "punycode": "^2.3.1",
+    "punycode.js": "^2.3.1",
     "openssl-wrapper": "^0.3.4",
     "sprintf-js": "^1.1.3"
   },
