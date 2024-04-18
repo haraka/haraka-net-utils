@@ -1,168 +1,167 @@
-'use strict';
+'use strict'
 
 // node.js built-ins
-const {Resolver} = require('dns').promises;
-const dns        = new Resolver({timeout: 25000, tries: 1});
-const net        = require('net');
-const os         = require('os');
-const punycode   = require('punycode.js')
+const { Resolver } = require('dns').promises
+const dns = new Resolver({ timeout: 25000, tries: 1 })
+const net = require('net')
+const os = require('os')
+const punycode = require('punycode.js')
 
 // npm modules
-const ipaddr     = require('ipaddr.js');
-const sprintf    = require('sprintf-js').sprintf;
-const tlds       = require('haraka-tld');
+const ipaddr = require('ipaddr.js')
+const sprintf = require('sprintf-js').sprintf
+const tlds = require('haraka-tld')
 
-const locallyBoundIPs = [];
+const locallyBoundIPs = []
 
 // export config, so config base path can be overloaded by tests
-exports.config = require('haraka-config');
+exports.config = require('haraka-config')
 
 exports.long_to_ip = function (n) {
-  let d = n%256;
-  for (let i=3; i>0; i--) {
-    n = Math.floor(n/256);
-    d = `${n%256}.${d}`;
+  let d = n % 256
+  for (let i = 3; i > 0; i--) {
+    n = Math.floor(n / 256)
+    d = `${n % 256}.${d}`
   }
-  return d;
+  return d
 }
 
 exports.dec_to_hex = function (d) {
-  return d.toString(16);
+  return d.toString(16)
 }
 
 exports.hex_to_dec = function (h) {
-  return parseInt(h, 16);
+  return parseInt(h, 16)
 }
 
 exports.ip_to_long = function (ip) {
-  if (!net.isIPv4(ip)) { return false; }
+  if (!net.isIPv4(ip)) return false
 
-  const d = ip.split('.');
-  return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
+  const d = ip.split('.')
+  return ((+d[0] * 256 + +d[1]) * 256 + +d[2]) * 256 + +d[3]
 }
 
 exports.octets_in_string = function (str, oct1, oct2) {
-  let oct1_idx;
-  let oct2_idx;
+  let oct1_idx
+  let oct2_idx
 
   // test the largest of the two octets first
   if (oct2.length >= oct1.length) {
-    oct2_idx = str.lastIndexOf(oct2);
-    if (oct2_idx === -1) return false;
+    oct2_idx = str.lastIndexOf(oct2)
+    if (oct2_idx === -1) return false
 
-    oct1_idx = (str.substring(0, oct2_idx) +
-            str.substring(oct2_idx + oct2.length)).lastIndexOf(oct1);
-    if (oct1_idx === -1) return false;
+    oct1_idx = (
+      str.substring(0, oct2_idx) + str.substring(oct2_idx + oct2.length)
+    ).lastIndexOf(oct1)
+    if (oct1_idx === -1) return false
 
-    return true;  // both were found
+    return true // both were found
   }
 
-  oct1_idx = str.indexOf(oct1);
-  if (oct1_idx === -1) return false;
+  oct1_idx = str.indexOf(oct1)
+  if (oct1_idx === -1) return false
 
-  oct2_idx = (str.substring(0, oct1_idx) +
-        str.substring(oct1_idx + oct1.length)).lastIndexOf(oct2);
-  if (oct2_idx === -1) return false;
+  oct2_idx = (
+    str.substring(0, oct1_idx) + str.substring(oct1_idx + oct1.length)
+  ).lastIndexOf(oct2)
+  if (oct2_idx === -1) return false
 
-  return true;
+  return true
 }
 
 exports.is_ip_in_str = function (ip, str) {
-  if (!str) return false;
-  if (!ip) return false;
-  if (!net.isIPv4(ip)) return false;   // IPv4 only, for now
+  if (!str) return false
+  if (!ip) return false
+  if (!net.isIPv4(ip)) return false // IPv4 only, for now
 
-  const host_part = (tlds.split_hostname(str,1))[0].toString();
-  const octets = ip.split('.');
+  const host_part = tlds.split_hostname(str, 1)[0].toString()
+  const octets = ip.split('.')
 
   // See if the 3rd and 4th octets appear in the string
   if (this.octets_in_string(host_part, octets[2], octets[3])) {
-    return true;
+    return true
   }
   // then the 1st and 2nd octets
   if (this.octets_in_string(host_part, octets[0], octets[1])) {
-    return true;
+    return true
   }
 
   // Whole IP in hex
-  let host_part_copy = host_part;
-  const ip_hex = this.dec_to_hex(this.ip_to_long(ip));
-  for (let i=0; i<4; i++) {
-    const part = host_part_copy.indexOf(ip_hex.substring(i*2, (i*2)+2));
-    if (part === -1) break;
-    if (i === 3) return true;
-    host_part_copy = host_part_copy.substring(0, part) +
-            host_part_copy.substring(part+2);
+  let host_part_copy = host_part
+  const ip_hex = this.dec_to_hex(this.ip_to_long(ip))
+  for (let i = 0; i < 4; i++) {
+    const part = host_part_copy.indexOf(ip_hex.substring(i * 2, i * 2 + 2))
+    if (part === -1) break
+    if (i === 3) return true
+    host_part_copy =
+      host_part_copy.substring(0, part) + host_part_copy.substring(part + 2)
   }
-  return false;
+  return false
 }
 
 const re_ipv4 = {
   loopback: /^127\./,
   link_local: /^169\.254\./,
 
-  private10: /^10\./,          // 10/8
-  private192: /^192\.168\./,   // 192.168/16
+  private10: /^10\./, // 10/8
+  private192: /^192\.168\./, // 192.168/16
   // 172.16/16 .. 172.31/16
-  private172: /^172\.(1[6-9]|2[0-9]|3[01])\./,  // 172.16/12
+  private172: /^172\.(1[6-9]|2[0-9]|3[01])\./, // 172.16/12
 
   // RFC 5735
-  testnet1: /^192\.0\.2\./,    // 192.0.2.0/24
+  testnet1: /^192\.0\.2\./, // 192.0.2.0/24
   testnet2: /^198\.51\.100\./, // 198.51.100.0/24
-  testnet3: /^203\.0\.113\./,  // 203.0.113.0/24
+  testnet3: /^203\.0\.113\./, // 203.0.113.0/24
 }
 
 exports.is_private_ipv4 = function (ip) {
-
   // RFC 1918, reserved as "private" IP space
-  if (re_ipv4.private10.test(ip)) return true;
-  if (re_ipv4.private192.test(ip)) return true;
-  if (re_ipv4.private172.test(ip)) return true;
+  if (re_ipv4.private10.test(ip)) return true
+  if (re_ipv4.private192.test(ip)) return true
+  if (re_ipv4.private172.test(ip)) return true
 
-  if (re_ipv4.testnet1.test(ip)) return true;
-  if (re_ipv4.testnet2.test(ip)) return true;
-  if (re_ipv4.testnet3.test(ip)) return true;
+  if (re_ipv4.testnet1.test(ip)) return true
+  if (re_ipv4.testnet2.test(ip)) return true
+  if (re_ipv4.testnet3.test(ip)) return true
 
-  return false;
+  return false
 }
 
 exports.on_local_interface = function (ip) {
-
   if (locallyBoundIPs.length === 0) {
-    const ifList = os.networkInterfaces();
+    const ifList = os.networkInterfaces()
     for (const ifName of Object.keys(ifList)) {
       for (const addr of ifList[ifName]) {
-        locallyBoundIPs.push(addr.address);
+        locallyBoundIPs.push(addr.address)
       }
     }
   }
 
-  return locallyBoundIPs.includes(ip);
+  return locallyBoundIPs.includes(ip)
 }
 
 exports.is_local_host = async function (dst_host) {
-
   // Is the destination hostname/IP delivered to a hostname or IP
   // that's local to _this_ mail server?
-  const local_ips = [];
-  const dest_ips = [];
+  const local_ips = []
+  const dest_ips = []
 
   try {
     const public_ip = await this.get_public_ip()
     if (public_ip) local_ips.push(public_ip)
 
     const local_hostname = this.get_primary_host_name()
-    local_ips.push(...await this.get_ips_by_host(local_hostname));
+    local_ips.push(...(await this.get_ips_by_host(local_hostname)))
 
-    if (net.isIP(dst_host)) {   // an IP address
+    if (net.isIP(dst_host)) {
+      // an IP address
       dest_ips.push(dst_host)
-    }
-    else {                      // a hostname
+    } else {
+      // a hostname
       if (dst_host === local_hostname) return true
-      dest_ips.push(...await this.get_ips_by_host(dst_host));
+      dest_ips.push(...(await this.get_ips_by_host(dst_host)))
     }
-  }
-  catch (e) {
+  } catch (e) {
     // console.error(e)
     return false
   }
@@ -175,119 +174,117 @@ exports.is_local_host = async function (dst_host) {
 }
 
 exports.is_local_ip = function (ip) {
+  if (this.on_local_interface(ip)) return true
 
-  if (this.on_local_interface(ip)) return true;
-
-  if (net.isIPv4(ip)) return this.is_local_ipv4(ip);
-  if (net.isIPv6(ip)) return this.is_local_ipv6(ip);
+  if (net.isIPv4(ip)) return this.is_local_ipv4(ip)
+  if (net.isIPv6(ip)) return this.is_local_ipv6(ip)
 
   // console.error(`invalid IP address: ${ip}`);
-  return false;
+  return false
 }
 
 exports.is_local_ipv4 = function (ip) {
-  if ('0.0.0.0' === ip) return true;  // RFC 5735
+  if ('0.0.0.0' === ip) return true // RFC 5735
 
   // 127/8 (loopback)   # RFC 1122
-  if (re_ipv4.loopback.test(ip)) return true;
+  if (re_ipv4.loopback.test(ip)) return true
 
   // link local: 169.254/16 RFC 3927
-  if (re_ipv4.link_local.test(ip)) return true;
+  if (re_ipv4.link_local.test(ip)) return true
 
-  return false;
+  return false
 }
 
 const re_ipv6 = {
-  loopback:     /^(0{1,4}:){7}0{0,3}1$/,
-  link_local:   /^fe80::/i,
+  loopback: /^(0{1,4}:){7}0{0,3}1$/,
+  link_local: /^fe80::/i,
   unique_local: /^f(c|d)[a-f0-9]{2}:/i,
 }
 
 exports.is_local_ipv6 = function (ip) {
-  if (ip === '::') return true;    // RFC 5735
-  if (ip === '::1') return true;   // RFC 4291
+  if (ip === '::') return true // RFC 5735
+  if (ip === '::1') return true // RFC 4291
 
   // 2 more IPv6 notations for ::1
   // 0:0:0:0:0:0:0:1 or 0000:0000:0000:0000:0000:0000:0000:0001
-  if (re_ipv6.loopback.test(ip)) return true;
+  if (re_ipv6.loopback.test(ip)) return true
 
   // link local: fe80::/10, RFC 4862
-  if (re_ipv6.link_local.test(ip)) return true;
+  if (re_ipv6.link_local.test(ip)) return true
 
   // unique local (fc00::/7)   -> fc00: - fd00:
-  if (re_ipv6.unique_local.test(ip)) return true;
+  if (re_ipv6.unique_local.test(ip)) return true
 
-  return false;
+  return false
 }
 
 exports.is_private_ip = function (ip) {
-  if (net.isIPv4(ip)) return this.is_local_ipv4(ip) || this.is_private_ipv4(ip);
-  if (net.isIPv6(ip)) return this.is_local_ipv6(ip);
-  return false;
+  if (net.isIPv4(ip)) return this.is_local_ipv4(ip) || this.is_private_ipv4(ip)
+  if (net.isIPv6(ip)) return this.is_local_ipv6(ip)
+  return false
 }
 
 // backwards compatibility for non-public modules. Sunset: v3.0
-exports.is_rfc1918 = exports.is_private_ip;
+exports.is_rfc1918 = exports.is_private_ip
 
 exports.is_ip_literal = function (host) {
-  return exports.get_ipany_re('^\\[(IPv6:)?','\\]$','').test(host) ? true : false;
+  return exports.get_ipany_re('^\\[(IPv6:)?', '\\]$', '').test(host)
+    ? true
+    : false
 }
 
 exports.is_ipv4_literal = function (host) {
-  return /^\[(\d{1,3}\.){3}\d{1,3}\]$/.test(host) ? true : false;
+  return /^\[(\d{1,3}\.){3}\d{1,3}\]$/.test(host) ? true : false
 }
 
 exports.same_ipv4_network = function (ip, ipList) {
   if (!ipList || !ipList.length) {
-    console.error('same_ipv4_network, no ip list!');
-    return false;
+    console.error('same_ipv4_network, no ip list!')
+    return false
   }
   if (!net.isIPv4(ip)) {
-    console.error('same_ipv4_network, IP is not IPv4!');
-    return false;
+    console.error('same_ipv4_network, IP is not IPv4!')
+    return false
   }
 
-  const first3 = ip.split('.').slice(0,3).join('.');
+  const first3 = ip.split('.').slice(0, 3).join('.')
 
-  for (let i=0; i < ipList.length; i++) {
+  for (let i = 0; i < ipList.length; i++) {
     if (!net.isIPv4(ipList[i])) {
-      console.error('same_ipv4_network, IP in list is not IPv4!');
-      continue;
+      console.error('same_ipv4_network, IP in list is not IPv4!')
+      continue
     }
-    if (first3 === ipList[i].split('.').slice(0,3).join('.'))
-      return true;
+    if (first3 === ipList[i].split('.').slice(0, 3).join('.')) return true
   }
-  return false;
+  return false
 }
 
 exports.get_public_ip_async = async function () {
-
-  if (this.public_ip !== undefined) return this.public_ip;  // cache
+  if (this.public_ip !== undefined) return this.public_ip // cache
 
   // manual config override, for the cases where we can't figure it out
-  const smtpIni = exports.config.get('smtp.ini').main;
+  const smtpIni = exports.config.get('smtp.ini').main
   if (smtpIni.public_ip) {
-    this.public_ip = smtpIni.public_ip;
-    return this.public_ip;
+    this.public_ip = smtpIni.public_ip
+    return this.public_ip
   }
 
   // Initialise cache value to null to prevent running
   // should we hit a timeout or the module isn't installed.
-  this.public_ip = null;
+  this.public_ip = null
 
   try {
-    this.stun = require('@msimerson/stun');
-  }
-  catch (e) {
-    e.install = 'Please install stun: "npm install -g stun"';
-    console.error(`${e.msg}\n${e.install}`);
+    this.stun = require('@msimerson/stun')
+  } catch (e) {
+    e.install = 'Please install stun: "npm install -g stun"'
+    console.error(`${e.msg}\n${e.install}`)
     return
   }
 
-  const timeout = 10;
+  const timeout = 10
   const timer = setTimeout(() => {
     return new Error('STUN timeout')
-  }, timeout * 1000);
+  }, timeout * 1000)
 
   // Connect to STUN Server
   const res = await this.stun.request(get_stun_server())
@@ -299,45 +296,44 @@ exports.get_public_ip_async = async function () {
 exports.get_public_ip = async function (cb) {
   if (!cb) return exports.get_public_ip_async()
 
-  const nu = this;
-  if (nu.public_ip !== undefined) return cb(null, nu.public_ip);  // cache
+  const nu = this
+  if (nu.public_ip !== undefined) return cb(null, nu.public_ip) // cache
 
   // manual config override, for the cases where we can't figure it out
-  const smtpIni = exports.config.get('smtp.ini').main;
+  const smtpIni = exports.config.get('smtp.ini').main
   if (smtpIni.public_ip) {
-    nu.public_ip = smtpIni.public_ip;
-    return cb(null, nu.public_ip);
+    nu.public_ip = smtpIni.public_ip
+    return cb(null, nu.public_ip)
   }
 
   // Initialise cache value to null to prevent running
   // should we hit a timeout or the module isn't installed.
-  nu.public_ip = null;
+  nu.public_ip = null
 
   try {
-    nu.stun = require('@msimerson/stun');
-  }
-  catch (e) {
-    e.install = 'Please install stun: "npm install -g stun"';
-    console.error(`${e.msg}\n${e.install}`);
-    return cb(e);
+    nu.stun = require('@msimerson/stun')
+  } catch (e) {
+    e.install = 'Please install stun: "npm install -g stun"'
+    console.error(`${e.msg}\n${e.install}`)
+    return cb(e)
   }
 
-  const timeout = 10;
+  const timeout = 10
   const timer = setTimeout(() => {
-    return cb(new Error('STUN timeout'));
-  }, timeout * 1000);
+    return cb(new Error('STUN timeout'))
+  }, timeout * 1000)
 
   // Connect to STUN Server
   nu.stun.request(get_stun_server(), (error, res) => {
-    if (timer) clearTimeout(timer);
-    if (error) return cb(error);
+    if (timer) clearTimeout(timer)
+    if (error) return cb(error)
 
     nu.public_ip = res.getXorAddress().address
-    cb(null, nu.public_ip);
+    cb(null, nu.public_ip)
   })
 }
 
-function get_stun_server () {
+function get_stun_server() {
   // STUN servers by Google
   const servers = [
     'stun.l.google.com:19302',
@@ -345,23 +341,23 @@ function get_stun_server () {
     'stun2.l.google.com:19302',
     'stun3.l.google.com:19302',
     'stun4.l.google.com:19302',
-  ];
-  return servers[Math.floor(Math.random()*servers.length)];
+  ]
+  return servers[Math.floor(Math.random() * servers.length)]
 }
 
 exports.get_ipany_re = function (prefix, suffix, modifier) {
-  if (prefix === undefined) prefix = '';
-  if (suffix === undefined) suffix = '';
-  if (modifier === undefined) modifier = 'mg';
+  if (prefix === undefined) prefix = ''
+  if (suffix === undefined) suffix = ''
+  if (modifier === undefined) modifier = 'mg'
   /* eslint-disable prefer-template */
   return new RegExp(
     prefix +
-        `(` +    // capture group
-        `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){6})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:::(?:(?:(?:[0-9a-fA-F]{1,4})):){5})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){4})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,1}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){3})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,2}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){2})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,3}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:[0-9a-fA-F]{1,4})):)(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,4}(?:(?:[0-9a-fA-F]{1,4})))?::)(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,5}(?:(?:[0-9a-fA-F]{1,4})))?::)(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,6}(?:(?:[0-9a-fA-F]{1,4})))?::))))` + // complex ipv4 + ipv6
-        `)` +    // end capture
-        `${suffix}`,
-    modifier
-  );
+      `(` + // capture group
+      `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){6})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:::(?:(?:(?:[0-9a-fA-F]{1,4})):){5})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){4})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,1}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){3})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,2}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:(?:[0-9a-fA-F]{1,4})):){2})(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,3}(?:(?:[0-9a-fA-F]{1,4})))?::(?:(?:[0-9a-fA-F]{1,4})):)(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,4}(?:(?:[0-9a-fA-F]{1,4})))?::)(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9]))\\.){3}(?:(?:25[0-5]|(?:[1-9]|1[0-9]|2[0-4])?[0-9])))))))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,5}(?:(?:[0-9a-fA-F]{1,4})))?::)(?:(?:[0-9a-fA-F]{1,4})))|(?:(?:(?:(?:(?:(?:[0-9a-fA-F]{1,4})):){0,6}(?:(?:[0-9a-fA-F]{1,4})))?::))))` + // complex ipv4 + ipv6
+      `)` + // end capture
+      `${suffix}`,
+    modifier,
+  )
 }
 
 exports.get_ips_by_host = function (hostname, done) {
@@ -371,108 +367,104 @@ exports.get_ips_by_host = function (hostname, done) {
   return Promise.allSettled([
     dns.resolve6(hostname),
     dns.resolve4(hostname),
-  ])
-    .then((res) => {
-      res
-        .filter(a => a.status === 'rejected')
-        .map(a => errors.push(a.reason))
+  ]).then((res) => {
+    res.filter((a) => a.status === 'rejected').map((a) => errors.push(a.reason))
 
-      res
-        .filter(a => a.status === 'fulfilled')
-        .map(a => a.value.map(ip => ips.add(ip)))
+    res
+      .filter((a) => a.status === 'fulfilled')
+      .map((a) => a.value.map((ip) => ips.add(ip)))
 
-        if (done) done(errors, Array.from(ips))
-        return Array.from(ips)
-    })
+    if (done) done(errors, Array.from(ips))
+    return Array.from(ips)
+  })
 }
 
 exports.ipv6_reverse = function (ipv6) {
-  ipv6 = ipaddr.parse(ipv6);
-  return ipv6.toNormalizedString()
+  ipv6 = ipaddr.parse(ipv6)
+  return ipv6
+    .toNormalizedString()
     .split(':')
     .map(function (n) {
-      return sprintf('%04x', parseInt(n, 16));
+      return sprintf('%04x', parseInt(n, 16))
     })
     .join('')
     .split('')
     .reverse()
-    .join('.');
+    .join('.')
 }
 
 exports.ipv6_bogus = function (ipv6) {
   try {
-    const ipCheck = ipaddr.parse(ipv6);
-    if (ipCheck.range() !== 'unicast') return true;
-    return false;
-  }
-  catch (e) {
+    const ipCheck = ipaddr.parse(ipv6)
+    if (ipCheck.range() !== 'unicast') return true
+    return false
+  } catch (e) {
     // If we get an error from parsing, return true for bogus.
-    console.error(e);
-    return true;
+    console.error(e)
+    return true
   }
 }
 
 exports.ip_in_list = function (list, ip) {
-  if (list === undefined) return false;
+  if (list === undefined) return false
 
-  const isHostname = !net.isIP(ip);
-  const isArray = Array.isArray(list);
+  const isHostname = !net.isIP(ip)
+  const isArray = Array.isArray(list)
 
   // Quick lookup
   if (!isArray) {
-    if (ip in list) return true;   // domain or literal IP
-    if (isHostname) return false;  // skip CIDR match
+    if (ip in list) return true // domain or literal IP
+    if (isHostname) return false // skip CIDR match
   }
 
   // Iterate: arrays and CIDR matches
   for (let item in list) {
     if (isArray) {
-      item = list[item];             // item is index
-      if (item === ip) return true;  // exact match
+      item = list[item] // item is index
+      if (item === ip) return true // exact match
     }
-    if (isHostname) continue;  // skip CIDR match
+    if (isHostname) continue // skip CIDR match
 
-    const cidr = item.split('/');
-    const c_net  = cidr[0];
+    const cidr = item.split('/')
+    const c_net = cidr[0]
 
-    if (!net.isIP(c_net)) continue;  // bad config entry
-    if (net.isIPv4(ip) && net.isIPv6(c_net)) continue;
-    if (net.isIPv6(ip) && net.isIPv4(c_net)) continue;
+    if (!net.isIP(c_net)) continue // bad config entry
+    if (net.isIPv4(ip) && net.isIPv6(c_net)) continue
+    if (net.isIPv6(ip) && net.isIPv4(c_net)) continue
 
-    const c_mask = parseInt(cidr[1], 10) || (net.isIPv6(c_net) ? 128 : 32);
+    const c_mask = parseInt(cidr[1], 10) || (net.isIPv6(c_net) ? 128 : 32)
 
     if (ipaddr.parse(ip).match(ipaddr.parse(c_net), c_mask)) {
-      return true;
+      return true
     }
   }
 
-  return false;
+  return false
 }
 
 exports.get_primary_host_name = function () {
-  return exports.config.get('me') || os.hostname();
+  return exports.config.get('me') || os.hostname()
 }
 
-function normalizeDomain (raw_domain) {
-  let domain = raw_domain;
+function normalizeDomain(raw_domain) {
+  let domain = raw_domain
 
-  if ( /@/.test(domain) ) {
-    domain = domain.split('@').pop();
+  if (/@/.test(domain)) {
+    domain = domain.split('@').pop()
     // console.log(`\treduced ${raw_domain} to ${domain}.`)
   }
 
-  if ( /^xn--/.test(domain) ) {
+  if (/^xn--/.test(domain)) {
     // is punycode IDN with ACE, ASCII Compatible Encoding
-  }
-  else if (domain !== punycode.toASCII(domain)) {
-    domain = punycode.toASCII(domain);
+  } else if (domain !== punycode.toASCII(domain)) {
+    domain = punycode.toASCII(domain)
     console.log(`\tACE encoded '${raw_domain}' to '${domain}'`)
   }
 
   return domain
 }
 
-function fatal_mx_err (err) {
+function fatal_mx_err(err) {
   // Possible DNS errors
   // NODATA
   // FORMERR
@@ -498,17 +490,16 @@ function fatal_mx_err (err) {
 }
 
 exports.get_mx = async (raw_domain, cb) => {
-  const domain = normalizeDomain(raw_domain);
+  const domain = normalizeDomain(raw_domain)
 
   try {
     const exchanges = await dns.resolveMx(domain)
     if (exchanges && exchanges.length) {
-      exchanges.map(e => e.from_dns = domain)
+      exchanges.map((e) => (e.from_dns = domain))
       if (cb) return cb(null, exchanges)
       return exchanges
     }
-  }
-  catch (err) {
+  } catch (err) {
     // console.error(err.message)
     if (fatal_mx_err(err)) {
       if (cb) return cb(err, [])
@@ -521,8 +512,7 @@ exports.get_mx = async (raw_domain, cb) => {
     const exchanges = await this.get_implicit_mx(domain)
     if (cb) return cb(null, exchanges)
     return exchanges
-  }
-  catch (err) {
+  } catch (err) {
     if (fatal_mx_err(err)) {
       if (cb) return cb(err, [])
       throw err
@@ -531,16 +521,16 @@ exports.get_mx = async (raw_domain, cb) => {
 }
 
 exports.get_implicit_mx = async (domain) => {
-    // console.log(`No MX for ${domain}, trying AAAA & A records`)
+  // console.log(`No MX for ${domain}, trying AAAA & A records`)
 
-    const promises = [ dns.resolve6(domain), dns.resolve4(domain) ]
-    const r = await Promise.allSettled(promises)
+  const promises = [dns.resolve6(domain), dns.resolve4(domain)]
+  const r = await Promise.allSettled(promises)
 
-    return r
-      .filter(a => a.status === 'fulfilled')
-      .flatMap(a => a.value.map(
-          ip => ({ priority: 0, exchange: ip, from_dns: domain })
-      ))
+  return r
+    .filter((a) => a.status === 'fulfilled')
+    .flatMap((a) =>
+      a.value.map((ip) => ({ priority: 0, exchange: ip, from_dns: domain })),
+    )
 }
 
 exports.resolve_mx_hosts = async (mxes) => {
@@ -548,31 +538,35 @@ exports.resolve_mx_hosts = async (mxes) => {
   const promises = []
 
   for (const mx of mxes) {
-      if (!mx.exchange) {
-          promises.push(mx);
-          continue
-      }
+    if (!mx.exchange) {
+      promises.push(mx)
+      continue
+    }
 
-      if (net.isIP(mx.exchange)) {
-          promises.push(mx) // already resolved
-          continue
-      }
+    if (net.isIP(mx.exchange)) {
+      promises.push(mx) // already resolved
+      continue
+    }
 
-      // resolve AAAA and A since mx.exchange is a hostname
-      promises.push(
-        dns.resolve6(mx.exchange)
-          .then((ips) => ips.map(ip => ({ ...mx, exchange: ip, from_dns: mx.exchange })))
-      )
+    // resolve AAAA and A since mx.exchange is a hostname
+    promises.push(
+      dns
+        .resolve6(mx.exchange)
+        .then((ips) =>
+          ips.map((ip) => ({ ...mx, exchange: ip, from_dns: mx.exchange })),
+        ),
+    )
 
-      promises.push(
-        dns.resolve4(mx.exchange)
-          .then((ips) => ips.map(ip => ({ ...mx, exchange: ip, from_dns: mx.exchange })))
-      )
+    promises.push(
+      dns
+        .resolve4(mx.exchange)
+        .then((ips) =>
+          ips.map((ip) => ({ ...mx, exchange: ip, from_dns: mx.exchange })),
+        ),
+    )
   }
 
   const settled = await Promise.allSettled(promises)
 
-  return settled
-      .filter(s => s.status === 'fulfilled')
-      .flatMap(s => s.value)
+  return settled.filter((s) => s.status === 'fulfilled').flatMap((s) => s.value)
 }
