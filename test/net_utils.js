@@ -1250,6 +1250,8 @@ describe('on_local_interface', function () {
 })
 
 describe('get_mx', function () {
+  this.timeout(12000)
+
   beforeEach(function (done) {
     this.net_utils = require('../index')
     done()
@@ -1331,6 +1333,7 @@ describe('get_mx', function () {
 })
 
 describe('resolve_mx_hosts', function () {
+  this.timeout(12000)
 
   beforeEach((done) => {
     this.net_utils = require('../index')
@@ -1351,7 +1354,6 @@ describe('resolve_mx_hosts', function () {
   ]
 
   it('resolves mx hosts to IPs, tnpi.net', async () => {
-    this.timeout(12000)
     const r = await this.net_utils.resolve_mx_hosts([
       { exchange: 'mail.theartfarm.com', priority: 10, from_dns: 'tnpi.net' },
     ])
@@ -1359,7 +1361,6 @@ describe('resolve_mx_hosts', function () {
   })
 
   it('resolves mx hosts to IPs, gmail.com', async () => {
-    this.timeout(9000)
     const mxes = await this.net_utils.get_mx('gmail.com')
     assert.equal(mxes.length, 5)
     const r = await this.net_utils.resolve_mx_hosts(mxes)
@@ -1377,14 +1378,12 @@ describe('resolve_mx_hosts', function () {
   })
 
   it('resolve_mx_hosts, gmail.com', async () => {
-    this.timeout(7000)
     const mxes = await this.net_utils.get_mx('gmail.com')
     const r = await this.net_utils.resolve_mx_hosts(mxes)
     assert.equal(r.length, 10)
   })
 
   it('resolve_mx_hosts, yahoo.com', async () => {
-    this.timeout(7000)
     const mxes = await this.net_utils.get_mx('yahoo.com')
     const r = await this.net_utils.resolve_mx_hosts([mxes[0]])
     assert.equal(r.length, 8)
