@@ -1,10 +1,19 @@
+# Changelog
 
-#### N.N.N - YYYY-MM-DD
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
+
+### Unreleased
+
+### [1.6.0] - 2024-04-17
+
+- add timeout to DNS Resolver #83
+- feat: normalizeDomain, for punycode/IDN names
+- feat: 
+- doc(Changes): fixed broken tag version links
 
 ### [1.5.4] - 2024-04-02
 
 - Add timeout to DNS Resolver (#83)
-
 
 ### [1.5.3] - 2023-12-15
 
@@ -54,7 +63,7 @@
 - chore(ci): limit dependabot updates to production deps
 
 
-#### 1.3.5 - 2022-05-27
+#### [1.3.5] - 2022-05-27
 
 - chore(ci): use shared GHA workflows
 - style(es6): use dns.promises internally
@@ -62,22 +71,22 @@
 - doc(README): use code fences around examples (vs indention)
 
 
-#### 1.3.4 - 2022-01-05
+#### [1.3.4] - 2022-01-05
 
 - promisify get_ips_by_host (backwards compatible)
 
 
-#### 1.3.3 - 2020-01-05
+#### [1.3.3] - 2020-01-05
 
 - refactored is_local_host function to return a promise instead of using a callback #65
 
 
-#### 1.3.2 - 2021-12-20
+#### [1.3.2] - 2021-12-20
 
 - add is_local_host function #63
 
 
-#### 1.3.1 - 2021-10-13
+#### [1.3.1] - 2021-10-13
 
 - get_mx: wrap dns.resolveMx in a try haraka/Haraka#2985
 - add .release scripts
@@ -105,12 +114,12 @@
 - get_mx: do not include implicit MX
 
 
-#### 1.2.1 - 2020-11-17
+#### [1.2.1] - 2020-11-17
 
 - bump ipaddr.js to 2.0.0 #56
 
 
-#### 1.2.0 - 2020-06-23
+#### [1.2.0] - 2020-06-23
 
 - added get_mx
 - remove deprecated load_tls_ini
@@ -207,12 +216,20 @@
 
 * added tls.ini loading
 
-
+[1.2.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.2.0
+[1.2.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.2.1
+[1.3.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.1
+[1.3.2]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.2
+[1.3.3]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.3
+[1.3.4]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.4
+[1.3.5]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.5
 [1.3.6]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.6
-[1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.7
-[1.4.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.4.1
-[1.5.0]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.0
-[1.5.1]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.1
-[1.5.2]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.2
-[1.5.3]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.3
-[1.5.4]: https://github.com/haraka/haraka-net-utils/releases/tag/1.5.4
+[1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.3.7
+[1.4.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.4.0
+[1.4.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.4.1
+[1.5.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.5.0
+[1.5.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.5.1
+[1.5.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.5.2
+[1.5.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.5.3
+[1.5.4]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.5.4
+[1.6.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.6.0
