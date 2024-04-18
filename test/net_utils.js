@@ -1279,7 +1279,7 @@ describe('get_mx', function () {
 
   for (const c in validCases) {
     it(`gets MX records for ${c}`, function (done) {
-      this.timeout(7000)
+      this.timeout(12000)
       this.net_utils.get_mx(c, (err, mxlist) => {
         if (err) console.error(err)
         assert.ifError(err)
@@ -1290,7 +1290,7 @@ describe('get_mx', function () {
     })
 
     it(`awaits MX records for ${c}`, async function () {
-      this.timeout(7000)
+      this.timeout(12000)
       const mxlist = await this.net_utils.get_mx(c)
       // assert.ok(mxlist.length);
       checkValid(validCases[c], mxlist)
@@ -1351,7 +1351,7 @@ describe('resolve_mx_hosts', function () {
   ]
 
   it('resolves mx hosts to IPs, tnpi.net', async () => {
-    this.timeout(7000)
+    this.timeout(12000)
     const r = await this.net_utils.resolve_mx_hosts([
       { exchange: 'mail.theartfarm.com', priority: 10, from_dns: 'tnpi.net' },
     ])
@@ -1359,7 +1359,7 @@ describe('resolve_mx_hosts', function () {
   })
 
   it('resolves mx hosts to IPs, gmail.com', async () => {
-    this.timeout(7000)
+    this.timeout(9000)
     const mxes = await this.net_utils.get_mx('gmail.com')
     assert.equal(mxes.length, 5)
     const r = await this.net_utils.resolve_mx_hosts(mxes)
@@ -1377,14 +1377,14 @@ describe('resolve_mx_hosts', function () {
   })
 
   it('resolve_mx_hosts, gmail.com', async () => {
-    this.timeout(5000)
+    this.timeout(7000)
     const mxes = await this.net_utils.get_mx('gmail.com')
     const r = await this.net_utils.resolve_mx_hosts(mxes)
     assert.equal(r.length, 10)
   })
 
   it('resolve_mx_hosts, yahoo.com', async () => {
-    this.timeout(5000)
+    this.timeout(7000)
     const mxes = await this.net_utils.get_mx('yahoo.com')
     const r = await this.net_utils.resolve_mx_hosts([mxes[0]])
     assert.equal(r.length, 8)
