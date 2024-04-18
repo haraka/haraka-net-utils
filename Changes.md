@@ -8,7 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - add timeout to DNS Resolver #83
 - feat: normalizeDomain, for punycode/IDN names
-- feat: 
+- feat: get_mx now *also* returns implicit MX records
+- feat: added get_implicit_mx
+- feat: added resolve_mx_hosts
 - doc(Changes): fixed broken tag version links
 
 ### [1.5.4] - 2024-04-02

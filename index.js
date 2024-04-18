@@ -5,7 +5,7 @@ const {Resolver} = require('dns').promises;
 const dns        = new Resolver({timeout: 25000, tries: 1});
 const net        = require('net');
 const os         = require('os');
-const punycode   = require('punycode/')
+const punycode   = require('punycode.js')
 
 // npm modules
 const ipaddr     = require('ipaddr.js');
@@ -461,23 +461,8 @@ exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname();
 }
 
-exports.get_mx = async function get_mx (raw_domain, cb) {
+function normalizeDomain (raw_domain) {
   let domain = raw_domain;
-  const mxs = [];
-
-  // Possible DNS errors
-  // NODATA
-  // FORMERR
-  // BADRESP
-  // NOTFOUND
-  // BADNAME
-  // TIMEOUT
-  // CONNREFUSED
-  // NOMEM
-  // DESTRUCTION
-  // NOTIMP
-  // EREFUSED
-  // SERVFAIL
 
   if ( /@/.test(domain) ) {
     domain = domain.split('@').pop();
@@ -492,23 +477,110 @@ exports.get_mx = async function get_mx (raw_domain, cb) {
     console.log(`\tACE encoded '${raw_domain}' to '${domain}'`)
   }
 
-  // wrap_mx returns our object with "priority" and "exchange" keys
-  const wrap_mx = a => a;
-  let err = null
+  return domain
+}
+
+function fatal_mx_err (err) {
+  // Possible DNS errors
+  // NODATA
+  // FORMERR
+  // BADRESP
+  // NOTFOUND
+  // BADNAME
+  // TIMEOUT
+  // CONNREFUSED
+  // NOMEM
+  // DESTRUCTION
+  // NOTIMP
+  // EREFUSED
+  // SERVFAIL
+
+  switch (err.code) {
+    case 'ENODATA':
+    case 'ENOTFOUND':
+      // likely a hostname with no MX record, drop through
+      return false
+    default:
+      return err
+  }
+}
+
+exports.get_mx = async (raw_domain, cb) => {
+  let domain = normalizeDomain(raw_domain);
 
   try {
-    const addresses = await dns.resolveMx(domain)
-    if (addresses?.length) {
-      for (const addr of addresses) {
-        mxs.push(wrap_mx(addr));
-      }
+    const exchanges = await dns.resolveMx(domain)
+    if (exchanges && exchanges.length) {
+      exchanges.map(e => e.from_dns = domain)
+      if (cb) return cb(null, exchanges)
+      return exchanges
     }
   }
-  catch (e) {
-    // console.error(e.message)
-    err = e
+  catch (err) {
+    // console.error(err.message)
+    if (fatal_mx_err(err)) {
+      if (cb) return cb(err, [])
+      throw err
+    }
   }
 
-  if (cb) return cb(err, mxs)
-  return mxs
+  // no MX or non-fatal DNS failure
+  try {
+    const exchanges = await this.get_implicit_mx(domain)
+    if (cb) return cb(null, exchanges)
+    return exchanges
+  }
+  catch (err) {
+    if (fatal_mx_err(err)) {
+      if (cb) return cb(err, [])
+      throw err
+    }
+  }
+}
+
+exports.get_implicit_mx = async (domain) => {
+    // console.log(`No MX for ${domain}, trying AAAA & A records`)
+
+    const promises = [ dns.resolve6(domain), dns.resolve4(domain) ]
+    const r = await Promise.allSettled(promises)
+
+    return r
+      .filter(a => a.status === 'fulfilled')
+      .flatMap(a => a.value.map(
+          ip => ({ priority: 0, exchange: ip, from_dns: domain })
+      ))
+}
+
+exports.resolve_mx_hosts = async (mxes) => {
+  // for the given list of MX exchanges, resolve the hostnames to IPs
+  const promises = []
+
+  for (const mx of mxes) {
+      if (!mx.exchange) {
+          promises.push(mx);
+          continue
+      }
+
+      if (net.isIP(mx.exchange)) {
+          promises.push(mx) // already resolved
+          continue
+      }
+
+      // resolve AAAA and A since mx.exchange is a hostname
+      promises.push(
+        dns.resolve6(mx.exchange)
+          .then((ips) => ips.map(ip => ({ ...mx, exchange: ip, from_dns: mx.exchange })))
+      )
+
+      promises.push(
+        dns.resolve4(mx.exchange)
+          .then((ips) => ips.map(ip => ({ ...mx, exchange: ip, from_dns: mx.exchange })))
+      )
+  }
+
+  const settled = await Promise.allSettled(promises)
+
+  return settled
+      .filter(s => s.status === 'fulfilled')
+      .flatMap(s => s.value)
 }

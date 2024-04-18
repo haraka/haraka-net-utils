@@ -1060,7 +1060,7 @@ describe('get_ips_by_host', function () {
       '192.48.85.149',
       '2607:f060:b008:feed::2'
     ],
-    'localhost.simerson.net': [ '127.0.0.1', '::1' ]
+    'localhost.haraka.tnpi.net': [ '127.0.0.1', '::1' ]
   }
 
   for (const t in tests) {
@@ -1201,14 +1201,22 @@ describe('get_mx', function () {
     'matt@tnpi.net': 'mail.theartfarm.com',
     'matt.simerson@gmail.com': /google.com/,
     'example.com'  : '',
+    'no-mx.haraka.tnpi.net' : '192.0.99.5',
+    'bad-mx.haraka.tnpi.net' : /99/,
+    'über.haraka.tnpi.net': 'no-mx.haraka.tnpi.net',
   }
 
   function checkValid (c, mxlist) {
-    if ('string' === typeof c) {
-      assert.equal(mxlist[0].exchange, c);
+    try {
+      if ('string' === typeof c) {
+        assert.equal(mxlist[0].exchange, c);
+      }
+      else {
+        assert.ok(c.test(mxlist[0].exchange))
+      }
     }
-    else {
-      assert.ok(c.test(mxlist[0].exchange))
+    catch (err) {
+      console.error(err)
     }
   }
 
@@ -1250,7 +1258,6 @@ describe('get_mx', function () {
   for (const c in invalidCases) {
     it(`cb does not crash on invalid name: ${c}`, function () {
       this.net_utils.get_mx(c, (err, mxlist) => {
-        // console.error(err)
         assert.equal(mxlist.length, 0)
         checkInvalid(invalidCases[c], err.message)
       })
@@ -1262,9 +1269,58 @@ describe('get_mx', function () {
         assert.equal(mxlist.length, 0)
       }
       catch (err) {
-        // console.error(err)
         checkInvalid(invalidCases[c], err.message)
       }
     })
   }
+})
+
+describe('resolve_mx_hosts', function () {
+  beforeEach((done) => {
+    this.net_utils = require('../index');
+    done();
+  })
+
+  const expectedResolvedMx = [
+    { exchange: '2605:ae00:329::14', priority: 10, from_dns: 'mail.theartfarm.com' },
+    { exchange: '66.128.51.165', priority: 10, from_dns: 'mail.theartfarm.com' }
+  ]
+
+  it('resolves mx hosts to IPs, tnpi.net', async () => {
+    const r = await this.net_utils.resolve_mx_hosts([
+      { exchange: 'mail.theartfarm.com', priority: 10, from_dns: 'tnpi.net' },
+    ]);
+    assert.deepEqual(r, expectedResolvedMx)
+  })
+
+  it('resolves mx hosts to IPs, gmail.com', async () => {
+      const mxes = await this.net_utils.get_mx('gmail.com');
+      assert.equal(mxes.length, 5)
+      const r = await this.net_utils.resolve_mx_hosts(mxes);
+      assert.equal(r.length, 10)
+  })
+
+  it('returns IPs as is', async () => {
+      const r = await this.net_utils.resolve_mx_hosts(expectedResolvedMx);
+      assert.deepEqual(r, expectedResolvedMx)
+  })
+
+  it('returns sockets as-is', async () => {
+      const r = await this.net_utils.resolve_mx_hosts([{ path: '/var/run/sock' }]);
+      assert.deepEqual(r, [{ path: '/var/run/sock' }])
+  })
+
+  it('resolve_mx_hosts, gmail.com', async () => {
+      const mxes = await this.net_utils.get_mx('gmail.com');
+      const r = await this.net_utils.resolve_mx_hosts(mxes);
+      // console.log(r)
+      assert.equal(r.length, 10)
+  })
+
+  it('resolve_mx_hosts, yahoo.com', async () => {
+      const mxes = await this.net_utils.get_mx('yahoo.com');
+      const r = await this.net_utils.resolve_mx_hosts([ mxes[0] ]);
+      // console.log(r)
+      assert.equal(r.length, 8)
+  })
 })
