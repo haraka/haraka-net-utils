@@ -1,14 +1,14 @@
 'use strict'
 
-// node.js built-ins
-const { Resolver } = require('dns').promises
+const { Resolver } = require('node:dns').promises
 const dns = new Resolver({ timeout: 25000, tries: 1 })
-const net = require('net')
-const os = require('os')
-const punycode = require('punycode.js')
+const net = require('node:net')
+const os = require('node:os')
+const url = require('node:url')
 
 // npm modules
 const ipaddr = require('ipaddr.js')
+const punycode = require('punycode.js')
 const sprintf = require('sprintf-js').sprintf
 const tlds = require('haraka-tld')
 
@@ -287,7 +287,9 @@ exports.get_public_ip_async = async function () {
   }, timeout * 1000)
 
   // Connect to STUN Server
-  const res = await this.stun.request(get_stun_server())
+  const res = await this.stun.request(get_stun_server(), {
+    maxTimeout: (timeout - 1) * 1000,
+  })
   this.public_ip = res.getXorAddress().address
   clearTimeout(timer)
   return this.public_ip
@@ -296,22 +298,21 @@ exports.get_public_ip_async = async function () {
 exports.get_public_ip = async function (cb) {
   if (!cb) return exports.get_public_ip_async()
 
-  const nu = this
-  if (nu.public_ip !== undefined) return cb(null, nu.public_ip) // cache
+  if (this.public_ip !== undefined) return cb(null, this.public_ip) // cache
 
   // manual config override, for the cases where we can't figure it out
   const smtpIni = exports.config.get('smtp.ini').main
   if (smtpIni.public_ip) {
-    nu.public_ip = smtpIni.public_ip
-    return cb(null, nu.public_ip)
+    this.public_ip = smtpIni.public_ip
+    return cb(null, this.public_ip)
   }
 
   // Initialise cache value to null to prevent running
   // should we hit a timeout or the module isn't installed.
-  nu.public_ip = null
+  this.public_ip = null
 
   try {
-    nu.stun = require('@msimerson/stun')
+    this.stun = require('@msimerson/stun')
   } catch (e) {
     e.install = 'Please install stun: "npm install -g stun"'
     console.error(`${e.msg}\n${e.install}`)
@@ -324,17 +325,20 @@ exports.get_public_ip = async function (cb) {
   }, timeout * 1000)
 
   // Connect to STUN Server
-  nu.stun.request(get_stun_server(), (error, res) => {
-    if (timer) clearTimeout(timer)
-    if (error) return cb(error)
+  this.stun.request(
+    get_stun_server(),
+    { maxTimeout: (timeout - 1) * 1000 },
+    (error, res) => {
+      if (timer) clearTimeout(timer)
+      if (error) return cb(error)
 
-    nu.public_ip = res.getXorAddress().address
-    cb(null, nu.public_ip)
-  })
+      this.public_ip = res.getXorAddress().address
+      cb(null, this.public_ip)
+    },
+  )
 }
 
 function get_stun_server() {
-  // STUN servers by Google
   const servers = [
     'stun.l.google.com:19302',
     'stun1.l.google.com:19302',
@@ -345,11 +349,7 @@ function get_stun_server() {
   return servers[Math.floor(Math.random() * servers.length)]
 }
 
-exports.get_ipany_re = function (prefix, suffix, modifier) {
-  if (prefix === undefined) prefix = ''
-  if (suffix === undefined) suffix = ''
-  if (modifier === undefined) modifier = 'mg'
-  /* eslint-disable prefer-template */
+exports.get_ipany_re = function (prefix = '', suffix = '', modifier = 'mg') {
   return new RegExp(
     prefix +
       `(` + // capture group
@@ -493,31 +493,24 @@ exports.get_mx = async (raw_domain, cb) => {
   const domain = normalizeDomain(raw_domain)
 
   try {
-    const exchanges = await dns.resolveMx(domain)
+    let exchanges = await dns.resolveMx(domain)
     if (exchanges && exchanges.length) {
-      exchanges.map((e) => (e.from_dns = domain))
+      exchanges = exchanges.map((e) => new HarakaMx(e, domain))
       if (cb) return cb(null, exchanges)
       return exchanges
     }
+    // no MX record(s), fall through
   } catch (err) {
-    // console.error(err.message)
     if (fatal_mx_err(err)) {
       if (cb) return cb(err, [])
       throw err
     }
+    // non-terminal DNS failure, fall through
   }
 
-  // no MX or non-fatal DNS failure
-  try {
-    const exchanges = await this.get_implicit_mx(domain)
-    if (cb) return cb(null, exchanges)
-    return exchanges
-  } catch (err) {
-    if (fatal_mx_err(err)) {
-      if (cb) return cb(err, [])
-      throw err
-    }
-  }
+  const exchanges = await this.get_implicit_mx(domain)
+  if (cb) return cb(null, exchanges)
+  return exchanges
 }
 
 exports.get_implicit_mx = async (domain) => {
@@ -528,9 +521,7 @@ exports.get_implicit_mx = async (domain) => {
 
   return r
     .filter((a) => a.status === 'fulfilled')
-    .flatMap((a) =>
-      a.value.map((ip) => ({ priority: 0, exchange: ip, from_dns: domain })),
-    )
+    .flatMap((a) => a.value.map((ip) => new HarakaMx(ip, domain)))
 }
 
 exports.resolve_mx_hosts = async (mxes) => {
@@ -570,3 +561,92 @@ exports.resolve_mx_hosts = async (mxes) => {
 
   return settled.filter((s) => s.status === 'fulfilled').flatMap((s) => s.value)
 }
+
+class HarakaMx {
+  constructor(obj = {}, domain) {
+    switch (typeof obj) {
+      case 'string':
+        /mtp:\/\//.test(obj) ? this.fromUrl(obj) : this.fromString(obj)
+        break
+      case 'object':
+        this.fromObject(obj)
+        break
+    }
+
+    if (this.priority === undefined) this.priority = 0
+    if (domain && this.from_dns === undefined) {
+      this.from_dns = domain.toLowerCase()
+    }
+  }
+
+  fromObject(obj) {
+    for (const prop of [
+      'exchange',
+      'priority',
+      'port',
+      'bind',
+      'bind_helo',
+      'using_lmtp',
+      'auth_user',
+      'auth_pass',
+      'auth_type',
+      'from_dns',
+    ]) {
+      if (obj[prop] !== undefined) this[prop] = obj[prop]
+    }
+  }
+
+  fromString(str) {
+    const matches = /^\[?(.*?)\]?(?::(24|25|465|587|\d{4,5}))?$/.exec(str)
+    if (matches) {
+      this.exchange = matches[1].toLowerCase()
+      if (matches[2]) this.port = parseInt(matches[2])
+    } else {
+      this.exchange = str
+    }
+  }
+
+  fromUrl(str) {
+    const dest = new url.URL(str)
+
+    switch (dest.protocol) {
+      case 'smtp:':
+        if (!dest.port) dest.port = 25
+        break
+      case 'lmtp:':
+        this.using_lmtp = true
+        if (!dest.port) dest.port = 24
+        break
+    }
+
+    if (dest.hostname) this.exchange = dest.hostname.toLowerCase()
+    if (dest.port) this.port = parseInt(dest.port)
+    if (dest.username) this.auth_user = dest.username
+    if (dest.password) this.auth_pass = dest.password
+  }
+
+  toUrl() {
+    const proto = this.using_lmtp ? 'lmtp://' : 'smtp://'
+    const auth = this.auth_user ? `${this.auth_user}:****@` : ''
+    const host = net.isIPv6(this.exchange)
+      ? `[${this.exchange}]`
+      : this.exchange
+    const port = this.port ? this.port : proto === 'lmtp://' ? 24 : 25
+    return new url.URL(`${proto}${auth}${host}:${port}`)
+  }
+
+  toString() {
+    const from_dns = this.from_dns ? ` (from ${this.from_dns})` : ''
+    return `MX ${this.priority} ${this.toUrl()}${from_dns}`
+  }
+}
+
+/*
+ * A string of one of the following formats:
+ * hostname
+ * hostname:port
+ * ipaddress
+ * ipaddress:port
+ */
+
+exports.HarakaMx = HarakaMx
