@@ -4,13 +4,14 @@ const { Resolver } = require('node:dns').promises
 const dns = new Resolver({ timeout: 25000, tries: 1 })
 const net = require('node:net')
 const os = require('node:os')
-const url = require('node:url')
 
 // npm modules
 const ipaddr = require('ipaddr.js')
 const punycode = require('punycode.js')
 const sprintf = require('sprintf-js').sprintf
 const tlds = require('haraka-tld')
+
+const HarakaMx = require('./lib/HarakaMx').HarakaMx
 
 const locallyBoundIPs = []
 
@@ -259,96 +260,6 @@ exports.same_ipv4_network = function (ip, ipList) {
   return false
 }
 
-exports.get_public_ip_async = async function () {
-  if (this.public_ip !== undefined) return this.public_ip // cache
-
-  // manual config override, for the cases where we can't figure it out
-  const smtpIni = exports.config.get('smtp.ini').main
-  if (smtpIni.public_ip) {
-    this.public_ip = smtpIni.public_ip
-    return this.public_ip
-  }
-
-  // Initialise cache value to null to prevent running
-  // should we hit a timeout or the module isn't installed.
-  this.public_ip = null
-
-  try {
-    this.stun = require('@msimerson/stun')
-  } catch (e) {
-    e.install = 'Please install stun: "npm install -g stun"'
-    console.error(`${e.msg}\n${e.install}`)
-    return
-  }
-
-  const timeout = 10
-  const timer = setTimeout(() => {
-    return new Error('STUN timeout')
-  }, timeout * 1000)
-
-  // Connect to STUN Server
-  const res = await this.stun.request(get_stun_server(), {
-    maxTimeout: (timeout - 1) * 1000,
-  })
-  this.public_ip = res.getXorAddress().address
-  clearTimeout(timer)
-  return this.public_ip
-}
-
-exports.get_public_ip = async function (cb) {
-  if (!cb) return exports.get_public_ip_async()
-
-  if (this.public_ip !== undefined) return cb(null, this.public_ip) // cache
-
-  // manual config override, for the cases where we can't figure it out
-  const smtpIni = exports.config.get('smtp.ini').main
-  if (smtpIni.public_ip) {
-    this.public_ip = smtpIni.public_ip
-    return cb(null, this.public_ip)
-  }
-
-  // Initialise cache value to null to prevent running
-  // should we hit a timeout or the module isn't installed.
-  this.public_ip = null
-
-  try {
-    this.stun = require('@msimerson/stun')
-  } catch (e) {
-    e.install = 'Please install stun: "npm install -g stun"'
-    console.error(`${e.msg}\n${e.install}`)
-    return cb(e)
-  }
-
-  const timeout = 10
-  const timer = setTimeout(() => {
-    return cb(new Error('STUN timeout'))
-  }, timeout * 1000)
-
-  // Connect to STUN Server
-  this.stun.request(
-    get_stun_server(),
-    { maxTimeout: (timeout - 1) * 1000 },
-    (error, res) => {
-      if (timer) clearTimeout(timer)
-      if (error) return cb(error)
-
-      this.public_ip = res.getXorAddress().address
-      cb(null, this.public_ip)
-    },
-  )
-}
-
-function get_stun_server() {
-  const servers = [
-    'stun.l.google.com:19302',
-    'stun1.l.google.com:19302',
-    'stun2.l.google.com:19302',
-    'stun3.l.google.com:19302',
-    'stun4.l.google.com:19302',
-  ]
-  return servers[Math.floor(Math.random() * servers.length)]
-}
-
 exports.get_ipany_re = function (prefix = '', suffix = '', modifier = 'mg') {
   return new RegExp(
     prefix +
@@ -562,91 +473,8 @@ exports.resolve_mx_hosts = async (mxes) => {
   return settled.filter((s) => s.status === 'fulfilled').flatMap((s) => s.value)
 }
 
-class HarakaMx {
-  constructor(obj = {}, domain) {
-    switch (typeof obj) {
-      case 'string':
-        /mtp:\/\//.test(obj) ? this.fromUrl(obj) : this.fromString(obj)
-        break
-      case 'object':
-        this.fromObject(obj)
-        break
-    }
+exports.get_public_ip = require('./lib/get_public_ip').get_public_ip
 
-    if (this.priority === undefined) this.priority = 0
-    if (domain && this.from_dns === undefined) {
-      this.from_dns = domain.toLowerCase()
-    }
-  }
-
-  fromObject(obj) {
-    for (const prop of [
-      'exchange',
-      'priority',
-      'port',
-      'bind',
-      'bind_helo',
-      'using_lmtp',
-      'auth_user',
-      'auth_pass',
-      'auth_type',
-      'from_dns',
-    ]) {
-      if (obj[prop] !== undefined) this[prop] = obj[prop]
-    }
-  }
-
-  fromString(str) {
-    const matches = /^\[?(.*?)\]?(?::(24|25|465|587|\d{4,5}))?$/.exec(str)
-    if (matches) {
-      this.exchange = matches[1].toLowerCase()
-      if (matches[2]) this.port = parseInt(matches[2])
-    } else {
-      this.exchange = str
-    }
-  }
-
-  fromUrl(str) {
-    const dest = new url.URL(str)
-
-    switch (dest.protocol) {
-      case 'smtp:':
-        if (!dest.port) dest.port = 25
-        break
-      case 'lmtp:':
-        this.using_lmtp = true
-        if (!dest.port) dest.port = 24
-        break
-    }
-
-    if (dest.hostname) this.exchange = dest.hostname.toLowerCase()
-    if (dest.port) this.port = parseInt(dest.port)
-    if (dest.username) this.auth_user = dest.username
-    if (dest.password) this.auth_pass = dest.password
-  }
-
-  toUrl() {
-    const proto = this.using_lmtp ? 'lmtp://' : 'smtp://'
-    const auth = this.auth_user ? `${this.auth_user}:****@` : ''
-    const host = net.isIPv6(this.exchange)
-      ? `[${this.exchange}]`
-      : this.exchange
-    const port = this.port ? this.port : proto === 'lmtp://' ? 24 : 25
-    return new url.URL(`${proto}${auth}${host}:${port}`)
-  }
-
-  toString() {
-    const from_dns = this.from_dns ? ` (from ${this.from_dns})` : ''
-    return `MX ${this.priority} ${this.toUrl()}${from_dns}`
-  }
-}
-
-/*
- * A string of one of the following formats:
- * hostname
- * hostname:port
- * ipaddress
- * ipaddress:port
- */
+exports.get_public_ip_async = require('./lib/get_public_ip').get_public_ip_async
 
 exports.HarakaMx = HarakaMx

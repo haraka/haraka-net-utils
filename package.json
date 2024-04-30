@@ -4,7 +4,7 @@
   "description": "haraka network utilities",
   "main": "index.js",
   "files": [
-    "CHANGELOG.md"
+    "CHANGELOG.md", "lib"
   ],
   "scripts": {
     "format": "npm run prettier:fix && npm run lint:fix",

@@ -195,4 +195,14 @@ describe('HarakaMx', () => {
       )
     })
   })
+
+  it('is exported from nu', function () {
+    const nu = require('../index')
+    assert.equal(typeof nu.HarakaMx, 'function')
+  })
+
+  it('directly loadable', function () {
+    const nu = require('../lib/HarakaMx')
+    assert.equal(typeof nu.HarakaMx, 'function')
+  })
 })

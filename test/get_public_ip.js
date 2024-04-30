@@ -10,13 +10,20 @@ function has_stun() {
   return true
 }
 
+beforeEach(function (done) {
+  this.net_utils = require('../lib/get_public_ip')
+  this.net_utils.config = this.net_utils.config.module_config(
+    path.resolve('test'),
+  )
+  done()
+})
+
 describe('get_public_ip', function () {
-  beforeEach(function (done) {
-    this.net_utils = require('../index')
-    this.net_utils.config = this.net_utils.config.module_config(
-      path.resolve('test'),
-    )
-    done()
+
+  it('is accessible via main nu', function () {
+    const nu = require('../index')
+    assert.equal(typeof nu.get_public_ip, 'function')
+    assert.equal(typeof nu.get_public_ip_async, 'function')
   })
 
   it('cached', function (done) {
@@ -47,21 +54,14 @@ describe('get_public_ip', function () {
   })
 
   describe('get_public_ip_async', function () {
-    beforeEach((done) => {
-      this.net_utils = require('../index')
-      this.net_utils.config = this.net_utils.config.module_config(
-        path.resolve('test'),
-      )
-      done()
-    })
 
-    it('cached', async () => {
+    it('cached', async function () {
       this.net_utils.public_ip = '1.1.1.1'
       const ip = await this.net_utils.get_public_ip()
       assert.equal('1.1.1.1', ip)
     })
 
-    it('normal', async () => {
+    it('normal', async function () {
       this.net_utils.public_ip = undefined
 
       if (!has_stun()) {
