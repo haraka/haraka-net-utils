@@ -127,6 +127,7 @@ An object class representing a MX. HarakaMx objects may contain the following pr
 ```js
 {
   exchange: '', // required: a FQDN or IP address
+  path: '', // the file path to a socket
   priority: 0, // integer, a MX priority.
   port: 25, // integer: an alternate port
   bind: '', // an outbound IP address to bind to

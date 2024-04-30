@@ -1,5 +1,7 @@
 const assert = require('assert')
 
+process.env.NODE_ENV = 'test'
+
 describe('HarakaMx', () => {
   beforeEach(function (done) {
     this.nu = require('../index')
@@ -89,11 +91,10 @@ describe('HarakaMx', () => {
     })
   })
 
-  describe('fromUri', function () {
+  describe('fromUrl', function () {
     it('parses simple URIs', function () {
       assert.deepEqual(new this.nu.HarakaMx('smtp://192.0.2.2'), {
         exchange: '192.0.2.2',
-        port: 25,
         priority: 0,
       })
 
@@ -109,7 +110,6 @@ describe('HarakaMx', () => {
         new this.nu.HarakaMx('smtp://authUser:sekretPass@[2001:db8::1]'),
         {
           exchange: '[2001:db8::1]',
-          port: 25,
           priority: 0,
           auth_pass: 'sekretPass',
           auth_user: 'authUser',
@@ -130,70 +130,53 @@ describe('HarakaMx', () => {
     })
   })
 
+  const testCases = [
+    { in: { exchange: '.' }, url: 'smtp://.', str: 'MX 0 smtp://.' },
+    {
+      in: {
+        from_dns: 'example.com',
+        exchange: '.',
+        priority: 10,
+      },
+      url: 'smtp://.',
+      str: 'MX 10 smtp://. (via DNS)',
+    },
+    {
+      in: 'smtp://au:ap@192.0.2.3:25',
+      url: 'smtp://au:****@192.0.2.3:25',
+      str: 'MX 0 smtp://au:****@192.0.2.3:25',
+    },
+    {
+      in: 'smtp://au:ap@192.0.2.3:465',
+      url: 'smtp://au:****@192.0.2.3:465',
+      str: 'MX 0 smtp://au:****@192.0.2.3:465',
+    },
+    {
+      in: 'smtp://[2001:db8::1]:25',
+      url: 'smtp://[2001:db8::1]:25',
+      str: 'MX 0 smtp://[2001:db8::1]:25',
+    },
+    {
+      in: { path: '/var/run/sock' },
+      url: 'file:///var/run/sock',
+      str: 'MX 0 file:///var/run/sock',
+    },
+  ]
+
   describe('toUrl', function () {
-    it('has a reasonable toUrl()', function () {
-      assert.equal(
-        new this.nu.HarakaMx({ exchange: '.' }).toUrl(),
-        'smtp://.:25',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx({
-          from_dns: 'example.com',
-          exchange: '.',
-          priority: 10,
-        }).toUrl(),
-        'smtp://.:25',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx('smtp://au:ap@192.0.2.3:25').toUrl(),
-        'smtp://au:****@192.0.2.3:25',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx('smtp://au:ap@192.0.2.3:465').toUrl(),
-        'smtp://au:****@192.0.2.3:465',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx('smtp://[2001:db8::1]:25').toUrl(),
-        'smtp://[2001:db8::1]:25',
-      )
-    })
+    for (const c of testCases) {
+      it(`${JSON.stringify(c.in)} -> ${c.url}`, function () {
+        assert.equal(new this.nu.HarakaMx(c.in).toUrl(), c.url)
+      })
+    }
   })
 
   describe('toString', function () {
-    it('has a reasonable toString()', function () {
-      assert.equal(
-        new this.nu.HarakaMx({ exchange: '.' }).toString(),
-        'MX 0 smtp://.:25',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx({
-          from_dns: 'example.com',
-          exchange: '.',
-          priority: 10,
-        }).toString(),
-        'MX 10 smtp://.:25 (from example.com)',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx('smtp://au:ap@192.0.2.3:25').toString(),
-        'MX 0 smtp://au:****@192.0.2.3:25',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx('smtp://au:ap@192.0.2.3:465').toString(),
-        'MX 0 smtp://au:****@192.0.2.3:465',
-      )
-
-      assert.equal(
-        new this.nu.HarakaMx('smtp://[2001:db8::1]:25').toString(),
-        'MX 0 smtp://[2001:db8::1]:25',
-      )
-    })
+    for (const c of testCases) {
+      it(`${JSON.stringify(c.in)} -> ${c.str}`, function () {
+        assert.equal(new this.nu.HarakaMx(c.in).toString(), c.str)
+      })
+    }
   })
 
   it('is exported from nu', function () {
