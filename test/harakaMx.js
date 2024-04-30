@@ -202,7 +202,7 @@ describe('HarakaMx', () => {
   })
 
   it('directly loadable', function () {
-    const nu = require('../lib/HarakaMx')
-    assert.equal(typeof nu.HarakaMx, 'function')
+    const hMx = require('../lib/HarakaMx')
+    assert.equal(typeof hMx, 'function')
   })
 })

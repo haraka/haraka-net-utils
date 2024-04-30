@@ -19,7 +19,6 @@ beforeEach(function (done) {
 })
 
 describe('get_public_ip', function () {
-
   it('is accessible via main nu', function () {
     const nu = require('../index')
     assert.equal(typeof nu.get_public_ip, 'function')
@@ -54,7 +53,6 @@ describe('get_public_ip', function () {
   })
 
   describe('get_public_ip_async', function () {
-
     it('cached', async function () {
       this.net_utils.public_ip = '1.1.1.1'
       const ip = await this.net_utils.get_public_ip()

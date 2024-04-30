@@ -82,7 +82,6 @@ describe('get_mx', function () {
     })
   }
 
-
   describe('resolve_mx_hosts', function () {
     this.timeout(12000)
 
@@ -124,7 +123,9 @@ describe('get_mx', function () {
     })
 
     it('returns sockets as-is', async () => {
-      const r = await this.net_utils.resolve_mx_hosts([{ path: '/var/run/sock' }])
+      const r = await this.net_utils.resolve_mx_hosts([
+        { path: '/var/run/sock' },
+      ])
       assert.deepEqual(r, [{ path: '/var/run/sock' }])
     })
 

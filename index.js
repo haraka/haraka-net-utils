@@ -7,11 +7,8 @@ const os = require('node:os')
 
 // npm modules
 const ipaddr = require('ipaddr.js')
-const punycode = require('punycode.js')
 const sprintf = require('sprintf-js').sprintf
 const tlds = require('haraka-tld')
-
-const HarakaMx = require('./lib/HarakaMx').HarakaMx
 
 const locallyBoundIPs = []
 
@@ -357,124 +354,12 @@ exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname()
 }
 
-function normalizeDomain(raw_domain) {
-  let domain = raw_domain
-
-  if (/@/.test(domain)) {
-    domain = domain.split('@').pop()
-    // console.log(`\treduced ${raw_domain} to ${domain}.`)
-  }
-
-  if (/^xn--/.test(domain)) {
-    // is punycode IDN with ACE, ASCII Compatible Encoding
-  } else if (domain !== punycode.toASCII(domain)) {
-    domain = punycode.toASCII(domain)
-    console.log(`\tACE encoded '${raw_domain}' to '${domain}'`)
-  }
-
-  return domain
-}
-
-function fatal_mx_err(err) {
-  // Possible DNS errors
-  // NODATA
-  // FORMERR
-  // BADRESP
-  // NOTFOUND
-  // BADNAME
-  // TIMEOUT
-  // CONNREFUSED
-  // NOMEM
-  // DESTRUCTION
-  // NOTIMP
-  // EREFUSED
-  // SERVFAIL
-
-  switch (err.code) {
-    case 'ENODATA':
-    case 'ENOTFOUND':
-      // likely a hostname with no MX record, drop through
-      return false
-    default:
-      return err
-  }
-}
-
-exports.get_mx = async (raw_domain, cb) => {
-  const domain = normalizeDomain(raw_domain)
-
-  try {
-    let exchanges = await dns.resolveMx(domain)
-    if (exchanges && exchanges.length) {
-      exchanges = exchanges.map((e) => new HarakaMx(e, domain))
-      if (cb) return cb(null, exchanges)
-      return exchanges
-    }
-    // no MX record(s), fall through
-  } catch (err) {
-    if (fatal_mx_err(err)) {
-      if (cb) return cb(err, [])
-      throw err
-    }
-    // non-terminal DNS failure, fall through
-  }
-
-  const exchanges = await this.get_implicit_mx(domain)
-  if (cb) return cb(null, exchanges)
-  return exchanges
-}
-
-exports.get_implicit_mx = async (domain) => {
-  // console.log(`No MX for ${domain}, trying AAAA & A records`)
-
-  const promises = [dns.resolve6(domain), dns.resolve4(domain)]
-  const r = await Promise.allSettled(promises)
-
-  return r
-    .filter((a) => a.status === 'fulfilled')
-    .flatMap((a) => a.value.map((ip) => new HarakaMx(ip, domain)))
-}
-
-exports.resolve_mx_hosts = async (mxes) => {
-  // for the given list of MX exchanges, resolve the hostnames to IPs
-  const promises = []
-
-  for (const mx of mxes) {
-    if (!mx.exchange) {
-      promises.push(mx)
-      continue
-    }
-
-    if (net.isIP(mx.exchange)) {
-      promises.push(mx) // already resolved
-      continue
-    }
-
-    // resolve AAAA and A since mx.exchange is a hostname
-    promises.push(
-      dns
-        .resolve6(mx.exchange)
-        .then((ips) =>
-          ips.map((ip) => ({ ...mx, exchange: ip, from_dns: mx.exchange })),
-        ),
-    )
-
-    promises.push(
-      dns
-        .resolve4(mx.exchange)
-        .then((ips) =>
-          ips.map((ip) => ({ ...mx, exchange: ip, from_dns: mx.exchange })),
-        ),
-    )
-  }
-
-  const settled = await Promise.allSettled(promises)
-
-  return settled.filter((s) => s.status === 'fulfilled').flatMap((s) => s.value)
+for (const l of ['get_mx', 'get_implicit_mx', 'resolve_mx_hosts']) {
+  exports[l] = require('./lib/get_mx')[l]
 }
 
 exports.get_public_ip = require('./lib/get_public_ip').get_public_ip
 
 exports.get_public_ip_async = require('./lib/get_public_ip').get_public_ip_async
 
-exports.HarakaMx = HarakaMx
+exports.HarakaMx = require('./lib/HarakaMx')

@@ -407,6 +407,7 @@ describe('get_ips_by_host', function () {
     })
 
     it(`get_ips_by_host, promise, ${t}`, async function () {
+      this.timeout(5000)
       try {
         const res = await net_utils.get_ips_by_host(t)
         assert.deepEqual(res.sort(), tests[t].sort())
