@@ -7,9 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### [1.7.0] - 2024-04-29
 
 - feat: added HarakaMx #89
+- feat: add add_line_processor, aka line_socket.setup_line_processor
+- fix(get_public_ip): set timeout in stun request, fixes #84
 - test: added get_implicit_mx tests #89
 - change: get_mx: don't filter implicit MX errors #89
-- fix(get_public_ip): set timeout in stun request, fixes #84
 
 ### [1.6.0] - 2024-04-17
 
