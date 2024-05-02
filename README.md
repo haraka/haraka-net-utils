@@ -120,6 +120,50 @@ try {
 }
 ```
 
+### HarakaMx
+
+An object class representing a MX. HarakaMx objects may contain the following properties:
+
+```js
+{
+  exchange: '', // required: a FQDN or IP address
+  path: '', // the file path to a socket
+  priority: 0, // integer, a MX priority.
+  port: 25, // integer: an alternate port
+  bind: '', // an outbound IP address to bind to
+  bind_helo: '', // an outbound helo hostname
+  using_lmtp: false, // boolean, specify LMTP delivery
+  auth_user: '', // an AUTH username (required if AUTH is desired)
+  auth_pass: '', // an AUTH password (required if AUTH is desired)
+  auth_type: '', // an AUTH type that should be used with the MX.
+  from_dns: '', // the DNS name from which the MX was queried
+}
+```
+
+Create a HarakaMx object in The Usual Way:
+
+```js
+const nu = require('haraka-net-utils')
+const myMx = new nu.HarakaMx(parameter)
+```
+
+The parameter can be one of:
+
+- A string in any of the following formats:
+  - hostname
+  - hostname:port
+  - IPv4
+  - IPv4:port
+  - [IPv6]
+  - [IPv6]: port
+- A [URL](https://nodejs.org/docs/latest-v20.x/api/url.html) string
+  - smtp://mail.example.com:25
+  - lmtp://int-mail.example.com:24
+  - smtp://user:pass@host.example.com:587
+- An object, containing at least an exchange, and any of the other properties listed at the top of this section.
+
+An optional second parameter is an alias for from_dns.
+
 [ci-img]: https://github.com/haraka/haraka-net-utils/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-net-utils/actions/workflows/ci.yml
 [cov-img]: https://codecov.io/github/haraka/haraka-net-utils/coverage.svg

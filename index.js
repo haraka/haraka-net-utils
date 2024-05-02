@@ -1,11 +1,9 @@
 'use strict'
 
-// node.js built-ins
-const { Resolver } = require('dns').promises
+const { Resolver } = require('node:dns').promises
 const dns = new Resolver({ timeout: 25000, tries: 1 })
-const net = require('net')
-const os = require('os')
-const punycode = require('punycode.js')
+const net = require('node:net')
+const os = require('node:os')
 
 // npm modules
 const ipaddr = require('ipaddr.js')
@@ -259,97 +257,7 @@ exports.same_ipv4_network = function (ip, ipList) {
   return false
 }
 
-exports.get_public_ip_async = async function () {
-  if (this.public_ip !== undefined) return this.public_ip // cache
-
-  // manual config override, for the cases where we can't figure it out
-  const smtpIni = exports.config.get('smtp.ini').main
-  if (smtpIni.public_ip) {
-    this.public_ip = smtpIni.public_ip
-    return this.public_ip
-  }
-
-  // Initialise cache value to null to prevent running
-  // should we hit a timeout or the module isn't installed.
-  this.public_ip = null
-
-  try {
-    this.stun = require('@msimerson/stun')
-  } catch (e) {
-    e.install = 'Please install stun: "npm install -g stun"'
-    console.error(`${e.msg}\n${e.install}`)
-    return
-  }
-
-  const timeout = 10
-  const timer = setTimeout(() => {
-    return new Error('STUN timeout')
-  }, timeout * 1000)
-
-  // Connect to STUN Server
-  const res = await this.stun.request(get_stun_server())
-  this.public_ip = res.getXorAddress().address
-  clearTimeout(timer)
-  return this.public_ip
-}
-
-exports.get_public_ip = async function (cb) {
-  if (!cb) return exports.get_public_ip_async()
-
-  const nu = this
-  if (nu.public_ip !== undefined) return cb(null, nu.public_ip) // cache
-
-  // manual config override, for the cases where we can't figure it out
-  const smtpIni = exports.config.get('smtp.ini').main
-  if (smtpIni.public_ip) {
-    nu.public_ip = smtpIni.public_ip
-    return cb(null, nu.public_ip)
-  }
-
-  // Initialise cache value to null to prevent running
-  // should we hit a timeout or the module isn't installed.
-  nu.public_ip = null
-
-  try {
-    nu.stun = require('@msimerson/stun')
-  } catch (e) {
-    e.install = 'Please install stun: "npm install -g stun"'
-    console.error(`${e.msg}\n${e.install}`)
-    return cb(e)
-  }
-
-  const timeout = 10
-  const timer = setTimeout(() => {
-    return cb(new Error('STUN timeout'))
-  }, timeout * 1000)
-
-  // Connect to STUN Server
-  nu.stun.request(get_stun_server(), (error, res) => {
-    if (timer) clearTimeout(timer)
-    if (error) return cb(error)
-
-    nu.public_ip = res.getXorAddress().address
-    cb(null, nu.public_ip)
-  })
-}
-
-function get_stun_server() {
-  // STUN servers by Google
-  const servers = [
-    'stun.l.google.com:19302',
-    'stun1.l.google.com:19302',
-    'stun2.l.google.com:19302',
-    'stun3.l.google.com:19302',
-    'stun4.l.google.com:19302',
-  ]
-  return servers[Math.floor(Math.random() * servers.length)]
-}
-
-exports.get_ipany_re = function (prefix, suffix, modifier) {
-  if (prefix === undefined) prefix = ''
-  if (suffix === undefined) suffix = ''
-  if (modifier === undefined) modifier = 'mg'
-  /* eslint-disable prefer-template */
+exports.get_ipany_re = function (prefix = '', suffix = '', modifier = 'mg') {
   return new RegExp(
     prefix +
       `(` + // capture group
@@ -446,127 +354,34 @@ exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname()
 }
 
-function normalizeDomain(raw_domain) {
-  let domain = raw_domain
-
-  if (/@/.test(domain)) {
-    domain = domain.split('@').pop()
-    // console.log(`\treduced ${raw_domain} to ${domain}.`)
-  }
-
-  if (/^xn--/.test(domain)) {
-    // is punycode IDN with ACE, ASCII Compatible Encoding
-  } else if (domain !== punycode.toASCII(domain)) {
-    domain = punycode.toASCII(domain)
-    console.log(`\tACE encoded '${raw_domain}' to '${domain}'`)
-  }
-
-  return domain
+for (const l of ['get_mx', 'get_implicit_mx', 'resolve_mx_hosts']) {
+  exports[l] = require('./lib/get_mx')[l]
 }
 
-function fatal_mx_err(err) {
-  // Possible DNS errors
-  // NODATA
-  // FORMERR
-  // BADRESP
-  // NOTFOUND
-  // BADNAME
-  // TIMEOUT
-  // CONNREFUSED
-  // NOMEM
-  // DESTRUCTION
-  // NOTIMP
-  // EREFUSED
-  // SERVFAIL
+exports.get_public_ip = require('./lib/get_public_ip').get_public_ip
 
-  switch (err.code) {
-    case 'ENODATA':
-    case 'ENOTFOUND':
-      // likely a hostname with no MX record, drop through
-      return false
-    default:
-      return err
-  }
-}
+exports.get_public_ip_async = require('./lib/get_public_ip').get_public_ip_async
 
-exports.get_mx = async (raw_domain, cb) => {
-  const domain = normalizeDomain(raw_domain)
+exports.HarakaMx = require('./lib/HarakaMx')
 
-  try {
-    const exchanges = await dns.resolveMx(domain)
-    if (exchanges && exchanges.length) {
-      exchanges.map((e) => (e.from_dns = domain))
-      if (cb) return cb(null, exchanges)
-      return exchanges
+exports.add_line_processor = (socket) => {
+  const line_regexp = /^([^\n]*\n)/ // utils.line_regexp
+  let current_data = ''
+
+  socket.on('data', (data) => {
+    current_data += data
+    let results
+    while ((results = line_regexp.exec(current_data))) {
+      const this_line = results[1]
+      current_data = current_data.slice(this_line.length)
+      socket.emit('line', this_line)
     }
-  } catch (err) {
-    // console.error(err.message)
-    if (fatal_mx_err(err)) {
-      if (cb) return cb(err, [])
-      throw err
+  })
+
+  socket.on('end', () => {
+    if (current_data.length) {
+      socket.emit('line', current_data)
     }
-  }
-
-  // no MX or non-fatal DNS failure
-  try {
-    const exchanges = await this.get_implicit_mx(domain)
-    if (cb) return cb(null, exchanges)
-    return exchanges
-  } catch (err) {
-    if (fatal_mx_err(err)) {
-      if (cb) return cb(err, [])
-      throw err
-    }
-  }
-}
-
-exports.get_implicit_mx = async (domain) => {
-  // console.log(`No MX for ${domain}, trying AAAA & A records`)
-
-  const promises = [dns.resolve6(domain), dns.resolve4(domain)]
-  const r = await Promise.allSettled(promises)
-
-  return r
-    .filter((a) => a.status === 'fulfilled')
-    .flatMap((a) =>
-      a.value.map((ip) => ({ priority: 0, exchange: ip, from_dns: domain })),
-    )
-}
-
-exports.resolve_mx_hosts = async (mxes) => {
-  // for the given list of MX exchanges, resolve the hostnames to IPs
-  const promises = []
-
-  for (const mx of mxes) {
-    if (!mx.exchange) {
-      promises.push(mx)
-      continue
-    }
-
-    if (net.isIP(mx.exchange)) {
-      promises.push(mx) // already resolved
-      continue
-    }
-
-    // resolve AAAA and A since mx.exchange is a hostname
-    promises.push(
-      dns
-        .resolve6(mx.exchange)
-        .then((ips) =>
-          ips.map((ip) => ({ ...mx, exchange: ip, from_dns: mx.exchange })),
-        ),
-    )
-
-    promises.push(
-      dns
-        .resolve4(mx.exchange)
-        .then((ips) =>
-          ips.map((ip) => ({ ...mx, exchange: ip, from_dns: mx.exchange })),
-        ),
-    )
-  }
-
-  const settled = await Promise.allSettled(promises)
-
-  return settled.filter((s) => s.status === 'fulfilled').flatMap((s) => s.value)
+    current_data = ''
+  })
 }
