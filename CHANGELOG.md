@@ -15,7 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### [1.6.0] - 2024-04-17
 
 - feat: normalizeDomain, for punycode/IDN names
-- feat: get*mx now \_also* returns implicit MX records
+<!-- prettier-ignore -->
+- feat: get_mx now _also_ returns implicit MX records
 - feat: added get_implicit_mx
 - feat: added resolve_mx_hosts
 - doc(Changes): fixed broken tag version links
