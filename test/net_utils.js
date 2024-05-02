@@ -1,4 +1,5 @@
 const assert = require('node:assert')
+const EventEmitter = require('node:events');
 const os = require('node:os')
 const path = require('node:path')
 
@@ -532,5 +533,30 @@ describe('on_local_interface', function () {
       assert.equal(r, true)
     }
     done()
+  })
+})
+
+describe('add_line_processor', function () {
+  beforeEach(function (done) {
+    this.net_utils = require('../index')
+    this.net_utils.config = this.net_utils.config.module_config(
+      path.resolve('test'),
+    )
+    done()
+  })
+
+  it('adds a line processor', function (done) {
+    const socket = new EventEmitter()
+    let lines = 0
+    socket.on('line', () => {
+      lines++
+    })
+    socket.on('end', (e) => {
+      assert.equal(lines, 3)
+      done()
+    })
+    this.net_utils.add_line_processor(socket)
+    socket.emit('data', `multi\nline\nallThisDataIsLost\n`)
+    socket.emit('end')
   })
 })
