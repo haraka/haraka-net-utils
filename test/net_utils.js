@@ -1,5 +1,5 @@
 const assert = require('node:assert')
-const EventEmitter = require('node:events');
+const EventEmitter = require('node:events')
 const os = require('node:os')
 const path = require('node:path')
 
@@ -551,7 +551,7 @@ describe('add_line_processor', function () {
     socket.on('line', () => {
       lines++
     })
-    socket.on('end', (e) => {
+    socket.on('end', () => {
       assert.equal(lines, 3)
       done()
     })

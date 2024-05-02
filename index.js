@@ -365,23 +365,23 @@ exports.get_public_ip_async = require('./lib/get_public_ip').get_public_ip_async
 exports.HarakaMx = require('./lib/HarakaMx')
 
 exports.add_line_processor = (socket) => {
-    const line_regexp = /^([^\n]*\n)/; // utils.line_regexp
-    let current_data = '';
+  const line_regexp = /^([^\n]*\n)/ // utils.line_regexp
+  let current_data = ''
 
-    socket.on('data', (data) => {
-        current_data += data;
-        let results;
-        while ((results = line_regexp.exec(current_data))) {
-            const this_line = results[1];
-            current_data = current_data.slice(this_line.length);
-            socket.emit('line', this_line);
-        }
-    })
+  socket.on('data', (data) => {
+    current_data += data
+    let results
+    while ((results = line_regexp.exec(current_data))) {
+      const this_line = results[1]
+      current_data = current_data.slice(this_line.length)
+      socket.emit('line', this_line)
+    }
+  })
 
-    socket.on('end', () => {
-        if (current_data.length) {
-            socket.emit('line', current_data);
-        }
-        current_data = '';
-    })
+  socket.on('end', () => {
+    if (current_data.length) {
+      socket.emit('line', current_data)
+    }
+    current_data = ''
+  })
 }
