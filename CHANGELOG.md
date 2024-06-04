@@ -3,6 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
+- fix haraka#3375: ESERVFAIL crash on NS timeout
 
 ### [1.7.0] - 2024-04-29
 
