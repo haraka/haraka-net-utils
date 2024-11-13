@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.7.1] - 2024-11-13
+
+- deps: bump several versions to latest
+
 ### [1.7.0] - 2024-04-29
 
 - feat: added HarakaMx #89
@@ -206,7 +210,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.3.4]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.4
 [1.3.5]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.5
 [1.3.6]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.6
-[1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/1.3.7
+[1.3.7]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.3.7
 [1.4.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.4.0
 [1.4.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.4.1
 [1.5.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.5.0
@@ -216,3 +220,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.5.4]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.5.4
 [1.6.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.6.0
 [1.7.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.0
+[1.7.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.1
