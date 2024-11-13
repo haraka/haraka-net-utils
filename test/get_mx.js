@@ -92,7 +92,7 @@ describe('get_mx', function () {
 
     const expectedResolvedMx = [
       {
-        exchange: '2605:ae00:329::14',
+        exchange: '2605:ae00:329::6',
         priority: 10,
         from_dns: 'mail.theartfarm.com',
       },
