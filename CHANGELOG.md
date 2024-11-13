@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### [1.7.1] - 2024-11-13
 
 - deps: bump several versions to latest
+- test: fix stale IP, new err code
 
 ### [1.7.0] - 2024-04-29
 
