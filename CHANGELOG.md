@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - feat: normalizeDomain, for punycode/IDN names
 <!-- prettier-ignore -->
-- feat: get*mx now \_also* returns implicit MX records
+- feat: get\_mx now _also_ returns implicit MX records
 - feat: added get_implicit_mx
 - feat: added resolve_mx_hosts
 - doc(Changes): fixed broken tag version links
