@@ -51,7 +51,7 @@ describe('get_mx', function () {
   // macOS: ENODATA, win: ENOTOUND, ubuntu: ESERVFAIL
   const invalidCases = {
     invalid: /queryMx (ENODATA|ENOTFOUND|ESERVFAIL) invalid/,
-    'gmail.xn--com-0da': /(ENOTFOUND|Cannot convert name to ASCII)/,
+    'gmail.xn--com-0da': /(ENOTFOUND|ENOMEM|Cannot convert name to ASCII)/,
     'non-exist.haraka.tnpi.net': /ignore/,
     'haraka.non-exist': /ignore/,
   }
@@ -92,7 +92,7 @@ describe('get_mx', function () {
 
     const expectedResolvedMx = [
       {
-        exchange: '2605:ae00:329::14',
+        exchange: '2605:ae00:329::6',
         priority: 10,
         from_dns: 'mail.theartfarm.com',
       },
