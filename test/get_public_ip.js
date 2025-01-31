@@ -4,7 +4,7 @@ const path = require('node:path')
 function has_stun() {
   try {
     require('@msimerson/stun')
-  } catch (e) {
+  } catch (ignore) {
     return false
   }
   return true
