@@ -159,8 +159,8 @@ exports.is_local_host = async function (dst_host) {
       if (dst_host === local_hostname) return true
       dest_ips.push(...(await this.get_ips_by_host(dst_host)))
     }
-  } catch (e) {
-    // console.error(e)
+  } catch (ignore) {
+    // console.error(ignore)
     return false
   }
 

@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.7.2] - 2025-01-31
+
+- deps(all): bump to latest
+- deps(eslint): upgrade to v9
+- style(prettier): moved config into package.json
+
 ### [1.7.1] - 2024-11-13
 
 - deps: bump several versions to latest
@@ -21,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - feat: normalizeDomain, for punycode/IDN names
 <!-- prettier-ignore -->
-- feat: get\_mx now _also_ returns implicit MX records
+- feat: get*mx now \_also* returns implicit MX records
 - feat: added get_implicit_mx
 - feat: added resolve_mx_hosts
 - doc(Changes): fixed broken tag version links
@@ -222,3 +228,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.6.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.6.0
 [1.7.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.0
 [1.7.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.1
+[1.7.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.2

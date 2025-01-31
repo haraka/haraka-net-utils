@@ -2,15 +2,15 @@
 [![Code Coverage][cov-img]][cov-url]
 [![Code Climate][clim-img]][clim-url]
 
-[![NPM][npm-img]][npm-url]
-
-# Net-Utils
+# haraka-net-utils
 
 This module provides network utility functions.
 
 ## Usage
 
-`const net_utils = require('haraka-net-utils');`
+```js
+const net_utils = require('haraka-net-utils')`
+```
 
 ### ip_to_long
 
@@ -170,5 +170,3 @@ An optional second parameter is an alias for from_dns.
 [cov-url]: https://codecov.io/github/haraka/haraka-net-utils
 [clim-img]: https://codeclimate.com/github/haraka/haraka-net-utils/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-net-utils
-[npm-img]: https://nodei.co/npm/haraka-net-utils.png
-[npm-url]: https://www.npmjs.com/package/haraka-net-utils
