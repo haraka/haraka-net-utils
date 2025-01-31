@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "format": "npm run prettier:fix && npm run lint:fix",
-    "lint": "npx eslint@^8 *.js test",
-    "lint:fix": "npx eslint@^8 *.js test --fix",
+    "lint": "npx eslint@^9 *.js test",
+    "lint:fix": "npx eslint@^9 *.js test --fix",
     "prettier": "npx prettier . --check",
     "prettier:fix": "npx prettier . --write --log-level=warn",
     "test": "npx mocha@10",
@@ -37,11 +37,11 @@
   },
   "homepage": "https://github.com/haraka/haraka-net-utils#readme",
   "devDependencies": {
-    "@haraka/eslint-config": "^1.1.5"
+    "@haraka/eslint-config": "^2.0.2"
   },
   "dependencies": {
-    "haraka-config": "^1.4.0",
-    "haraka-tld": "^1.2.2",
+    "haraka-config": "^1.4.2",
+    "haraka-tld": "^1.2.3",
     "ipaddr.js": "^2.2.0",
     "punycode.js": "^2.3.1",
     "openssl-wrapper": "^0.3.4",
@@ -49,5 +49,9 @@
   },
   "optionalDependencies": {
     "@msimerson/stun": "^3.0.2"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "semi": false
   }
 }
