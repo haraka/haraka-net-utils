@@ -114,7 +114,7 @@ describe('dns_config', function () {
 
   describe('configuration reload', function () {
     it('should set up config reload callback', function () {
-      let callbackCalled = false
+      // let callbackCalled = false
       let storedCallback = null
 
       dnsConfig.config = {
@@ -180,7 +180,7 @@ describe('dns_config', function () {
         { input: undefined, expected: 'fallback' }
       ]
 
-      testCases.forEach(({ input, expected }) => {
+      testCases.forEach(({ input }) => {
         dnsConfig.config = {
           get: () => ({ dns: { timeout: input, tries: '1' } })
         }
@@ -205,7 +205,7 @@ describe('dns_config', function () {
         { input: undefined, expected: 'fallback' }
       ]
 
-      testCases.forEach(({ input, expected }) => {
+      testCases.forEach(({ input }) => {
         dnsConfig.config = {
           get: () => ({ dns: { timeout: '25000', tries: input } })
         }
