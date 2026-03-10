@@ -496,16 +496,15 @@ const ip_fixtures = [
 describe('get_ipany_re', function () {
   const net_utils = require('../index')
 
-  it('IPv6, Prefix', function (done) {
+  it('IPv6, Prefix', function () {
     // for x-*-ip headers
     // it must fail as of not valide
     assert.ok(!net.isIPv6('IPv6:2001:db8:85a3::8a2e:370:7334'))
     // must okay!
     assert.ok(net.isIPv6('2001:db8:85a3::8a2e:370:7334'))
-    done()
   })
 
-  it('IP fixtures check', function (done) {
+  it('IP fixtures check', function () {
     for (const i in ip_fixtures) {
       const match = net_utils.get_ipany_re('^', '$').test(ip_fixtures[i][1])
       // console.log('IP:', `'${ip_fixtures[i][1]}'` , 'Expected:', ip_fixtures[i][0] , 'Match:' , match);
@@ -514,18 +513,16 @@ describe('get_ipany_re', function () {
         `${ip_fixtures[i][1]} - Expected: ${ip_fixtures[i][0]} - Match: ${match}`,
       )
     }
-    done()
   })
 
-  it('IPv4, bare', function (done) {
+  it('IPv4, bare', function () {
     // for x-*-ip headers
     const match = net_utils.get_ipany_re().exec('127.0.0.1')
     assert.equal(match[1], '127.0.0.1')
     assert.equal(match.length, 2)
-    done()
   })
 
-  it('IPv4, Received header, parens', function (done) {
+  it('IPv4, Received header, parens', function () {
     const received_re = net_utils.get_ipany_re(
       '^Received:.*?[\\[\\(]',
       '[\\]\\)]',
@@ -535,10 +532,9 @@ describe('get_ipany_re', function () {
     )
     assert.equal(match[1], '127.0.0.30')
     assert.equal(match.length, 2)
-    done()
   })
 
-  it('IPv4, Received header, bracketed, expedia', function (done) {
+  it('IPv4, Received header, bracketed, expedia', function () {
     const received_header =
       'Received: from mta2.expediamail.com (mta2.expediamail.com [66.231.89.19]) by mail.theartfarm.com (Haraka/2.6.2-toaster) with ESMTPS id C669CF18-1C1C-484C-8A5B-A89088B048CB.1 envelope-from <bounce-857_HTML-202764435-1098240-260085-60@bounce.global.expediamail.com> (version=TLSv1/SSLv3 cipher=AES256-SHA verify=NO); Sat, 05 Sep 2015 07:28:57 -0700'
     const received_re = net_utils.get_ipany_re(
@@ -548,10 +544,9 @@ describe('get_ipany_re', function () {
     const match = received_re.exec(received_header)
     assert.equal(match[1], '66.231.89.19')
     assert.equal(match.length, 2)
-    done()
   })
 
-  it('IPv4, Received header, bracketed, github', function (done) {
+  it('IPv4, Received header, bracketed, github', function () {
     const received_re = net_utils.get_ipany_re(
       '^Received:.*?[\\[\\(]',
       '[\\]\\)]',
@@ -561,10 +556,9 @@ describe('get_ipany_re', function () {
     )
     assert.equal(match[1], '192.30.252.196')
     assert.equal(match.length, 2)
-    done()
   })
 
-  it('IPv6, Received header, bracketed', function (done) {
+  it('IPv6, Received header, bracketed', function () {
     const received_header =
       'Received: from ?IPv6:2601:184:c001:5cf7:a53f:baf7:aaf3:bce7? ([2601:184:c001:5cf7:a53f:baf7:aaf3:bce7])'
     const received_re = net_utils.get_ipany_re(
@@ -574,10 +568,9 @@ describe('get_ipany_re', function () {
     const match = received_re.exec(received_header)
     assert.equal(match[1], '2601:184:c001:5cf7:a53f:baf7:aaf3:bce7')
     assert.equal(match.length, 2)
-    done()
   })
 
-  it('IPv6, Received header, bracketed, IPv6 prefix', function (done) {
+  it('IPv6, Received header, bracketed, IPv6 prefix', function () {
     const received_re = net_utils.get_ipany_re(
       '^Received:.*?[\\[\\(](?:IPv6:)?',
       '[\\]\\)]',
@@ -587,10 +580,9 @@ describe('get_ipany_re', function () {
     )
     assert.equal(match[1], '2001:1900:2254:206c::16:88')
     assert.equal(match.length, 2)
-    done()
   })
 
-  it('IPv6, folded Received header, bracketed, IPv6 prefix', function (done) {
+  it('IPv6, folded Received header, bracketed, IPv6 prefix', function () {
     // note the use of [\s\S], '.' doesn't match newlines in JS regexp
     const received_re = net_utils.get_ipany_re(
       '^Received:[\\s\\S]*?[\\[\\(](?:IPv6:)?',
@@ -603,10 +595,9 @@ describe('get_ipany_re', function () {
       assert.equal(match[1], '2001:1900:2254:206c::16:87')
       assert.equal(match.length, 2)
     }
-    done()
   })
 
-  it('IPv6, Received header, bracketed, IPv6 prefix, localhost compressed', function (done) {
+  it('IPv6, Received header, bracketed, IPv6 prefix, localhost compressed', function () {
     const received_re = net_utils.get_ipany_re(
       '^Received:.*?[\\[\\(](?:IPv6:)?',
       '[\\]\\)]',
@@ -616,12 +607,10 @@ describe('get_ipany_re', function () {
     )
     assert.equal(match[1], '::1')
     assert.equal(match.length, 2)
-    done()
   })
 
-  it('IPv6 bogus', function (done) {
+  it('IPv6 bogus', function () {
     const is_bogus = net_utils.ipv6_bogus('::192.41.13.251') // From https://github.com/haraka/Haraka/issues/2763
     assert.equal(is_bogus, true)
-    done()
   })
 })

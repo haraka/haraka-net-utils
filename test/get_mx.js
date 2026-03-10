@@ -1,11 +1,10 @@
-const assert = require('assert')
+const assert = require('node:assert')
 
 describe('get_mx', function () {
   this.timeout(12000)
 
-  beforeEach(function (done) {
+  beforeEach(function () {
     this.net_utils = require('../index')
-    done()
   })
 
   const validCases = {
@@ -85,9 +84,8 @@ describe('get_mx', function () {
   describe('resolve_mx_hosts', function () {
     this.timeout(12000)
 
-    beforeEach((done) => {
+    beforeEach(() => {
       this.net_utils = require('../index')
-      done()
     })
 
     const expectedResolvedMx = [
@@ -145,9 +143,8 @@ describe('get_mx', function () {
   describe('get_implicit_mx', function () {
     this.timeout(5000)
 
-    beforeEach(function (done) {
+    beforeEach(function () {
       this.net_utils = require('../index')
-      done()
     })
 
     it('harakamail.com', async function () {
