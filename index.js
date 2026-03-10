@@ -1,7 +1,6 @@
 'use strict'
 
-const { Resolver } = require('node:dns').promises
-const dns = new Resolver({ timeout: 25000, tries: 1 })
+const dns = require('./lib/dns_config').getDnsResolver()
 const net = require('node:net')
 const os = require('node:os')
 
