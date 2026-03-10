@@ -10,12 +10,11 @@ function has_stun() {
   return true
 }
 
-beforeEach(function (done) {
+beforeEach(function () {
   this.net_utils = require('../lib/get_public_ip')
   this.net_utils.config = this.net_utils.config.module_config(
     path.resolve('test'),
   )
-  done()
 })
 
 describe('get_public_ip', function () {

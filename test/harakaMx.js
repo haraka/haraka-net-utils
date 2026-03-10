@@ -3,9 +3,8 @@ const assert = require('assert')
 process.env.NODE_ENV = 'test'
 
 describe('HarakaMx', () => {
-  beforeEach(function (done) {
+  beforeEach(function () {
     this.nu = require('../index')
-    done()
   })
 
   describe('fromObject', () => {
