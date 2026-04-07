@@ -7,7 +7,6 @@ const os = require('node:os')
 
 // npm modules
 const ipaddr = require('ipaddr.js')
-const sprintf = require('sprintf-js').sprintf
 const tlds = require('haraka-tld')
 
 const locallyBoundIPs = []
@@ -293,7 +292,7 @@ exports.ipv6_reverse = function (ipv6) {
     .toNormalizedString()
     .split(':')
     .map(function (n) {
-      return sprintf('%04x', parseInt(n, 16))
+      return parseInt(n, 16).toString(16).padStart(4, '0')
     })
     .join('')
     .split('')

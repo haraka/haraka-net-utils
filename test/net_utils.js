@@ -357,15 +357,8 @@ describe('is_local_ipv6', function () {
 
 describe('get_ips_by_host', function () {
   const tests = {
-    'servedby.tnpi.net': [
-      '192.48.85.146',
-      '192.48.85.147',
-      '192.48.85.148',
-      '192.48.85.149',
-      '2607:f060:b008:feed::2',
-    ],
+    'net-utils.haraka.tnpi.net': ['1.2.3.4', '8:7:6:5:4:3:2:1'],
     'localhost.haraka.tnpi.net': ['127.0.0.1', '::1'],
-    // 'non-exist.haraka.tnpi.net': [],
   }
 
   for (const t in tests) {
@@ -373,6 +366,7 @@ describe('get_ips_by_host', function () {
       this.timeout(7000)
       net_utils.get_ips_by_host(t, function (err, res) {
         if (err && err.length) {
+          // don't fail when test runner lack network access
           console.error(err)
           return done()
         }

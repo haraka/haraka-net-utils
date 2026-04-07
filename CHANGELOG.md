@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.8.0] - 2026-04-07
+
+- dep(sprintf-js): removed
+- deps(all): updated to latest
+- remove unnecessary done callbacks, update deps (#95)
+
 ### [1.7.2] - 2025-01-31
 
 - deps(all): bump to latest
@@ -229,3 +235,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.7.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.0
 [1.7.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.1
 [1.7.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.2
+[1.8.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.0
