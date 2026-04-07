@@ -16,6 +16,72 @@ describe('long_to_ip', function () {
   })
 })
 
+describe('dec_to_hex', function () {
+  it('10 -> a', function () {
+    assert.equal(net_utils.dec_to_hex(10), 'a')
+  })
+  it('255 -> ff', function () {
+    assert.equal(net_utils.dec_to_hex(255), 'ff')
+  })
+  it('0 -> 0', function () {
+    assert.equal(net_utils.dec_to_hex(0), '0')
+  })
+})
+
+describe('hex_to_dec', function () {
+  it('a -> 10', function () {
+    assert.equal(net_utils.hex_to_dec('a'), 10)
+  })
+  it('ff -> 255', function () {
+    assert.equal(net_utils.hex_to_dec('ff'), 255)
+  })
+  it('0 -> 0', function () {
+    assert.equal(net_utils.hex_to_dec('0'), 0)
+  })
+})
+
+describe('ip_to_long', function () {
+  it('1.2.3.4', function () {
+    assert.equal(net_utils.ip_to_long('1.2.3.4'), 16909060)
+  })
+  it('11.22.33.44', function () {
+    assert.equal(net_utils.ip_to_long('11.22.33.44'), 185999660)
+  })
+  it('non-IPv4 returns false', function () {
+    assert.equal(net_utils.ip_to_long('not-an-ip'), false)
+  })
+  it('IPv6 returns false', function () {
+    assert.equal(net_utils.ip_to_long('::1'), false)
+  })
+})
+
+describe('ipv6_reverse', function () {
+  it('::1', function () {
+    assert.equal(
+      net_utils.ipv6_reverse('::1'),
+      '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0',
+    )
+  })
+  it('2001:db8::1', function () {
+    assert.equal(
+      net_utils.ipv6_reverse('2001:db8::1'),
+      '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2',
+    )
+  })
+})
+
+describe('ipv6_bogus', function () {
+  it('unicast returns false', function () {
+    assert.equal(net_utils.ipv6_bogus('2606:4700:4700::1111'), false)
+  })
+  it('loopback returns true', function () {
+    assert.equal(net_utils.ipv6_bogus('::1'), true)
+  })
+  it('invalid input returns true', function () {
+    assert.equal(net_utils.ipv6_bogus('not-an-ipv6'), true)
+  })
+})
+
 describe('static_rdns', function () {
   it('74.125.82.182', function () {
     _check('74.125.82.182', 'mail-we0-f182.google.com', false)
@@ -64,6 +130,10 @@ describe('same_ipv4_network', function () {
 
   it('199.176.179.3.5 <-> [199.176.179.4] (extra octet)', function () {
     _same_ipv4_network('199.176.179.3.5', ['199.176.179.4'], false)
+  })
+
+  it('199.176.179.3 <-> [not-an-ip, 199.176.179.4] (skip non-IPv4 in list)', function () {
+    _same_ipv4_network('199.176.179.3', ['not-an-ip', '199.176.179.4'], true)
   })
 })
 
@@ -515,6 +585,25 @@ describe('add_line_processor', function () {
     })
     this.net_utils.add_line_processor(socket)
     socket.emit('data', `multi\nline\nallThisDataIsLost\n`)
+    socket.emit('end')
+  })
+
+  it('emits partial line on end', function (done) {
+    const socket = new EventEmitter()
+    const received = []
+    socket.on('line', (line) => {
+      received.push(line)
+    })
+    // add_line_processor must be called before registering the test 'end'
+    // handler so its 'end' handler (which flushes partial data) runs first
+    this.net_utils.add_line_processor(socket)
+    socket.on('end', () => {
+      assert.equal(received.length, 2)
+      assert.equal(received[0], 'complete\n')
+      assert.equal(received[1], 'partial')
+      done()
+    })
+    socket.emit('data', 'complete\npartial')
     socket.emit('end')
   })
 })
