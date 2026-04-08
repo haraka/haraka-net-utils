@@ -4,6 +4,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.8.0] - 2026-04-07
+
 - index.js
   - replaced this.xxx with exports.xxx
     — eliminates implicit 'this' dependency that breaks when callers destructure exports
@@ -19,9 +21,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - get_public_ip.js
   - e.msg → e.message
   - return new Error(...) → console.error(...), now logs if STUN hangs
-
-### [1.8.0] - 2026-04-07
-
 - dep(sprintf-js): removed
 - deps(all): updated to latest
 - remove unnecessary done callbacks, update deps (#95)
