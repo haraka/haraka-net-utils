@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - index.js
   - replaced this.xxx with exports.xxx
-  — eliminates implicit 'this' dependency that breaks when callers destructure exports
+    — eliminates implicit 'this' dependency that breaks when callers destructure exports
   - removed redundant ? true : false
   - same_ipv4_network: for (let i...) → for...of
   - get_ips_by_host: .map() → for...of with explicit branching
