@@ -4,6 +4,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- index.js
+  - replaced this.xxx with exports.xxx
+  — eliminates implicit 'this' dependency that breaks when callers destructure exports
+  - removed redundant ? true : false
+  - same_ipv4_network: for (let i...) → for...of
+  - get_ips_by_host: .map() → for...of with explicit branching
+  - ipv6_reverse: function(n) callback → arrow function
+  - ipv6_bogus: if (x) return true; return false → return x
+  - ip_in_list: for...in → for...of over isArray ? list : Object.keys(list)
+    - prevents iteration over inherited properties
+- get_mx.js
+  - this.get_implicit_mx → exports.get_implicit_mx
+- get_public_ip.js
+  - e.msg → e.message
+  - return new Error(...) → console.error(...), now logs if STUN hangs
+
 ### [1.8.0] - 2026-04-07
 
 - dep(sprintf-js): removed

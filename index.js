@@ -75,17 +75,17 @@ exports.is_ip_in_str = function (ip, str) {
   const octets = ip.split('.')
 
   // See if the 3rd and 4th octets appear in the string
-  if (this.octets_in_string(host_part, octets[2], octets[3])) {
+  if (exports.octets_in_string(host_part, octets[2], octets[3])) {
     return true
   }
   // then the 1st and 2nd octets
-  if (this.octets_in_string(host_part, octets[0], octets[1])) {
+  if (exports.octets_in_string(host_part, octets[0], octets[1])) {
     return true
   }
 
   // Whole IP in hex
   let host_part_copy = host_part
-  const ip_hex = this.dec_to_hex(this.ip_to_long(ip))
+  const ip_hex = exports.dec_to_hex(exports.ip_to_long(ip))
   for (let i = 0; i < 4; i++) {
     const part = host_part_copy.indexOf(ip_hex.substring(i * 2, i * 2 + 2))
     if (part === -1) break
@@ -144,11 +144,11 @@ exports.is_local_host = async function (dst_host) {
   const dest_ips = []
 
   try {
-    const public_ip = await this.get_public_ip()
+    const public_ip = await exports.get_public_ip()
     if (public_ip) local_ips.push(public_ip)
 
-    const local_hostname = this.get_primary_host_name()
-    local_ips.push(...(await this.get_ips_by_host(local_hostname)))
+    const local_hostname = exports.get_primary_host_name()
+    local_ips.push(...(await exports.get_ips_by_host(local_hostname)))
 
     if (net.isIP(dst_host)) {
       // an IP address
@@ -156,7 +156,7 @@ exports.is_local_host = async function (dst_host) {
     } else {
       // a hostname
       if (dst_host === local_hostname) return true
-      dest_ips.push(...(await this.get_ips_by_host(dst_host)))
+      dest_ips.push(...(await exports.get_ips_by_host(dst_host)))
     }
   } catch (ignore) {
     // console.error(ignore)
@@ -164,17 +164,17 @@ exports.is_local_host = async function (dst_host) {
   }
 
   for (const ip of dest_ips) {
-    if (this.is_local_ip(ip)) return true
+    if (exports.is_local_ip(ip)) return true
     if (local_ips.includes(ip)) return true
   }
   return false
 }
 
 exports.is_local_ip = function (ip) {
-  if (this.on_local_interface(ip)) return true
+  if (exports.on_local_interface(ip)) return true
 
-  if (net.isIPv4(ip)) return this.is_local_ipv4(ip)
-  if (net.isIPv6(ip)) return this.is_local_ipv6(ip)
+  if (net.isIPv4(ip)) return exports.is_local_ipv4(ip)
+  if (net.isIPv6(ip)) return exports.is_local_ipv6(ip)
 
   // console.error(`invalid IP address: ${ip}`);
   return false
@@ -216,8 +216,8 @@ exports.is_local_ipv6 = function (ip) {
 }
 
 exports.is_private_ip = function (ip) {
-  if (net.isIPv4(ip)) return this.is_local_ipv4(ip) || this.is_private_ipv4(ip)
-  if (net.isIPv6(ip)) return this.is_local_ipv6(ip)
+  if (net.isIPv4(ip)) return exports.is_local_ipv4(ip) || exports.is_private_ipv4(ip)
+  if (net.isIPv6(ip)) return exports.is_local_ipv6(ip)
   return false
 }
 
@@ -226,12 +226,10 @@ exports.is_rfc1918 = exports.is_private_ip
 
 exports.is_ip_literal = function (host) {
   return exports.get_ipany_re('^\\[(IPv6:)?', '\\]$', '').test(host)
-    ? true
-    : false
 }
 
 exports.is_ipv4_literal = function (host) {
-  return /^\[(\d{1,3}\.){3}\d{1,3}\]$/.test(host) ? true : false
+  return /^\[(\d{1,3}\.){3}\d{1,3}\]$/.test(host)
 }
 
 exports.same_ipv4_network = function (ip, ipList) {
@@ -246,12 +244,12 @@ exports.same_ipv4_network = function (ip, ipList) {
 
   const first3 = ip.split('.').slice(0, 3).join('.')
 
-  for (let i = 0; i < ipList.length; i++) {
-    if (!net.isIPv4(ipList[i])) {
+  for (const listIp of ipList) {
+    if (!net.isIPv4(listIp)) {
       console.error('same_ipv4_network, IP in list is not IPv4!')
       continue
     }
-    if (first3 === ipList[i].split('.').slice(0, 3).join('.')) return true
+    if (first3 === listIp.split('.').slice(0, 3).join('.')) return true
   }
   return false
 }
@@ -275,11 +273,10 @@ exports.get_ips_by_host = function (hostname, done) {
     dns.resolve6(hostname),
     dns.resolve4(hostname),
   ]).then((res) => {
-    res.filter((a) => a.status === 'rejected').map((a) => errors.push(a.reason))
-
-    res
-      .filter((a) => a.status === 'fulfilled')
-      .map((a) => a.value.map((ip) => ips.add(ip)))
+    for (const a of res) {
+      if (a.status === 'rejected') errors.push(a.reason)
+      else for (const ip of a.value) ips.add(ip)
+    }
 
     if (done) done(errors, Array.from(ips))
     return Array.from(ips)
@@ -291,9 +288,7 @@ exports.ipv6_reverse = function (ipv6) {
   return ipv6
     .toNormalizedString()
     .split(':')
-    .map(function (n) {
-      return parseInt(n, 16).toString(16).padStart(4, '0')
-    })
+    .map((n) => parseInt(n, 16).toString(16).padStart(4, '0'))
     .join('')
     .split('')
     .reverse()
@@ -302,9 +297,7 @@ exports.ipv6_reverse = function (ipv6) {
 
 exports.ipv6_bogus = function (ipv6) {
   try {
-    const ipCheck = ipaddr.parse(ipv6)
-    if (ipCheck.range() !== 'unicast') return true
-    return false
+    return ipaddr.parse(ipv6).range() !== 'unicast'
   } catch (e) {
     // If we get an error from parsing, return true for bogus.
     console.error(e)
@@ -325,11 +318,8 @@ exports.ip_in_list = function (list, ip) {
   }
 
   // Iterate: arrays and CIDR matches
-  for (let item in list) {
-    if (isArray) {
-      item = list[item] // item is index
-      if (item === ip) return true // exact match
-    }
+  for (const item of isArray ? list : Object.keys(list)) {
+    if (isArray && item === ip) return true // exact match
     if (isHostname) continue // skip CIDR match
 
     const cidr = item.split('/')
