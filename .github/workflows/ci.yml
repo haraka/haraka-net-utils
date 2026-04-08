@@ -10,15 +10,23 @@ env:
 jobs:
   lint:
     uses: haraka/.github/.github/workflows/lint.yml@master
+    permissions:
+      contents: read
 
   coverage:
     uses: haraka/.github/.github/workflows/coverage.yml@master
     secrets: inherit
+    permissions:
+      contents: read
 
   test:
     needs: [lint]
     uses: haraka/.github/.github/workflows/ubuntu.yml@master
+    permissions:
+      contents: read
 
   windows:
     needs: [lint]
     uses: haraka/.github/.github/workflows/windows.yml@master
+    permissions:
+      contents: read
