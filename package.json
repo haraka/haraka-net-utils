@@ -48,7 +48,7 @@
     "punycode.js": "^2.3.1"
   },
   "optionalDependencies": {
-    "@msimerson/stun": "^3.0.2"
+    "@msimerson/stun": "^3.2.0"
   },
   "prettier": {
     "singleQuote": true,
