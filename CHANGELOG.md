@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.8.1] - 2026-04-09
+- dep(stun): update to 3.2.0 (#100)
+- add .github/FUNDING.yml (#99)
+- make codeql less feisty (#98)
+
 - fix(add_line_processor): add MAX_LINE_LENGTH bounds
 - fix(get_public_ip): assure STUN response is a valid IP
 - fix(get_public_ip): add null guard to config.get
@@ -257,3 +262,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.7.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.1
 [1.7.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.2
 [1.8.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.0
+[1.8.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.1
