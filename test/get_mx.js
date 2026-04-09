@@ -1,10 +1,11 @@
 const assert = require('node:assert')
+const { beforeEach, describe, it } = require('node:test')
 
-describe('get_mx', function () {
-  this.timeout(12000)
+describe('get_mx', () => {
+  let net_utils
 
-  beforeEach(function () {
-    this.net_utils = require('../index')
+  beforeEach(() => {
+    net_utils = require('../index')
   })
 
   const validCases = {
@@ -30,19 +31,18 @@ describe('get_mx', function () {
   }
 
   for (const c in validCases) {
-    it(`gets MX records for ${c}`, function (done) {
-      this.timeout(12000)
-      this.net_utils.get_mx(c, (err, mxlist) => {
-        if (err) console.error(err)
-        assert.ifError(err)
-        checkValid(validCases[c], mxlist)
-        done()
-      })
-    })
+    it(`gets MX records for ${c}`, { timeout: 12000 }, () =>
+      new Promise((resolve) => {
+        net_utils.get_mx(c, (err, mxlist) => {
+          if (err) console.error(err)
+          assert.ifError(err)
+          checkValid(validCases[c], mxlist)
+          resolve()
+        })
+      }))
 
-    it(`awaits MX records for ${c}`, async function () {
-      this.timeout(12000)
-      const mxlist = await this.net_utils.get_mx(c)
+    it(`awaits MX records for ${c}`, { timeout: 12000 }, async () => {
+      const mxlist = await net_utils.get_mx(c)
       checkValid(validCases[c], mxlist)
     })
   }
@@ -64,16 +64,16 @@ describe('get_mx', function () {
   }
 
   for (const c in invalidCases) {
-    it(`cb does not crash on invalid name: ${c}`, function () {
-      this.net_utils.get_mx(c, (err, mxlist) => {
+    it(`cb does not crash on invalid name: ${c}`, () => {
+      net_utils.get_mx(c, (err, mxlist) => {
         if (err) checkInvalid(invalidCases[c], err.message)
         assert.equal(mxlist.length, 0)
       })
     })
 
-    it(`async does not crash on invalid name: ${c}`, async function () {
+    it(`async does not crash on invalid name: ${c}`, async () => {
       try {
-        const mxlist = await this.net_utils.get_mx(c)
+        const mxlist = await net_utils.get_mx(c)
         assert.equal(mxlist.length, 0)
       } catch (err) {
         checkInvalid(invalidCases[c], err.message)
@@ -81,11 +81,11 @@ describe('get_mx', function () {
     })
   }
 
-  describe('resolve_mx_hosts', function () {
-    this.timeout(12000)
+  describe('resolve_mx_hosts', () => {
+    let nu
 
     beforeEach(() => {
-      this.net_utils = require('../index')
+      nu = require('../index')
     })
 
     const expectedResolvedMx = [
@@ -101,76 +101,74 @@ describe('get_mx', function () {
       },
     ]
 
-    it('resolves mx hosts to IPs, tnpi.net', async () => {
-      const r = await this.net_utils.resolve_mx_hosts([
+    it('resolves mx hosts to IPs, tnpi.net', { timeout: 12000 }, async () => {
+      const r = await nu.resolve_mx_hosts([
         { exchange: 'mail.theartfarm.com', priority: 10, from_dns: 'tnpi.net' },
       ])
       assert.deepEqual(r, expectedResolvedMx)
     })
 
-    it('resolves mx hosts to IPs, gmail.com', async () => {
-      const mxes = await this.net_utils.get_mx('gmail.com')
+    it('resolves mx hosts to IPs, gmail.com', { timeout: 12000 }, async () => {
+      const mxes = await nu.get_mx('gmail.com')
       assert.equal(mxes.length, 5)
-      const r = await this.net_utils.resolve_mx_hosts(mxes)
+      const r = await nu.resolve_mx_hosts(mxes)
       assert.equal(r.length, 10)
     })
 
     it('returns IPs as is', async () => {
-      const r = await this.net_utils.resolve_mx_hosts(expectedResolvedMx)
+      const r = await nu.resolve_mx_hosts(expectedResolvedMx)
       assert.deepEqual(r, expectedResolvedMx)
     })
 
     it('returns sockets as-is', async () => {
-      const r = await this.net_utils.resolve_mx_hosts([
-        { path: '/var/run/sock' },
-      ])
+      const r = await nu.resolve_mx_hosts([{ path: '/var/run/sock' }])
       assert.deepEqual(r, [{ path: '/var/run/sock' }])
     })
 
-    it('resolve_mx_hosts, gmail.com', async () => {
-      const mxes = await this.net_utils.get_mx('gmail.com')
-      const r = await this.net_utils.resolve_mx_hosts(mxes)
+    it('resolve_mx_hosts, gmail.com', { timeout: 12000 }, async () => {
+      const mxes = await nu.get_mx('gmail.com')
+      const r = await nu.resolve_mx_hosts(mxes)
       assert.equal(r.length, 10)
     })
 
-    it('resolve_mx_hosts, yahoo.com', async () => {
-      const mxes = await this.net_utils.get_mx('yahoo.com')
-      const r = await this.net_utils.resolve_mx_hosts([mxes[0]])
+    it('resolve_mx_hosts, yahoo.com', { timeout: 12000 }, async () => {
+      const mxes = await nu.get_mx('yahoo.com')
+      const r = await nu.resolve_mx_hosts([mxes[0]])
       assert.equal(r.length, 8)
     })
   })
 
-  describe('get_implicit_mx', function () {
-    this.timeout(5000)
+  describe('get_implicit_mx', () => {
+    let nu
 
-    beforeEach(function () {
-      this.net_utils = require('../index')
+    beforeEach(() => {
+      nu = require('../index')
     })
 
-    it('harakamail.com', async function () {
-      const mf = await this.net_utils.get_implicit_mx('harakamail.com')
+    it('harakamail.com', { timeout: 5000 }, async () => {
+      const mf = await nu.get_implicit_mx('harakamail.com')
       assert.equal(mf.length, 1)
     })
 
-    it('mx.theartfarm.com', async function () {
-      const mf = await this.net_utils.get_implicit_mx('mx.theartfarm.com')
+    it('mx.theartfarm.com', { timeout: 5000 }, async () => {
+      const mf = await nu.get_implicit_mx('mx.theartfarm.com')
       assert.equal(mf.length, 0)
     })
 
-    it('resolve-fail-definitive.josef-froehle.de', async function () {
-      const mf = await this.net_utils.get_implicit_mx(
+    it('resolve-fail-definitive.josef-froehle.de', { timeout: 5000 }, async () => {
+      const mf = await nu.get_implicit_mx(
         'resolve-fail-definitive.josef-froehle.de',
       )
       assert.equal(mf.length, 0)
     })
-    it('resolve-fail-a.josef-froehle.de', async function () {
-      const mf = await this.net_utils.get_implicit_mx(
-        'resolve-fail-a.josef-froehle.de',
-      )
+
+    it('resolve-fail-a.josef-froehle.de', { timeout: 5000 }, async () => {
+      const mf = await nu.get_implicit_mx('resolve-fail-a.josef-froehle.de')
       assert.equal(mf.length, 1)
     })
-    it('resolve-fail-aaaa.josef-froehle.de', async function () {
-      const mf = await this.net_utils.get_implicit_mx(
+
+    it('resolve-fail-aaaa.josef-froehle.de', { timeout: 5000 }, async () => {
+      const mf = await nu.get_implicit_mx(
         'resolve-fail-aaaa.josef-froehle.de',
       )
       assert.equal(mf.length, 0)

@@ -2,11 +2,12 @@
 
 const assert = require('node:assert')
 const { Resolver } = require('node:dns').promises
+const { describe, it, beforeEach } = require('node:test')
 
-describe('dns_config', function () {
+describe('dns_config', () => {
   let dnsConfig
 
-  beforeEach(function () {
+  beforeEach(() => {
     delete require.cache[require.resolve('../lib/dns_config')]
     dnsConfig = require('../lib/dns_config')
   })

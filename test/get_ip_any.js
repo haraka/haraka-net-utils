@@ -1,5 +1,6 @@
 const assert = require('node:assert')
 const net = require('node:net')
+const { describe, it } = require('node:test')
 
 const ip_fixtures = [
   [false, ' 2001:0000:1234:0000:0000:C1C0:ABCD:0876  '],

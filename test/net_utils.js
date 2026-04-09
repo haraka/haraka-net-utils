@@ -2,6 +2,7 @@ const assert = require('node:assert')
 const EventEmitter = require('node:events')
 const os = require('node:os')
 const path = require('node:path')
+const { beforeEach, describe, it } = require('node:test')
 
 require('haraka-config').watch_files = false
 const net_utils = require('../index')
@@ -432,22 +433,20 @@ describe('get_ips_by_host', function () {
   }
 
   for (const t in tests) {
-    it(`get_ips_by_host, ${t}`, function (done) {
-      this.timeout(7000)
-      net_utils.get_ips_by_host(t, function (err, res) {
-        if (err && err.length) {
-          // don't fail when test runner lack network access
-          console.error(err)
-          return done()
-        }
-        assert.deepEqual(err, [])
-        assert.deepEqual(res.sort(), tests[t].sort())
-        done()
-      })
-    })
+    it(`get_ips_by_host, ${t}`, { timeout: 7000 }, () =>
+      new Promise((resolve) => {
+        net_utils.get_ips_by_host(t, function (err, res) {
+          if (err && err.length) {
+            console.error(err)
+            return resolve()
+          }
+          assert.deepEqual(err, [])
+          assert.deepEqual(res.sort(), tests[t].sort())
+          resolve()
+        })
+      }))
 
-    it(`get_ips_by_host, promise, ${t}`, async function () {
-      this.timeout(5000)
+    it(`get_ips_by_host, promise, ${t}`, { timeout: 5000 }, async () => {
       try {
         const res = await net_utils.get_ips_by_host(t)
         assert.deepEqual(res.sort(), tests[t].sort())
@@ -521,74 +520,73 @@ describe('ip_in_list', function () {
   })
 })
 
-describe('get_primary_host_name', function () {
-  beforeEach(function () {
-    this.net_utils = require('../index')
-    this.net_utils.config = this.net_utils.config.module_config(
-      path.resolve('test'),
-    )
+describe('get_primary_host_name', () => {
+  let net_utils_mod
+  beforeEach(() => {
+    net_utils_mod = require('../index')
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
-  it('with me config', function () {
-    assert.equal(this.net_utils.get_primary_host_name(), 'test-hostname')
+  it('with me config', () => {
+    assert.equal(net_utils_mod.get_primary_host_name(), 'test-hostname')
   })
 
-  it('without me config', function () {
-    this.net_utils.config = this.net_utils.config.module_config(
+  it('without me config', () => {
+    net_utils_mod.config = net_utils_mod.config.module_config(
       path.resolve('doesnt-exist'),
     )
-    assert.equal(this.net_utils.get_primary_host_name(), os.hostname())
+    assert.equal(net_utils_mod.get_primary_host_name(), os.hostname())
   })
 })
 
-describe('on_local_interface', function () {
-  beforeEach(function () {
-    this.net_utils = require('../index')
-    this.net_utils.config = this.net_utils.config.module_config(
-      path.resolve('test'),
-    )
+describe('on_local_interface', () => {
+  let net_utils_mod
+  beforeEach(() => {
+    net_utils_mod = require('../index')
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
-  it('localhost 127.0.0.1', function () {
-    assert.equal(this.net_utils.on_local_interface('127.0.0.1'), true)
+  it('localhost 127.0.0.1', () => {
+    assert.equal(net_utils_mod.on_local_interface('127.0.0.1'), true)
   })
 
-  it('multicast 1.1.1.1', function () {
-    assert.equal(this.net_utils.on_local_interface('1.1.1.1'), false)
+  it('multicast 1.1.1.1', () => {
+    assert.equal(net_utils_mod.on_local_interface('1.1.1.1'), false)
   })
 
-  it('ipv6 localhost ::1', function () {
-    const r = this.net_utils.on_local_interface('::1')
+  it('ipv6 localhost ::1', () => {
+    const r = net_utils_mod.on_local_interface('::1')
     if (r) {
       assert.equal(r, true)
     }
   })
 })
 
-describe('add_line_processor', function () {
-  beforeEach(function () {
-    this.net_utils = require('../index')
-    this.net_utils.config = this.net_utils.config.module_config(
-      path.resolve('test'),
-    )
+describe('add_line_processor', () => {
+  let net_utils_mod
+  beforeEach(() => {
+    net_utils_mod = require('../index')
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
-  it('adds a line processor', function (done) {
+  it('adds a line processor', async () => {
     const socket = new EventEmitter()
     let lines = 0
     socket.on('line', () => {
       lines++
     })
-    socket.on('end', () => {
-      assert.equal(lines, 3)
-      done()
+    await new Promise((resolve) => {
+      socket.on('end', () => {
+        assert.equal(lines, 3)
+        resolve()
+      })
+      net_utils_mod.add_line_processor(socket)
+      socket.emit('data', `multi\nline\nallThisDataIsLost\n`)
+      socket.emit('end')
     })
-    this.net_utils.add_line_processor(socket)
-    socket.emit('data', `multi\nline\nallThisDataIsLost\n`)
-    socket.emit('end')
   })
 
-  it('emits partial line on end', function (done) {
+  it('emits partial line on end', async () => {
     const socket = new EventEmitter()
     const received = []
     socket.on('line', (line) => {
@@ -596,14 +594,16 @@ describe('add_line_processor', function () {
     })
     // add_line_processor must be called before registering the test 'end'
     // handler so its 'end' handler (which flushes partial data) runs first
-    this.net_utils.add_line_processor(socket)
-    socket.on('end', () => {
-      assert.equal(received.length, 2)
-      assert.equal(received[0], 'complete\n')
-      assert.equal(received[1], 'partial')
-      done()
+    net_utils_mod.add_line_processor(socket)
+    await new Promise((resolve) => {
+      socket.on('end', () => {
+        assert.equal(received.length, 2)
+        assert.equal(received[0], 'complete\n')
+        assert.equal(received[1], 'partial')
+        resolve()
+      })
+      socket.emit('data', 'complete\npartial')
+      socket.emit('end')
     })
-    socket.emit('data', 'complete\npartial')
-    socket.emit('end')
   })
 })

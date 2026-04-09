@@ -1,16 +1,18 @@
 const assert = require('node:assert')
+const { beforeEach, describe, it } = require('node:test')
 
 process.env.NODE_ENV = 'test'
 
 describe('HarakaMx', () => {
-  beforeEach(function () {
-    this.nu = require('../index')
+  let nu
+  beforeEach(() => {
+    nu = require('../index')
   })
 
   describe('fromObject', () => {
-    it('accepts an object', function () {
+    it('accepts an object', () => {
       assert.deepEqual(
-        new this.nu.HarakaMx({
+        new nu.HarakaMx({
           from_dns: 'example.com',
           exchange: '.',
           priority: 0,
@@ -19,15 +21,15 @@ describe('HarakaMx', () => {
       )
     })
 
-    it('sets default priority to 0', function () {
-      assert.deepEqual(new this.nu.HarakaMx({ exchange: '.' }), {
+    it('sets default priority to 0', () => {
+      assert.deepEqual(new nu.HarakaMx({ exchange: '.' }), {
         exchange: '.',
         priority: 0,
       })
     })
 
-    it('if optional domain provided, sets from_dns', function () {
-      assert.deepEqual(new this.nu.HarakaMx({ exchange: '.' }, 'example.com'), {
+    it('if optional domain provided, sets from_dns', () => {
+      assert.deepEqual(new nu.HarakaMx({ exchange: '.' }, 'example.com'), {
         from_dns: 'example.com',
         exchange: '.',
         priority: 0,
@@ -35,54 +37,54 @@ describe('HarakaMx', () => {
     })
   })
 
-  describe('fromString', function () {
-    it('parses a hostname', function () {
-      assert.deepEqual(new this.nu.HarakaMx('mail.example.com'), {
+  describe('fromString', () => {
+    it('parses a hostname', () => {
+      assert.deepEqual(new nu.HarakaMx('mail.example.com'), {
         exchange: 'mail.example.com',
         priority: 0,
       })
     })
 
-    it('parses a hostname:port', function () {
-      assert.deepEqual(new this.nu.HarakaMx('mail.example.com:25'), {
+    it('parses a hostname:port', () => {
+      assert.deepEqual(new nu.HarakaMx('mail.example.com:25'), {
         exchange: 'mail.example.com',
         port: 25,
         priority: 0,
       })
     })
 
-    it('parses an IPv4', function () {
-      assert.deepEqual(new this.nu.HarakaMx('192.0.2.1'), {
+    it('parses an IPv4', () => {
+      assert.deepEqual(new nu.HarakaMx('192.0.2.1'), {
         exchange: '192.0.2.1',
         priority: 0,
       })
     })
 
-    it('parses an IPv4:port', function () {
-      assert.deepEqual(new this.nu.HarakaMx('192.0.2.1:25'), {
+    it('parses an IPv4:port', () => {
+      assert.deepEqual(new nu.HarakaMx('192.0.2.1:25'), {
         exchange: '192.0.2.1',
         port: 25,
         priority: 0,
       })
     })
 
-    it('parses an IPv6', function () {
-      assert.deepEqual(new this.nu.HarakaMx('2001:db8::1'), {
+    it('parses an IPv6', () => {
+      assert.deepEqual(new nu.HarakaMx('2001:db8::1'), {
         exchange: '2001:db8::1',
         priority: 0,
       })
     })
 
-    it('parses an IPv6:port', function () {
-      assert.deepEqual(new this.nu.HarakaMx('2001:db8::1:25'), {
+    it('parses an IPv6:port', () => {
+      assert.deepEqual(new nu.HarakaMx('2001:db8::1:25'), {
         exchange: '2001:db8::1',
         port: 25,
         priority: 0,
       })
     })
 
-    it('parses an [IPv6]:port', function () {
-      assert.deepEqual(new this.nu.HarakaMx('[2001:db8::1]:25'), {
+    it('parses an [IPv6]:port', () => {
+      assert.deepEqual(new nu.HarakaMx('[2001:db8::1]:25'), {
         exchange: '2001:db8::1',
         port: 25,
         priority: 0,
@@ -90,23 +92,23 @@ describe('HarakaMx', () => {
     })
   })
 
-  describe('fromUrl', function () {
-    it('parses simple URIs', function () {
-      assert.deepEqual(new this.nu.HarakaMx('smtp://192.0.2.2'), {
+  describe('fromUrl', () => {
+    it('parses simple URIs', () => {
+      assert.deepEqual(new nu.HarakaMx('smtp://192.0.2.2'), {
         exchange: '192.0.2.2',
         priority: 0,
       })
 
-      assert.deepEqual(new this.nu.HarakaMx('smtp://[2001:db8::1]:25'), {
+      assert.deepEqual(new nu.HarakaMx('smtp://[2001:db8::1]:25'), {
         exchange: '[2001:db8::1]',
         port: 25,
         priority: 0,
       })
     })
 
-    it('parses more complex URIs', function () {
+    it('parses more complex URIs', () => {
       assert.deepEqual(
-        new this.nu.HarakaMx('smtp://authUser:sekretPass@[2001:db8::1]'),
+        new nu.HarakaMx('smtp://authUser:sekretPass@[2001:db8::1]'),
         {
           exchange: '[2001:db8::1]',
           priority: 0,
@@ -116,7 +118,7 @@ describe('HarakaMx', () => {
       )
 
       assert.deepEqual(
-        new this.nu.HarakaMx('lmtp://authUser:sekretPass@[2001:db8::1]:25'),
+        new nu.HarakaMx('lmtp://authUser:sekretPass@[2001:db8::1]:25'),
         {
           exchange: '[2001:db8::1]',
           port: 25,
@@ -162,28 +164,28 @@ describe('HarakaMx', () => {
     },
   ]
 
-  describe('toUrl', function () {
+  describe('toUrl', () => {
     for (const c of testCases) {
-      it(`${JSON.stringify(c.in)} -> ${c.url}`, function () {
-        assert.equal(new this.nu.HarakaMx(c.in).toUrl(), c.url)
+      it(`${JSON.stringify(c.in)} -> ${c.url}`, () => {
+        assert.equal(new nu.HarakaMx(c.in).toUrl(), c.url)
       })
     }
   })
 
-  describe('toString', function () {
+  describe('toString', () => {
     for (const c of testCases) {
-      it(`${JSON.stringify(c.in)} -> ${c.str}`, function () {
-        assert.equal(new this.nu.HarakaMx(c.in).toString(), c.str)
+      it(`${JSON.stringify(c.in)} -> ${c.str}`, () => {
+        assert.equal(new nu.HarakaMx(c.in).toString(), c.str)
       })
     }
   })
 
-  it('is exported from nu', function () {
-    const nu = require('../index')
-    assert.equal(typeof nu.HarakaMx, 'function')
+  it('is exported from nu', () => {
+    const nu2 = require('../index')
+    assert.equal(typeof nu2.HarakaMx, 'function')
   })
 
-  it('directly loadable', function () {
+  it('directly loadable', () => {
     const hMx = require('../lib/HarakaMx')
     assert.equal(typeof hMx, 'function')
   })

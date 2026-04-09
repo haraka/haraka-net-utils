@@ -13,7 +13,7 @@
     "lint:fix": "npx eslint *.js test --fix",
     "prettier": "npx prettier . --check",
     "prettier:fix": "npx prettier . --write --log-level=warn",
-    "test": "npx mocha",
+    "test": "node --test test/*.js",
     "versions": "npx npm-dep-mgr check",
     "versions:fix": "npx npm-dep-mgr update",
     "test:coverage": "npx c8 --reporter=text --reporter=text-summary npm test"
@@ -31,7 +31,7 @@
   "author": "Matt Simerson <matt@tnpi.net>",
   "license": "MIT",
   "engines": {
-    "node": ">= v14.0.0"
+    "node": ">= v18.0.0"
   },
   "bugs": {
     "url": "https://github.com/haraka/haraka-net-utils/issues"
