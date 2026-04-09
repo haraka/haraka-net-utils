@@ -15,7 +15,9 @@ let net_utils_mod
 
 beforeEach(() => {
   net_utils_mod = require('../lib/get_public_ip')
-  net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
+  net_utils_mod.config = net_utils_mod.config.module_config(
+    path.resolve('test'),
+  )
 })
 
 describe('get_public_ip', () => {

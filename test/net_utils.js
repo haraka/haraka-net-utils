@@ -433,18 +433,22 @@ describe('get_ips_by_host', function () {
   }
 
   for (const t in tests) {
-    it(`get_ips_by_host, ${t}`, { timeout: 7000 }, () =>
-      new Promise((resolve) => {
-        net_utils.get_ips_by_host(t, function (err, res) {
-          if (err && err.length) {
-            console.error(err)
-            return resolve()
-          }
-          assert.deepEqual(err, [])
-          assert.deepEqual(res.sort(), tests[t].sort())
-          resolve()
-        })
-      }))
+    it(
+      `get_ips_by_host, ${t}`,
+      { timeout: 7000 },
+      () =>
+        new Promise((resolve) => {
+          net_utils.get_ips_by_host(t, function (err, res) {
+            if (err && err.length) {
+              console.error(err)
+              return resolve()
+            }
+            assert.deepEqual(err, [])
+            assert.deepEqual(res.sort(), tests[t].sort())
+            resolve()
+          })
+        }),
+    )
 
     it(`get_ips_by_host, promise, ${t}`, { timeout: 5000 }, async () => {
       try {
@@ -524,7 +528,9 @@ describe('get_primary_host_name', () => {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('test'),
+    )
   })
 
   it('with me config', () => {
@@ -543,7 +549,9 @@ describe('on_local_interface', () => {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('test'),
+    )
   })
 
   it('localhost 127.0.0.1', () => {
@@ -566,7 +574,9 @@ describe('add_line_processor', () => {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('test'),
+    )
   })
 
   it('adds a line processor', async () => {
@@ -619,4 +629,3 @@ describe('add_line_processor', () => {
     })
   })
 })
-

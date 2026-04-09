@@ -305,7 +305,10 @@ exports.add_line_processor = (socket) => {
     current_data += data
 
     if (current_data.length > MAX_LINE_LENGTH) {
-      socket.emit('error', new Error(`Line length exceeded ${MAX_LINE_LENGTH} bytes`))
+      socket.emit(
+        'error',
+        new Error(`Line length exceeded ${MAX_LINE_LENGTH} bytes`),
+      )
       current_data = ''
       return
     }
