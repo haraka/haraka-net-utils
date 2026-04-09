@@ -606,4 +606,17 @@ describe('add_line_processor', () => {
       socket.emit('end')
     })
   })
+
+  it('emits error when line exceeds MAX_LINE_LENGTH', async () => {
+    const socket = new EventEmitter()
+    await new Promise((resolve) => {
+      socket.on('error', (err) => {
+        assert.ok(err.message.includes('Line length exceeded'))
+        resolve()
+      })
+      net_utils_mod.add_line_processor(socket)
+      socket.emit('data', 'A'.repeat(5 * 1024 * 1024)) // 5 MB, no newline
+    })
+  })
 })
+

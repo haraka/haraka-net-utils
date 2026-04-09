@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- fix(add_line_processor): add MAX_LINE_LENGTH bounds
+- fix(get_public_ip): assure STUN response is a valid IP
+- fix(get_public_ip): add null guard to config.get
+- test: convert runner to node:test
+- dep(stun): update to 3.2.0
+
 ### [1.8.0] - 2026-04-07
 
 - index.js
