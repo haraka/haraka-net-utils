@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.8.2] - 2026-05-11
+
+
 ### [1.8.1] - 2026-04-09
 
 - fix(add_line_processor): add MAX_LINE_LENGTH bounds
@@ -260,3 +263,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.7.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.7.2
 [1.8.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.0
 [1.8.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.1
+[1.8.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.2
