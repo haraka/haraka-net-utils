@@ -242,7 +242,7 @@ exports.ipv6_bogus = function (ipv6) {
     return ipaddr.parse(ipv6).range() !== 'unicast'
   } catch (e) {
     // If we get an error from parsing, return true for bogus.
-    console.error(e)
+    console.error(`ipv6_bogus(${ipv6}): ${e.message}`)
     return true
   }
 }
@@ -290,8 +290,6 @@ for (const l of ['get_mx', 'get_implicit_mx', 'resolve_mx_hosts']) {
 }
 
 exports.get_public_ip = require('./lib/get_public_ip').get_public_ip
-
-exports.get_public_ip_async = require('./lib/get_public_ip').get_public_ip_async
 
 exports.HarakaMx = require('./lib/HarakaMx')
 
