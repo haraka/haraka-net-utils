@@ -524,6 +524,33 @@ describe('ip_in_list', function () {
   })
 })
 
+describe('normalize_ip', function () {
+  it('1.2', function () {
+    assert.equal(net_utils.normalize_ip('1.2'), null)
+  })
+  it('empty string', function () {
+    assert.equal(net_utils.normalize_ip(''), null)
+  })
+  it('null', function () {
+    assert.equal(net_utils.normalize_ip(null), null)
+  })
+  it('1.2.3.4', function () {
+    assert.equal(net_utils.normalize_ip('1.2.3.4'), '1.2.3.4')
+  })
+  it('2001:0:1234::c1c0:abcd:876', function () {
+    assert.equal(net_utils.normalize_ip('2001:0:1234::c1c0:abcd:876'), '2001:0:1234::c1c0:abcd:876')
+  })
+  it('2001:0:1234::C1C0:ABCD:876', function () {
+    assert.equal(net_utils.normalize_ip('2001:0:1234::C1C0:ABCD:876'), '2001:0:1234::c1c0:abcd:876')
+  })
+  it('0000:0000:0000:0000:0000:0000:0000:0001', function () {
+    assert.equal(net_utils.normalize_ip('0000:0000:0000:0000:0000:0000:0000:0001'), '::1')
+  })
+  it('::ffff:127.0.0.1', function () {
+    assert.equal(net_utils.normalize_ip('::ffff:127.0.0.1'), '127.0.0.1')
+  })
+})
+
 describe('get_primary_host_name', () => {
   let net_utils_mod
   beforeEach(() => {
@@ -627,5 +654,107 @@ describe('add_line_processor', () => {
       net_utils_mod.add_line_processor(socket)
       socket.emit('data', 'A'.repeat(5 * 1024 * 1024)) // 5 MB, no newline
     })
+  })
+})
+
+describe('parse_proxy_line', function () {
+  it('PROXY TCP4 127.0.0.1 127.0.0.2 42310 465', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 127.0.0.1 127.0.0.2 42310 465'), { type: 'haproxy', proto: 'TCP4', src_ip: '127.0.0.1', src_port: '42310', dst_ip: '127.0.0.2', dst_port: '465' })
+  })
+  it('TCP4 127.0.0.1 127.0.0.2 42310 465', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465'), { type: 'haproxy', proto: 'TCP4', src_ip: '127.0.0.1', src_port: '42310', dst_ip: '127.0.0.2', dst_port: '465' })
+  })
+  it('TCP4 127.0.0.1 127.0.0.2 42310 465\\r\\n', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465\r\n'), { type: 'haproxy', proto: 'TCP4', src_ip: '127.0.0.1', src_port: '42310', dst_ip: '127.0.0.2', dst_port: '465' })
+  })
+  it('PROXY TCP4 nope 127.0.0.1 42310 465', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 nope 127.0.0.1 42310 465'), null)
+  })
+  it('PROXY TCP6 2001:0:1234::c1c0:abcd:876 2001:0:1234::c1c0:abcd:876 2525 25', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP6 2001:0:1234::c1c0:abcd:876 2001:0:1234::c1c0:abcd:876 2525 25'), { type: 'haproxy', proto: 'TCP6', src_ip: '2001:0:1234::c1c0:abcd:876', src_port: '2525', dst_ip: '2001:0:1234::c1c0:abcd:876', dst_port: '25' })
+  })
+  it('TCP6 ::1 ::1 2525 25', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('TCP6 ::1 ::1 2525 25'), { type: 'haproxy', proto: 'TCP6', src_ip: '::1', src_port: '2525', dst_ip: '::1', dst_port: '25' })
+  })
+  it('UNKNOWN 1.2.3.4 1.2.3.4 2525 25', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25'), null)
+  })
+  it('PROXY TCP4 1.2.3.4 999.999.999.999 2525 25', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 1.2.3.4 999.999.999.999 2525 25'), null)
+  })
+  it('empty string', function () {
+    assert.deepEqual(net_utils.parse_proxy_line(''), null)
+  })
+  it('null', function () {
+    assert.deepEqual(net_utils.parse_proxy_line(null), null)
+  })
+  it('PROXY TCP4 nope 1.2.3.4 2525 25', function () {
+    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 nope 1.2.3.4 2525 25'), null)
+  })
+})
+
+describe('is_haproxy_allowed', function () {
+  let net_utils_mod
+  beforeEach(() => {
+    net_utils_mod = require('../index')
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('test'),
+    )
+  })
+
+  it('with connection.ini config and IPv4', () => {
+    assert.equal(net_utils_mod.is_haproxy_allowed('1.2.3.4'), true)
+  })
+
+  it('with connection.ini config and IPv6', () => {
+    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), true)
+  })
+
+  it('without connection.ini config and IPv4', () => {
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('doesnt-exist'),
+    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('1.2.3.4'), false)
+  })
+
+  it('without connection.ini config and IPv6', () => {
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('doesnt-exist'),
+    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), false)
+  })
+
+  it('denies IP not in allow list', () => {
+    assert.equal(net_utils_mod.is_haproxy_allowed('8.8.8.8'), false)
+  })
+
+  it('denies invalid IP', () => {
+    assert.equal(net_utils_mod.is_haproxy_allowed('not-an-ip'), false)
+  })
+
+  it('allows IPv4-mapped IPv6 for listed IPv4', () => {
+    assert.equal(net_utils_mod.is_haproxy_allowed('::ffff:1.2.3.4'), true)
+  })
+
+  it('when disabled in config', () => {
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('test/haproxy-disabled'),
+    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('1.2.3.4'), false)
+  })
+
+  it('matches CIDR in hosts', () => {
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('test/haproxy-cidr'),
+    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('1.2.3.99'), true)
+    assert.equal(net_utils_mod.is_haproxy_allowed('1.2.4.1'), false)
+  })
+
+  it('denies all when enabled but hosts empty', () => {
+    net_utils_mod.config = net_utils_mod.config.module_config(
+      path.resolve('test/haproxy-empty-hosts'),
+    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('1.2.3.4'), false)
   })
 })

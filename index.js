@@ -281,6 +281,11 @@ exports.ip_in_list = function (list, ip) {
   return false
 }
 
+exports.normalize_ip = function (ip) {
+  if (!net.isIP(ip)) return null
+  return ipaddr.process(ip).toString()
+}
+
 exports.get_primary_host_name = function () {
   return exports.config.get('me') || os.hostname()
 }
@@ -325,4 +330,52 @@ exports.add_line_processor = (socket) => {
     }
     current_data = ''
   })
+}
+
+exports.parse_proxy_line = function (line) {
+  const proxyLine = line?.toString().replace(/\r?\n$/, '')
+  const match = /^(?:PROXY )?(TCP4|TCP6|UNKNOWN) (\S+) (\S+) (\d+) (\d+)$/.exec(proxyLine)
+  if (!match) return null
+
+  const proto = match[1]
+  const src_ip = match[2]
+  const dst_ip = match[3]
+  const src_port = match[4]
+  const dst_port = match[5]
+
+  if (proto === 'TCP4' && ipaddr.IPv4.isValid(src_ip) && ipaddr.IPv4.isValid(dst_ip)) {
+    return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
+  }
+
+  if (proto === 'TCP6' && ipaddr.IPv6.isValid(src_ip) && ipaddr.IPv6.isValid(dst_ip)) {
+    return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
+  }
+
+  return null
+}
+
+exports.is_haproxy_allowed = function (ip) {
+  const haproxyConfig = exports.config.get('connection.ini', {
+    booleans: ['+haproxy.enabled'],
+  })?.haproxy ?? {}
+  const haproxyEnabled = haproxyConfig.enabled !== false
+  const haproxy_hosts_ipv4 = []
+  const haproxy_hosts_ipv6 = []
+
+  if (!haproxyEnabled) return false
+
+  const normalized_ip = exports.normalize_ip(ip)
+  if (!normalized_ip) return false
+
+  for (const host of haproxyConfig.hosts ?? []) {
+    if (!host) continue
+    if (net.isIPv6(host.split('/')[0])) {
+      haproxy_hosts_ipv6.push([ipaddr.IPv6.parse(host.split('/')[0]), parseInt(host.split('/')[1] || 64)])
+    } else {
+      haproxy_hosts_ipv4.push([ipaddr.IPv4.parse(host.split('/')[0]), parseInt(host.split('/')[1] || 32)])
+    }
+  }
+
+  const ha_list = net.isIPv6(normalized_ip) ? haproxy_hosts_ipv6 : haproxy_hosts_ipv4
+  return ha_list.some((element) => ipaddr.parse(normalized_ip).match(element[0], element[1]))
 }

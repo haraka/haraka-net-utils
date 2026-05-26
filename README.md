@@ -40,6 +40,17 @@ const hex = net_utils.dec_to_hex(20111104) // 132df00
 const dec = net_utils.hex_to_dec('132df00') // 20111104
 ```
 
+### normalize_ip
+
+Normalizes an IPv4 or IPv6 address to canonical form. Returns `null` for invalid input. IPv4-mapped IPv6 addresses are converted to IPv4.
+
+```js
+net_utils.normalize_ip('1.2.3.4') // '1.2.3.4'
+net_utils.normalize_ip('0000:0000:0000:0000:0000:0000:0000:0001') // '::1'
+net_utils.normalize_ip('::ffff:127.0.0.1') // '127.0.0.1'
+net_utils.normalize_ip('not-an-ip') // null
+```
+
 ### is_local_ipv4
 
 ```js
@@ -105,6 +116,45 @@ try {
 } catch (err) {
   // handle any errors
 }
+```
+
+### parse_proxy_line
+
+Parses an HAProxy PROXY protocol v1 line. Accepts the full line (`PROXY TCP4 …`) or the payload after the command word (`TCP4 …`, as Haraka passes to `cmd_proxy`). Strips a trailing newline if present. Returns `null` for invalid or unsupported lines (including `UNKNOWN`).
+
+```js
+net_utils.parse_proxy_line('PROXY TCP4 127.0.0.1 127.0.0.2 42310 465')
+// {
+//   type: 'haproxy',
+//   proto: 'TCP4',
+//   src_ip: '127.0.0.1',
+//   src_port: '42310',
+//   dst_ip: '127.0.0.2',
+//   dst_port: '465',
+// }
+
+net_utils.parse_proxy_line('TCP6 ::1 ::1 2525 25') // same shape, proto: 'TCP6'
+net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25') // null
+```
+
+### is_haproxy_allowed
+
+Returns whether a connecting IP is allowed to send the HAProxy PROXY command, based on `connection.ini` `[haproxy]` settings. The IP is normalized before matching. Hosts may be listed as exact addresses or CIDR ranges. Returns `false` when HAProxy is disabled, the IP is invalid, or no host entry matches (including an empty `hosts[]` list).
+
+Configure in `config/connection.ini`:
+
+```ini
+[haproxy]
+enabled = true
+hosts[] = 10.0.0.1
+hosts[] = 10.0.0.0/24
+hosts[] = 2001:db8::1
+```
+
+```js
+net_utils.is_haproxy_allowed('10.0.0.1') // true if listed or in a matching CIDR
+net_utils.is_haproxy_allowed('8.8.8.8') // false
+net_utils.is_haproxy_allowed('::ffff:10.0.0.1') // true when 10.0.0.1 is listed
 ```
 
 ### get_mx
