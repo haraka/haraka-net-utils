@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.9.0] - 2026-05-25
+- add proxy helpers #103
+
 ### [1.8.2] - 2026-05-11
 
 - fix(get_public_ip): handle STUN errors by logging an error
@@ -267,3 +270,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.8.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.0
 [1.8.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.1
 [1.8.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.2
+[1.9.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.0
