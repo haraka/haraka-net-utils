@@ -255,7 +255,7 @@ exports.ip_in_list = function (list, ip) {
 
   // Quick lookup
   if (!isArray) {
-    if (ip in list) return true // domain or literal IP
+    if (Object.hasOwn(list, ip)) return true // domain or literal IP
     if (isHostname) return false // skip CIDR match
   }
 
@@ -334,7 +334,9 @@ exports.add_line_processor = (socket) => {
 
 exports.parse_proxy_line = function (line) {
   const proxyLine = line?.toString().replace(/\r?\n$/, '')
-  const match = /^(?:PROXY )?(TCP4|TCP6|UNKNOWN) (\S+) (\S+) (\d+) (\d+)$/.exec(proxyLine)
+  const match = /^(?:PROXY )?(TCP4|TCP6|UNKNOWN) (\S+) (\S+) (\d+) (\d+)$/.exec(
+    proxyLine,
+  )
   if (!match) return null
 
   const proto = match[1]
@@ -343,11 +345,19 @@ exports.parse_proxy_line = function (line) {
   const src_port = match[4]
   const dst_port = match[5]
 
-  if (proto === 'TCP4' && ipaddr.IPv4.isValid(src_ip) && ipaddr.IPv4.isValid(dst_ip)) {
+  if (
+    proto === 'TCP4' &&
+    ipaddr.IPv4.isValid(src_ip) &&
+    ipaddr.IPv4.isValid(dst_ip)
+  ) {
     return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
   }
 
-  if (proto === 'TCP6' && ipaddr.IPv6.isValid(src_ip) && ipaddr.IPv6.isValid(dst_ip)) {
+  if (
+    proto === 'TCP6' &&
+    ipaddr.IPv6.isValid(src_ip) &&
+    ipaddr.IPv6.isValid(dst_ip)
+  ) {
     return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
   }
 
@@ -355,9 +365,10 @@ exports.parse_proxy_line = function (line) {
 }
 
 exports.is_haproxy_allowed = function (ip) {
-  const haproxyConfig = exports.config.get('connection.ini', {
-    booleans: ['+haproxy.enabled'],
-  })?.haproxy ?? {}
+  const haproxyConfig =
+    exports.config.get('connection.ini', {
+      booleans: ['+haproxy.enabled'],
+    })?.haproxy ?? {}
   const haproxyEnabled = haproxyConfig.enabled !== false
   const haproxy_hosts_ipv4 = []
   const haproxy_hosts_ipv6 = []
@@ -370,12 +381,22 @@ exports.is_haproxy_allowed = function (ip) {
   for (const host of haproxyConfig.hosts ?? []) {
     if (!host) continue
     if (net.isIPv6(host.split('/')[0])) {
-      haproxy_hosts_ipv6.push([ipaddr.IPv6.parse(host.split('/')[0]), parseInt(host.split('/')[1] || 64)])
+      haproxy_hosts_ipv6.push([
+        ipaddr.IPv6.parse(host.split('/')[0]),
+        parseInt(host.split('/')[1] || 64),
+      ])
     } else {
-      haproxy_hosts_ipv4.push([ipaddr.IPv4.parse(host.split('/')[0]), parseInt(host.split('/')[1] || 32)])
+      haproxy_hosts_ipv4.push([
+        ipaddr.IPv4.parse(host.split('/')[0]),
+        parseInt(host.split('/')[1] || 32),
+      ])
     }
   }
 
-  const ha_list = net.isIPv6(normalized_ip) ? haproxy_hosts_ipv6 : haproxy_hosts_ipv4
-  return ha_list.some((element) => ipaddr.parse(normalized_ip).match(element[0], element[1]))
+  const ha_list = net.isIPv6(normalized_ip)
+    ? haproxy_hosts_ipv6
+    : haproxy_hosts_ipv4
+  return ha_list.some((element) =>
+    ipaddr.parse(normalized_ip).match(element[0], element[1]),
+  )
 }

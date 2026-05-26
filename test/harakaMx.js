@@ -75,10 +75,10 @@ describe('HarakaMx', () => {
       })
     })
 
-    it('parses an IPv6:port', () => {
+    it('treats an unbracketed IPv6 as the full host', () => {
+      // '2001:db8::1:25' is itself a valid IPv6 address; use [..]:port to set a port
       assert.deepEqual(new nu.HarakaMx('2001:db8::1:25'), {
-        exchange: '2001:db8::1',
-        port: 25,
+        exchange: '2001:db8::1:25',
         priority: 0,
       })
     })
@@ -87,6 +87,25 @@ describe('HarakaMx', () => {
       assert.deepEqual(new nu.HarakaMx('[2001:db8::1]:25'), {
         exchange: '2001:db8::1',
         port: 25,
+        priority: 0,
+      })
+    })
+
+    it('parses a hostname with a non-default port', () => {
+      assert.deepEqual(new nu.HarakaMx('mail.example.com:80'), {
+        exchange: 'mail.example.com',
+        port: 80,
+        priority: 0,
+      })
+    })
+
+    it('rejects out-of-range ports', () => {
+      assert.deepEqual(new nu.HarakaMx('mail.example.com:0'), {
+        exchange: 'mail.example.com:0',
+        priority: 0,
+      })
+      assert.deepEqual(new nu.HarakaMx('mail.example.com:99999'), {
+        exchange: 'mail.example.com:99999',
         priority: 0,
       })
     })

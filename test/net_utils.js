@@ -402,6 +402,11 @@ describe('is_local_ipv6', function () {
 
   it('fe80::/10', function () {
     assert.equal(net_utils.is_local_ipv6('fe80::'), true)
+    assert.equal(net_utils.is_local_ipv6('fe81::1'), true)
+    assert.equal(net_utils.is_local_ipv6('fea0::1'), true)
+    assert.equal(net_utils.is_local_ipv6('febf::ffff'), true)
+    assert.equal(net_utils.is_local_ipv6('fec0::1'), false) // outside /10
+    assert.equal(net_utils.is_local_ipv6('fe70::1'), false) // outside /10
     assert.equal(net_utils.is_local_ipv6('fe80:'), false)
     assert.equal(net_utils.is_local_ipv6('fe8:'), false)
     assert.equal(net_utils.is_local_ipv6(':fe80:'), false)
@@ -522,6 +527,13 @@ describe('ip_in_list', function () {
   it('1.2.3.4/400 (mask read as 400 bits)', function () {
     _check_list({ '1.2.3.4/400': undefined }, '1.2.3.4', true)
   })
+
+  it('ignores inherited Object.prototype properties', function () {
+    assert.equal(net_utils.ip_in_list({}, '__proto__'), false)
+    assert.equal(net_utils.ip_in_list({}, 'constructor'), false)
+    assert.equal(net_utils.ip_in_list({}, 'hasOwnProperty'), false)
+    assert.equal(net_utils.ip_in_list({}, 'toString'), false)
+  })
 })
 
 describe('normalize_ip', function () {
@@ -538,13 +550,22 @@ describe('normalize_ip', function () {
     assert.equal(net_utils.normalize_ip('1.2.3.4'), '1.2.3.4')
   })
   it('2001:0:1234::c1c0:abcd:876', function () {
-    assert.equal(net_utils.normalize_ip('2001:0:1234::c1c0:abcd:876'), '2001:0:1234::c1c0:abcd:876')
+    assert.equal(
+      net_utils.normalize_ip('2001:0:1234::c1c0:abcd:876'),
+      '2001:0:1234::c1c0:abcd:876',
+    )
   })
   it('2001:0:1234::C1C0:ABCD:876', function () {
-    assert.equal(net_utils.normalize_ip('2001:0:1234::C1C0:ABCD:876'), '2001:0:1234::c1c0:abcd:876')
+    assert.equal(
+      net_utils.normalize_ip('2001:0:1234::C1C0:ABCD:876'),
+      '2001:0:1234::c1c0:abcd:876',
+    )
   })
   it('0000:0000:0000:0000:0000:0000:0000:0001', function () {
-    assert.equal(net_utils.normalize_ip('0000:0000:0000:0000:0000:0000:0000:0001'), '::1')
+    assert.equal(
+      net_utils.normalize_ip('0000:0000:0000:0000:0000:0000:0000:0001'),
+      '::1',
+    )
   })
   it('::ffff:127.0.0.1', function () {
     assert.equal(net_utils.normalize_ip('::ffff:127.0.0.1'), '127.0.0.1')
@@ -659,28 +680,86 @@ describe('add_line_processor', () => {
 
 describe('parse_proxy_line', function () {
   it('PROXY TCP4 127.0.0.1 127.0.0.2 42310 465', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 127.0.0.1 127.0.0.2 42310 465'), { type: 'haproxy', proto: 'TCP4', src_ip: '127.0.0.1', src_port: '42310', dst_ip: '127.0.0.2', dst_port: '465' })
+    assert.deepEqual(
+      net_utils.parse_proxy_line('PROXY TCP4 127.0.0.1 127.0.0.2 42310 465'),
+      {
+        type: 'haproxy',
+        proto: 'TCP4',
+        src_ip: '127.0.0.1',
+        src_port: '42310',
+        dst_ip: '127.0.0.2',
+        dst_port: '465',
+      },
+    )
   })
   it('TCP4 127.0.0.1 127.0.0.2 42310 465', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465'), { type: 'haproxy', proto: 'TCP4', src_ip: '127.0.0.1', src_port: '42310', dst_ip: '127.0.0.2', dst_port: '465' })
+    assert.deepEqual(
+      net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465'),
+      {
+        type: 'haproxy',
+        proto: 'TCP4',
+        src_ip: '127.0.0.1',
+        src_port: '42310',
+        dst_ip: '127.0.0.2',
+        dst_port: '465',
+      },
+    )
   })
   it('TCP4 127.0.0.1 127.0.0.2 42310 465\\r\\n', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465\r\n'), { type: 'haproxy', proto: 'TCP4', src_ip: '127.0.0.1', src_port: '42310', dst_ip: '127.0.0.2', dst_port: '465' })
+    assert.deepEqual(
+      net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465\r\n'),
+      {
+        type: 'haproxy',
+        proto: 'TCP4',
+        src_ip: '127.0.0.1',
+        src_port: '42310',
+        dst_ip: '127.0.0.2',
+        dst_port: '465',
+      },
+    )
   })
   it('PROXY TCP4 nope 127.0.0.1 42310 465', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 nope 127.0.0.1 42310 465'), null)
+    assert.deepEqual(
+      net_utils.parse_proxy_line('PROXY TCP4 nope 127.0.0.1 42310 465'),
+      null,
+    )
   })
   it('PROXY TCP6 2001:0:1234::c1c0:abcd:876 2001:0:1234::c1c0:abcd:876 2525 25', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP6 2001:0:1234::c1c0:abcd:876 2001:0:1234::c1c0:abcd:876 2525 25'), { type: 'haproxy', proto: 'TCP6', src_ip: '2001:0:1234::c1c0:abcd:876', src_port: '2525', dst_ip: '2001:0:1234::c1c0:abcd:876', dst_port: '25' })
+    assert.deepEqual(
+      net_utils.parse_proxy_line(
+        'PROXY TCP6 2001:0:1234::c1c0:abcd:876 2001:0:1234::c1c0:abcd:876 2525 25',
+      ),
+      {
+        type: 'haproxy',
+        proto: 'TCP6',
+        src_ip: '2001:0:1234::c1c0:abcd:876',
+        src_port: '2525',
+        dst_ip: '2001:0:1234::c1c0:abcd:876',
+        dst_port: '25',
+      },
+    )
   })
   it('TCP6 ::1 ::1 2525 25', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('TCP6 ::1 ::1 2525 25'), { type: 'haproxy', proto: 'TCP6', src_ip: '::1', src_port: '2525', dst_ip: '::1', dst_port: '25' })
+    assert.deepEqual(net_utils.parse_proxy_line('TCP6 ::1 ::1 2525 25'), {
+      type: 'haproxy',
+      proto: 'TCP6',
+      src_ip: '::1',
+      src_port: '2525',
+      dst_ip: '::1',
+      dst_port: '25',
+    })
   })
   it('UNKNOWN 1.2.3.4 1.2.3.4 2525 25', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25'), null)
+    assert.deepEqual(
+      net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25'),
+      null,
+    )
   })
   it('PROXY TCP4 1.2.3.4 999.999.999.999 2525 25', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 1.2.3.4 999.999.999.999 2525 25'), null)
+    assert.deepEqual(
+      net_utils.parse_proxy_line('PROXY TCP4 1.2.3.4 999.999.999.999 2525 25'),
+      null,
+    )
   })
   it('empty string', function () {
     assert.deepEqual(net_utils.parse_proxy_line(''), null)
@@ -689,7 +768,10 @@ describe('parse_proxy_line', function () {
     assert.deepEqual(net_utils.parse_proxy_line(null), null)
   })
   it('PROXY TCP4 nope 1.2.3.4 2525 25', function () {
-    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 nope 1.2.3.4 2525 25'), null)
+    assert.deepEqual(
+      net_utils.parse_proxy_line('PROXY TCP4 nope 1.2.3.4 2525 25'),
+      null,
+    )
   })
 })
 
@@ -707,7 +789,10 @@ describe('is_haproxy_allowed', function () {
   })
 
   it('with connection.ini config and IPv6', () => {
-    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), true)
+    assert.equal(
+      net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'),
+      true,
+    )
   })
 
   it('without connection.ini config and IPv4', () => {
@@ -721,7 +806,10 @@ describe('is_haproxy_allowed', function () {
     net_utils_mod.config = net_utils_mod.config.module_config(
       path.resolve('doesnt-exist'),
     )
-    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), false)
+    assert.equal(
+      net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'),
+      false,
+    )
   })
 
   it('denies IP not in allow list', () => {
