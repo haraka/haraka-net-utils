@@ -72,4 +72,18 @@ describe('get_public_ip', () => {
       console.error(e)
     }
   })
+
+  it('honors smtp.ini main.public_ip override (skips STUN)', async () => {
+    net_utils_mod.public_ip = undefined
+    const origConfig = net_utils_mod.config
+    net_utils_mod.config = {
+      get: () => ({ main: { public_ip: '203.0.113.42' } }),
+    }
+    try {
+      const ip = await net_utils_mod.get_public_ip()
+      assert.equal(ip, '203.0.113.42')
+    } finally {
+      net_utils_mod.config = origConfig
+    }
+  })
 })

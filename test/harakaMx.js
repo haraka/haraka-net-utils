@@ -208,4 +208,24 @@ describe('HarakaMx', () => {
     const hMx = require('../lib/HarakaMx')
     assert.equal(typeof hMx, 'function')
   })
+
+  it('constructor passes through an existing HarakaMx instance', () => {
+    const a = new nu.HarakaMx({ exchange: 'mx.example.com', priority: 10 })
+    const b = new nu.HarakaMx(a)
+    assert.equal(a, b)
+  })
+
+  it('toUrl wraps IPv6 exchange in brackets', () => {
+    const mx = new nu.HarakaMx({ exchange: '2001:db8::1', port: 25 })
+    assert.match(mx.toUrl(), /\[2001:db8::1\]/)
+  })
+
+  it('toUrl uses lmtp:// when using_lmtp is set', () => {
+    const mx = new nu.HarakaMx({
+      exchange: 'mx.example.com',
+      port: 24,
+      using_lmtp: true,
+    })
+    assert.match(mx.toUrl(), /^lmtp:\/\//)
+  })
 })

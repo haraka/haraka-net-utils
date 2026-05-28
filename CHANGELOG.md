@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.9.0] - 2026-05-27
+
+- feat(endpoint): import from Haraka.
+- feat(LineSocket): import from Haraka
+- feat(HostPool): import from Haraka.
+
 ### [1.8.3] - 2026-05-25
 
 - fix(ip_in_list): use Object.hasOwn so inherited properties cannot match
@@ -276,3 +282,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.8.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.1
 [1.8.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.2
 [1.8.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.3
+[1.9.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.0

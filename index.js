@@ -247,37 +247,32 @@ exports.ipv6_bogus = function (ipv6) {
   }
 }
 
+// `item` is a CIDR string like "10.0.0.0/8" or a bare IP. Returns true if
+// the network described by `item` contains `ip`. Caller must ensure `ip` is
+// a valid IPv4/IPv6 literal — non-IPs short-circuit before this is called.
+function cidr_contains_ip(item, ip) {
+  const [c_net, c_mask_str] = item.split('/')
+  if (!net.isIP(c_net)) return false
+  // Family mismatch: 1.2.3.4 doesn't live in ::/0, and vice versa.
+  if (net.isIPv4(ip) !== net.isIPv4(c_net)) return false
+  const c_mask = parseInt(c_mask_str, 10) || (net.isIPv6(c_net) ? 128 : 32)
+  return ipaddr.parse(ip).match(ipaddr.parse(c_net), c_mask)
+}
+
 exports.ip_in_list = function (list, ip) {
   if (list === undefined) return false
 
-  const isHostname = !net.isIP(ip)
   const isArray = Array.isArray(list)
+  // Object form supports direct key lookup (domain or literal IP).
+  if (!isArray && Object.hasOwn(list, ip)) return true
 
-  // Quick lookup
-  if (!isArray) {
-    if (Object.hasOwn(list, ip)) return true // domain or literal IP
-    if (isHostname) return false // skip CIDR match
-  }
+  // CIDR matching is only meaningful when the query is an IP.
+  const isIp = net.isIP(ip)
 
-  // Iterate: arrays and CIDR matches
   for (const item of isArray ? list : Object.keys(list)) {
-    if (isArray && item === ip) return true // exact match
-    if (isHostname) continue // skip CIDR match
-
-    const cidr = item.split('/')
-    const c_net = cidr[0]
-
-    if (!net.isIP(c_net)) continue // bad config entry
-    if (net.isIPv4(ip) && net.isIPv6(c_net)) continue
-    if (net.isIPv6(ip) && net.isIPv4(c_net)) continue
-
-    const c_mask = parseInt(cidr[1], 10) || (net.isIPv6(c_net) ? 128 : 32)
-
-    if (ipaddr.parse(ip).match(ipaddr.parse(c_net), c_mask)) {
-      return true
-    }
+    if (isArray && item === ip) return true
+    if (isIp && cidr_contains_ip(item, ip)) return true
   }
-
   return false
 }
 
@@ -298,39 +293,16 @@ exports.get_public_ip = require('./lib/get_public_ip').get_public_ip
 
 exports.HarakaMx = require('./lib/HarakaMx')
 
-const MAX_LINE_LENGTH = 4 * 1024 * 1024 // 4 MB; defence against DoS via lines without newlines
+const line_socket = require('./lib/line_socket')
+exports.LineSocket = line_socket.LineSocket
+exports.add_line_processor = line_socket.add_line_processor
 
-exports.add_line_processor = (socket) => {
-  const line_regexp = /^([^\n]*\n)/
-  let current_data = ''
+const endpoint_mod = require('./lib/endpoint')
+exports.endpoint = endpoint_mod.endpoint
+exports.Endpoint = endpoint_mod.Endpoint
+exports.parseSockaddr = endpoint_mod.parseSockaddr
 
-  socket.on('data', (data) => {
-    current_data += data
-
-    if (current_data.length > MAX_LINE_LENGTH) {
-      socket.emit(
-        'error',
-        new Error(`Line length exceeded ${MAX_LINE_LENGTH} bytes`),
-      )
-      current_data = ''
-      return
-    }
-
-    let results
-    while ((results = line_regexp.exec(current_data))) {
-      const this_line = results[1]
-      current_data = current_data.slice(this_line.length)
-      socket.emit('line', this_line)
-    }
-  })
-
-  socket.on('end', () => {
-    if (current_data.length) {
-      socket.emit('line', current_data)
-    }
-    current_data = ''
-  })
-}
+exports.HostPool = require('./lib/host_pool')
 
 exports.parse_proxy_line = function (line) {
   const proxyLine = line?.toString().replace(/\r?\n$/, '')
