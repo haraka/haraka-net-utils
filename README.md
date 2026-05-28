@@ -1,6 +1,4 @@
-[![CI][ci-img]][ci-url]
-[![Code Coverage][cov-img]][cov-url]
-[![Code Climate][clim-img]][clim-url]
+[![CI][ci-img]][ci-url] [![Code Coverage][cov-img]][cov-url] [![Code Quality][qlty-img]][qlty-url]
 
 # haraka-net-utils
 
@@ -221,5 +219,5 @@ An optional second parameter is an alias for from_dns.
 [ci-url]: https://github.com/haraka/haraka-net-utils/actions/workflows/ci.yml
 [cov-img]: https://codecov.io/github/haraka/haraka-net-utils/coverage.svg
 [cov-url]: https://codecov.io/github/haraka/haraka-net-utils
-[clim-img]: https://codeclimate.com/github/haraka/haraka-net-utils/badges/gpa.svg
-[clim-url]: https://codeclimate.com/github/haraka/haraka-net-utils
+[qlty-img]: https://qlty.sh/gh/haraka/projects/haraka-net-utils/maintainability.svg
+[qlty-url]: https://qlty.sh/gh/haraka/projects/haraka-net-utils

@@ -136,6 +136,90 @@ describe('same_ipv4_network', function () {
   it('199.176.179.3 <-> [not-an-ip, 199.176.179.4] (skip non-IPv4 in list)', function () {
     _same_ipv4_network('199.176.179.3', ['not-an-ip', '199.176.179.4'], true)
   })
+
+  it('returns false when ipList is empty', function () {
+    _same_ipv4_network('199.176.179.3', [], false)
+  })
+
+  it('returns false when ipList is missing/undefined', function () {
+    assert.equal(net_utils.same_ipv4_network('199.176.179.3'), false)
+    assert.equal(net_utils.same_ipv4_network('199.176.179.3', null), false)
+  })
+
+  it('returns false when input ip is not IPv4', function () {
+    _same_ipv4_network('not-an-ip', ['199.176.179.4'], false)
+    _same_ipv4_network('::1', ['199.176.179.4'], false)
+  })
+})
+
+describe('is_ip_in_str (1st/2nd octets fallback)', function () {
+  it('returns true via the 1st/2nd octets when 3rd/4th are absent', function () {
+    // host has the first two octets embedded but not 3 or 4
+    assert.equal(net_utils.is_ip_in_str('1.2.3.4', 'mail1and2.example'), true)
+  })
+
+  it('returns false for empty / missing str argument', function () {
+    assert.equal(net_utils.is_ip_in_str('1.2.3.4', ''), false)
+    assert.equal(net_utils.is_ip_in_str('1.2.3.4', null), false)
+  })
+
+  it('returns false for missing ip argument', function () {
+    assert.equal(net_utils.is_ip_in_str(undefined, 'mail.example.com'), false)
+    assert.equal(net_utils.is_ip_in_str('', 'mail.example.com'), false)
+  })
+
+  it('returns false for non-IPv4 ip (IPv6 not supported here)', function () {
+    assert.equal(net_utils.is_ip_in_str('::1', 'mail.example.com'), false)
+    assert.equal(net_utils.is_ip_in_str('not-an-ip', 'mail.example.com'), false)
+  })
+})
+
+describe('octets_in_string', function () {
+  it('returns false when oct1 is absent (with oct2.length < oct1.length)', function () {
+    // Pass single-char oct2 so we go through the second branch (oct2 length < oct1)
+    // where oct1.indexOf is checked first; choose strings so oct1 is not present.
+    assert.equal(net_utils.octets_in_string('zzzzzzz', '111', '9'), false)
+  })
+
+  it('returns false when oct2 is absent after stripping oct1', function () {
+    assert.equal(net_utils.octets_in_string('111-zzz', '111', '9'), false)
+  })
+})
+
+describe('ip_in_list edge cases', function () {
+  it('returns false when list is undefined', function () {
+    assert.equal(net_utils.ip_in_list(undefined, '1.2.3.4'), false)
+  })
+
+  it('skips IPv4/IPv6 family mismatches in CIDR list', function () {
+    // IPv4 query against an IPv6 CIDR: must NOT match
+    assert.equal(net_utils.ip_in_list(['2001:db8::/32'], '1.2.3.4'), false)
+    // IPv6 query against an IPv4 CIDR: must NOT match
+    assert.equal(net_utils.ip_in_list(['10.0.0.0/8'], '2001:db8::1'), false)
+  })
+
+  it('exact-matches a literal entry in an array', function () {
+    assert.equal(net_utils.ip_in_list(['1.2.3.4'], '1.2.3.4'), true)
+  })
+
+  it('returns false for hostname query that is not a key in an object list', function () {
+    assert.equal(net_utils.ip_in_list({ 'a.example': 1 }, 'b.example'), false)
+  })
+})
+
+describe('is_local_host error path', function () {
+  it('returns false when an internal lookup throws', async function () {
+    const orig = net_utils.get_public_ip
+    net_utils.get_public_ip = async () => {
+      throw new Error('synthetic lookup failure')
+    }
+    try {
+      const result = await net_utils.is_local_host('example.org')
+      assert.equal(result, false)
+    } finally {
+      net_utils.get_public_ip = orig
+    }
+  })
 })
 
 describe('is_ipv4_literal', function () {
