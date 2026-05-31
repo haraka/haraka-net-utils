@@ -134,15 +134,13 @@ exports.is_local_host = async function (dst_host) {
     local_ips.push(...(await exports.get_ips_by_host(local_hostname)))
 
     if (net.isIP(dst_host)) {
-      // an IP address
       dest_ips.push(dst_host)
     } else {
-      // a hostname
       if (dst_host === local_hostname) return true
       dest_ips.push(...(await exports.get_ips_by_host(dst_host)))
     }
   } catch (ignore) {
-    // console.error(ignore)
+    console.error(ignore.message)
     return false
   }
 
@@ -220,7 +218,11 @@ exports.get_ips_by_host = function (hostname, done) {
       else for (const ip of a.value) ips.add(ip)
     }
 
-    if (done) done(errors, Array.from(ips))
+    if (done) done(errors, Array.from(ips)) // callback
+
+    if (ips.size === 0 && errors.length > 0) {
+      throw new AggregateError(errors)
+    }
     return Array.from(ips)
   })
 }
@@ -263,14 +265,13 @@ exports.ip_in_list = function (list, ip) {
   if (list === undefined) return false
 
   const isArray = Array.isArray(list)
-  // Object form supports direct key lookup (domain or literal IP).
+  if (isArray && list.includes(ip)) return true
   if (!isArray && Object.hasOwn(list, ip)) return true
 
   // CIDR matching is only meaningful when the query is an IP.
   const isIp = net.isIP(ip)
 
   for (const item of isArray ? list : Object.keys(list)) {
-    if (isArray && item === ip) return true
     if (isIp && cidr_contains_ip(item, ip)) return true
   }
   return false

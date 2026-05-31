@@ -103,12 +103,19 @@ net_utils.ip_in_list(tls.no_tls_hosts, '127.0.0.5')
 
 ### get_ips_by_host
 
-Returns an array of all the IPv4 and IPv6 addresses of the provided hostname. The returned promise does not reject on lookup failure; it resolves with an empty array. To inspect the underlying DNS errors, use the callback form, which receives `(errors, ips)`.
+Returns an array of all the IPv4 and IPv6 addresses of the provided hostname. The returned promise resolves with a (possibly empty) array or throws when there are no IPs and there are DNS lookup errors.
 
 ```js
-const ips = await net_utils.get_ips_by_host(domain)
-for (const ip of ips) {
-  // do something with the IPs
+try {
+  const ips = await net_utils.get_ips_by_host(domain)
+  for (const ip of ips) {
+    // do something with the IPs
+  }
+  catch (errors) {
+    for (const err of errors) {
+      console.error(err)
+    }
+  }
 }
 
 // Callback form exposes lookup errors:
