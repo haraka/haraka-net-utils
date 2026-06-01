@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.9.1] - 2026-05-31
+
+- fix(get_ips_by_host): async now throws errors
+- fix(HostPool): parse host:port via parseSockaddr (IPv6 safe)
+- test: use table-drive to reduce boilerplate and boost coverage
+
 ### [1.9.0] - 2026-05-27
 
 - feat(endpoint): import from Haraka.
@@ -283,3 +289,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.8.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.2
 [1.8.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.3
 [1.9.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.0
+[1.9.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.1

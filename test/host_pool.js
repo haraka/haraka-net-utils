@@ -27,10 +27,7 @@ describe('HostPool', () => {
   it('returns hosts that look like ip + port', () => {
     const pool = new HostPool('1.1.1.1:1111, 2.2.2.2:2222')
     const host = pool.get_host()
-    assert.ok(
-      /\d\.\d\.\d\.\d/.test(host.host),
-      `'${host.host}' looks like an IP`,
-    )
+    assert.ok(/\d\.\d\.\d\.\d/.test(host.host), `'${host.host}' looks like an IP`)
     assert.ok(/\d{4}/.test(host.port), `'${host.port}' looks like a port`)
   })
 
@@ -226,10 +223,7 @@ describe('HostPool', () => {
       pool.failed('a', '1')
 
       await new Promise((resolve, reject) => {
-        const timeout = setTimeout(
-          () => reject(new Error('test timeout')),
-          5_000,
-        )
+        const timeout = setTimeout(() => reject(new Error('test timeout')), 5_000)
         const interval = setInterval(() => {
           if (warns.some((m) => /is still dead/.test(m))) {
             clearTimeout(timeout)

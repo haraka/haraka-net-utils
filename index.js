@@ -134,15 +134,13 @@ exports.is_local_host = async function (dst_host) {
     local_ips.push(...(await exports.get_ips_by_host(local_hostname)))
 
     if (net.isIP(dst_host)) {
-      // an IP address
       dest_ips.push(dst_host)
     } else {
-      // a hostname
       if (dst_host === local_hostname) return true
       dest_ips.push(...(await exports.get_ips_by_host(dst_host)))
     }
   } catch (ignore) {
-    // console.error(ignore)
+    // console.error(ignore.message)
     return false
   }
 
@@ -211,18 +209,21 @@ exports.get_ips_by_host = function (hostname, done) {
   const ips = new Set()
   const errors = []
 
-  return Promise.allSettled([
-    dns.resolve6(hostname),
-    dns.resolve4(hostname),
-  ]).then((res) => {
-    for (const a of res) {
-      if (a.status === 'rejected') errors.push(a.reason)
-      else for (const ip of a.value) ips.add(ip)
-    }
+  return Promise.allSettled([dns.resolve6(hostname), dns.resolve4(hostname)]).then(
+    (res) => {
+      for (const a of res) {
+        if (a.status === 'rejected') errors.push(a.reason)
+        else for (const ip of a.value) ips.add(ip)
+      }
 
-    if (done) done(errors, Array.from(ips))
-    return Array.from(ips)
-  })
+      if (done) done(errors, Array.from(ips)) // callback
+
+      if (ips.size === 0 && errors.length > 0) {
+        throw new AggregateError(errors)
+      }
+      return Array.from(ips)
+    },
+  )
 }
 
 exports.ipv6_reverse = function (ipv6) {
@@ -263,14 +264,13 @@ exports.ip_in_list = function (list, ip) {
   if (list === undefined) return false
 
   const isArray = Array.isArray(list)
-  // Object form supports direct key lookup (domain or literal IP).
+  if (isArray && list.includes(ip)) return true
   if (!isArray && Object.hasOwn(list, ip)) return true
 
   // CIDR matching is only meaningful when the query is an IP.
   const isIp = net.isIP(ip)
 
   for (const item of isArray ? list : Object.keys(list)) {
-    if (isArray && item === ip) return true
     if (isIp && cidr_contains_ip(item, ip)) return true
   }
   return false
@@ -306,9 +306,7 @@ exports.HostPool = require('./lib/host_pool')
 
 exports.parse_proxy_line = function (line) {
   const proxyLine = line?.toString().replace(/\r?\n$/, '')
-  const match = /^(?:PROXY )?(TCP4|TCP6|UNKNOWN) (\S+) (\S+) (\d+) (\d+)$/.exec(
-    proxyLine,
-  )
+  const match = /^(?:PROXY )?(TCP4|TCP6|UNKNOWN) (\S+) (\S+) (\d+) (\d+)$/.exec(proxyLine)
   if (!match) return null
 
   const proto = match[1]
@@ -317,19 +315,11 @@ exports.parse_proxy_line = function (line) {
   const src_port = match[4]
   const dst_port = match[5]
 
-  if (
-    proto === 'TCP4' &&
-    ipaddr.IPv4.isValid(src_ip) &&
-    ipaddr.IPv4.isValid(dst_ip)
-  ) {
+  if (proto === 'TCP4' && ipaddr.IPv4.isValid(src_ip) && ipaddr.IPv4.isValid(dst_ip)) {
     return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
   }
 
-  if (
-    proto === 'TCP6' &&
-    ipaddr.IPv6.isValid(src_ip) &&
-    ipaddr.IPv6.isValid(dst_ip)
-  ) {
+  if (proto === 'TCP6' && ipaddr.IPv6.isValid(src_ip) && ipaddr.IPv6.isValid(dst_ip)) {
     return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
   }
 
@@ -365,9 +355,7 @@ exports.is_haproxy_allowed = function (ip) {
     }
   }
 
-  const ha_list = net.isIPv6(normalized_ip)
-    ? haproxy_hosts_ipv6
-    : haproxy_hosts_ipv4
+  const ha_list = net.isIPv6(normalized_ip) ? haproxy_hosts_ipv6 : haproxy_hosts_ipv4
   return ha_list.some((element) =>
     ipaddr.parse(normalized_ip).match(element[0], element[1]),
   )

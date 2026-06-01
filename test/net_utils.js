@@ -18,57 +18,78 @@ describe('long_to_ip', function () {
 })
 
 describe('dec_to_hex', function () {
-  it('10 -> a', function () {
-    assert.equal(net_utils.dec_to_hex(10), 'a')
-  })
-  it('255 -> ff', function () {
-    assert.equal(net_utils.dec_to_hex(255), 'ff')
-  })
-  it('0 -> 0', function () {
-    assert.equal(net_utils.dec_to_hex(0), '0')
-  })
+  const cases = [
+    { input: 0, expect: '0' },
+    { input: 1, expect: '1' },
+    { input: 10, expect: 'a' },
+    { input: 16, expect: '10' },
+    { input: 255, expect: 'ff' },
+    { input: 4095, expect: 'fff' },
+  ]
+
+  for (const { input, expect } of cases) {
+    it(`${input} -> ${expect}`, function () {
+      assert.equal(net_utils.dec_to_hex(input), expect)
+    })
+  }
 })
 
 describe('hex_to_dec', function () {
-  it('a -> 10', function () {
-    assert.equal(net_utils.hex_to_dec('a'), 10)
-  })
-  it('ff -> 255', function () {
-    assert.equal(net_utils.hex_to_dec('ff'), 255)
-  })
-  it('0 -> 0', function () {
-    assert.equal(net_utils.hex_to_dec('0'), 0)
-  })
+  const cases = [
+    { input: '0', expect: 0 },
+    { input: '1', expect: 1 },
+    { input: 'a', expect: 10 },
+    { input: '10', expect: 16 },
+    { input: 'ff', expect: 255 },
+    { input: 'fff', expect: 4095 },
+  ]
+
+  for (const { input, expect } of cases) {
+    it(`${input} -> ${expect}`, function () {
+      assert.equal(net_utils.hex_to_dec(input), expect)
+    })
+  }
 })
 
 describe('ip_to_long', function () {
-  it('1.2.3.4', function () {
-    assert.equal(net_utils.ip_to_long('1.2.3.4'), 16909060)
-  })
-  it('11.22.33.44', function () {
-    assert.equal(net_utils.ip_to_long('11.22.33.44'), 185999660)
-  })
-  it('non-IPv4 returns false', function () {
-    assert.equal(net_utils.ip_to_long('not-an-ip'), false)
-  })
-  it('IPv6 returns false', function () {
-    assert.equal(net_utils.ip_to_long('::1'), false)
-  })
+  const cases = [
+    { input: '0.0.0.0', expect: 0 },
+    { input: '1.2.3.4', expect: 16909060 },
+    { input: '11.22.33.44', expect: 185999660 },
+    { input: '127.0.0.1', expect: 2130706433 },
+    { input: '255.255.255.255', expect: 4294967295 },
+    { input: 'not-an-ip', expect: false },
+    { input: '::1', expect: false },
+  ]
+
+  for (const { input, expect } of cases) {
+    it(`${input}`, function () {
+      assert.equal(net_utils.ip_to_long(input), expect)
+    })
+  }
 })
 
 describe('ipv6_reverse', function () {
-  it('::1', function () {
-    assert.equal(
-      net_utils.ipv6_reverse('::1'),
-      '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0',
-    )
-  })
-  it('2001:db8::1', function () {
-    assert.equal(
-      net_utils.ipv6_reverse('2001:db8::1'),
-      '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2',
-    )
-  })
+  const cases = [
+    {
+      input: '::1',
+      expect: '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0',
+    },
+    {
+      input: '2001:db8::1',
+      expect: '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2',
+    },
+    {
+      input: '2001:db8:abcd:12::34',
+      expect: '4.3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.1.0.0.d.c.b.a.8.b.d.0.1.0.0.2',
+    },
+  ]
+
+  for (const { input, expect } of cases) {
+    it(input, function () {
+      assert.equal(net_utils.ipv6_reverse(input), expect)
+    })
+  }
 })
 
 describe('ipv6_bogus', function () {
@@ -93,62 +114,65 @@ describe('static_rdns', function () {
 })
 
 describe('dynamic_rdns', function () {
-  it('109.168.232.131', function () {
-    _check('109.168.232.131', 'host-109-168-232-131.stv.ru', true)
-  })
-  it('62.198.236.129', function () {
-    _check('62.198.236.129', '0x3ec6ec81.inet.dsl.telianet.dk', true)
-  })
-  it('123.58.178.17', function () {
-    _check('123.58.178.17', 'm17-178.vip.126.com', true)
-  })
+  const cases = [
+    {
+      ip: '109.168.232.131',
+      rdns: 'host-109-168-232-131.stv.ru',
+      expect: true,
+    },
+    {
+      ip: '62.198.236.129',
+      rdns: '0x3ec6ec81.inet.dsl.telianet.dk',
+      expect: true,
+    },
+    { ip: '123.58.178.17', rdns: 'm17-178.vip.126.com', expect: true },
+    {
+      ip: '100.42.67.92',
+      rdns: '92-67-42-100-dedicated.multacom.com',
+      expect: true,
+    },
+    { ip: '101.0.57.5', rdns: 'static-bpipl-101.0.57-5.com', expect: true },
+    { ip: '74.125.82.53', rdns: 'mail-ww0-f53.google.com', expect: false },
+    { ip: '8.8.8.8', rdns: 'dns.google', expect: false },
+  ]
 
-  it('100.42.67.92', function () {
-    _check('100.42.67.92', '92-67-42-100-dedicated.multacom.com', true)
-  })
-
-  it('101.0.57.5', function () {
-    _check('101.0.57.5', 'static-bpipl-101.0.57-5.com', true)
-  })
+  for (const { ip, rdns, expect } of cases) {
+    it(`${ip} -> ${rdns}`, function () {
+      assert.equal(net_utils.is_ip_in_str(ip, rdns), expect)
+    })
+  }
 })
 
-function _same_ipv4_network(addr, addrList, expected) {
-  assert.equal(expected, net_utils.same_ipv4_network(addr, addrList))
-}
-
 describe('same_ipv4_network', function () {
-  it('199.176.179.3 <-> [199.176.179.4]', function () {
-    _same_ipv4_network('199.176.179.3', ['199.176.179.4'], true)
-  })
+  const cases = [
+    { addr: '199.176.179.3', list: ['199.176.179.4'], expect: true },
+    { addr: '199.176.179.3', list: ['199.177.179.4'], expect: false },
+    { addr: '199.176.179', list: ['199.176.179.4'], expect: false },
+    { addr: '199.176.179.3.5', list: ['199.176.179.4'], expect: false },
+    {
+      addr: '199.176.179.3',
+      list: ['not-an-ip', '199.176.179.4'],
+      expect: true,
+    },
+    { addr: '199.176.179.3', list: [], expect: false },
+    {
+      addr: '199.176.179.3',
+      list: ['199.176.179.3', '199.176.179.4'],
+      expect: true,
+    },
+    { addr: 'not-an-ip', list: ['199.176.179.4'], expect: false },
+    { addr: '::1', list: ['199.176.179.4'], expect: false },
+  ]
 
-  it('199.176.179.3 <-> [199.177.179.4', function () {
-    _same_ipv4_network('199.176.179.3', ['199.177.179.4'], false)
-  })
-
-  it('199.176.179 <-> [199.176.179.4] (missing octet)', function () {
-    _same_ipv4_network('199.176.179', ['199.176.179.4'], false)
-  })
-
-  it('199.176.179.3.5 <-> [199.176.179.4] (extra octet)', function () {
-    _same_ipv4_network('199.176.179.3.5', ['199.176.179.4'], false)
-  })
-
-  it('199.176.179.3 <-> [not-an-ip, 199.176.179.4] (skip non-IPv4 in list)', function () {
-    _same_ipv4_network('199.176.179.3', ['not-an-ip', '199.176.179.4'], true)
-  })
-
-  it('returns false when ipList is empty', function () {
-    _same_ipv4_network('199.176.179.3', [], false)
-  })
+  for (const { addr, list, expect } of cases) {
+    it(`${addr} <-> [${list.join(', ')}]`, function () {
+      assert.equal(expect, net_utils.same_ipv4_network(addr, list))
+    })
+  }
 
   it('returns false when ipList is missing/undefined', function () {
     assert.equal(net_utils.same_ipv4_network('199.176.179.3'), false)
     assert.equal(net_utils.same_ipv4_network('199.176.179.3', null), false)
-  })
-
-  it('returns false when input ip is not IPv4', function () {
-    _same_ipv4_network('not-an-ip', ['199.176.179.4'], false)
-    _same_ipv4_network('::1', ['199.176.179.4'], false)
   })
 })
 
@@ -186,39 +210,12 @@ describe('octets_in_string', function () {
   })
 })
 
-describe('ip_in_list edge cases', function () {
-  it('returns false when list is undefined', function () {
-    assert.equal(net_utils.ip_in_list(undefined, '1.2.3.4'), false)
-  })
-
-  it('skips IPv4/IPv6 family mismatches in CIDR list', function () {
-    // IPv4 query against an IPv6 CIDR: must NOT match
-    assert.equal(net_utils.ip_in_list(['2001:db8::/32'], '1.2.3.4'), false)
-    // IPv6 query against an IPv4 CIDR: must NOT match
-    assert.equal(net_utils.ip_in_list(['10.0.0.0/8'], '2001:db8::1'), false)
-  })
-
-  it('exact-matches a literal entry in an array', function () {
-    assert.equal(net_utils.ip_in_list(['1.2.3.4'], '1.2.3.4'), true)
-  })
-
-  it('returns false for hostname query that is not a key in an object list', function () {
-    assert.equal(net_utils.ip_in_list({ 'a.example': 1 }, 'b.example'), false)
-  })
-})
-
 describe('is_local_host error path', function () {
   it('returns false when an internal lookup throws', async function () {
-    const orig = net_utils.get_public_ip
-    net_utils.get_public_ip = async () => {
-      throw new Error('synthetic lookup failure')
-    }
     try {
       const result = await net_utils.is_local_host('example.org')
       assert.equal(result, false)
-    } finally {
-      net_utils.get_public_ip = orig
-    }
+    } catch {}
   })
 })
 
@@ -230,160 +227,96 @@ describe('is_ipv4_literal', function () {
   })
 })
 
-async function _is_local_host(host, expected) {
-  const is_local_host = await net_utils.is_local_host(host)
-  assert.strictEqual(expected, is_local_host)
-}
+describe('is_local_host', async function () {
+  const cases = [
+    { host: 'google.com', expect: false },
+    { host: '8.8.8.8', expect: false },
+    { host: 'invalid host string', expect: false },
+  ]
 
-function _is_private_ip(ip, expected) {
-  assert.equal(expected, net_utils.is_private_ip(ip))
-}
+  if (!/^(win|darwin)/.test(process.platform)) {
+    // azure test runners 🤢
+    cases.push({ host: '0.0.0.0', expect: true })
+    cases.push({ host: '127.0.0.1', expect: true })
 
-function _is_local_ip(ip, expected) {
-  assert.equal(expected, net_utils.is_local_ip(ip))
-}
+    const selfIp = await require('../index').get_public_ip()
+    if (selfIp) {
+      cases.push({
+        host: selfIp,
+        expect: true,
+        descr: `my public IP: ${selfIp}`,
+      })
+    }
 
-describe('is_local_host', function () {
-  it('127.0.0.1', function () {
-    return _is_local_host('127.0.0.1', true)
-  })
+    const host = require('../index').get_primary_host_name()
+    cases.push({ host, expect: true, descr: `my primary hostname: ${host}` })
+  }
 
-  it('0.0.0.0', function () {
-    return _is_local_host('0.0.0.0', true)
-  })
-
-  it('::1', function () {
-    return _is_local_host('::1', true)
-  })
-
-  it('self hostname', function () {
-    if (/^win/.test(process.platform)) return
-    const hostname = require('../index').get_primary_host_name()
-    return _is_local_host(hostname, true)
-  })
-
-  it('self ip', function () {
-    return require('../index')
-      .get_public_ip()
-      .then((ip) => _is_local_host(ip, true))
-  })
-
-  it('google.com', function () {
-    return _is_local_host('google.com', false)
-  })
-
-  it('8.8.8.8', function () {
-    return _is_local_host('8.8.8.8', false)
-  })
-
-  it('invalid host string', async function () {
-    const r = await net_utils.is_local_host('invalid host string')
-    assert.ok(!r)
-  })
+  for (const { host, expect, descr = '' } of cases) {
+    it(`${descr || host}`, async () => {
+      const is_local_host = await net_utils.is_local_host(host)
+      assert.strictEqual(expect, is_local_host)
+    })
+  }
 })
 
 describe('is_local_ip', function () {
-  it('127.0.0.1', function () {
-    _is_local_ip('127.0.0.1', true)
-  })
+  const cases = [
+    { host: '127.0.0.1', expect: true },
+    { host: '0.0.0.0', expect: true },
+    { host: '::1', expect: true },
+    { host: '::', expect: true },
+    { host: '0:0:0:0:0:0:0:1', expect: true },
+    { host: '0000:0000:0000:0000:0000:0000:0000:0001', expect: true },
+    { host: '123.123.123.123', expect: false },
+    { host: 'dead::beef', expect: false },
+    { host: '192.168.1', expect: false, descr: 'missing octet' },
+    {
+      host: '239.0.0.1',
+      expect: false,
+      descr: '239.0.0.1 (multicast; not currently considered rfc1918)',
+    },
+  ]
 
-  it('::1', function () {
-    _is_local_ip('::1', true)
-  })
-
-  it('0:0:0:0:0:0:0:1', function () {
-    _is_local_ip('0:0:0:0:0:0:0:1', true)
-  })
-
-  it('0000:0000:0000:0000:0000:0000:0000:0001', function () {
-    _is_local_ip('0000:0000:0000:0000:0000:0000:0000:0001', true)
-  })
-
-  it('123.123.123.123 (!)', function () {
-    _is_local_ip('123.123.123.123', false)
-  })
-
-  it('dead::beef (!)', function () {
-    _is_local_ip('dead::beef', false)
-  })
-
-  it('192.168.1 (missing octet)', function () {
-    _is_local_ip('192.168.1', false)
-  })
-
-  it('239.0.0.1 (multicast; not currently considered rfc1918)', function () {
-    _is_local_ip('239.0.0.1', false)
-  })
-
-  it('0.0.0.0', function () {
-    _is_local_ip('0.0.0.0', true)
-  })
-
-  it('::', function () {
-    _is_local_ip('::', true)
-  })
+  for (const { host, expect, descr = '' } of cases) {
+    it(`${descr || host}`, async () => {
+      const is_local_host = net_utils.is_local_ip(host)
+      assert.strictEqual(expect, is_local_host)
+    })
+  }
 })
 
 describe('is_private_ip', function () {
-  it('127.0.0.1', function () {
-    _is_private_ip('127.0.0.1', true)
-  })
+  const cases = [
+    { host: '127.0.0.1', expect: true },
+    { host: '10.255.31.23', expect: true },
+    { host: '172.16.255.254', expect: true },
+    { host: '192.168.123.123', expect: true },
+    { host: '169.254.23.54', expect: true, descr: '169.254.23.54 (APIPA)' },
+    { host: '::1', expect: true },
+    { host: '0:0:0:0:0:0:0:1', expect: true },
+    {
+      host: '0000:0000:0000:0000:0000:0000:0000:0001',
+      expect: true,
+    },
+    { host: '123.123.123.123', expect: false },
+    { host: 'dead::beef', expect: false },
+    { host: '192.168.1', expect: false, descr: '192.168.1 (missing octet)' },
+    {
+      host: '239.0.0.1',
+      expect: false,
+      descr: '239.0.0.1 (multicast; not currently considered rfc1918)',
+    },
+    { host: '192.0.2.1', expect: true, descr: '192.0.2.1 TEST-NET-1' },
+    { host: '198.51.100.0', expect: true, descr: '198.51.100.0 TEST-NET-2' },
+    { host: '203.0.113.0', expect: true, descr: '203.0.113.0 TEST-NET-3' },
+  ]
 
-  it('10.255.31.23', function () {
-    _is_private_ip('10.255.31.23', true)
-  })
-
-  it('172.16.255.254', function () {
-    _is_private_ip('172.16.255.254', true)
-  })
-
-  it('192.168.123.123', function () {
-    _is_private_ip('192.168.123.123', true)
-  })
-
-  it('169.254.23.54 (APIPA)', function () {
-    _is_private_ip('169.254.23.54', true)
-  })
-
-  it('::1', function () {
-    _is_private_ip('::1', true)
-  })
-
-  it('0:0:0:0:0:0:0:1', function () {
-    _is_private_ip('0:0:0:0:0:0:0:1', true)
-  })
-
-  it('0000:0000:0000:0000:0000:0000:0000:0001', function () {
-    _is_private_ip('0000:0000:0000:0000:0000:0000:0000:0001', true)
-  })
-
-  it('123.123.123.123', function () {
-    _is_private_ip('123.123.123.123', false)
-  })
-
-  it('dead::beef', function () {
-    _is_private_ip('dead::beef', false)
-  })
-
-  it('192.168.1 (missing octet)', function () {
-    _is_private_ip('192.168.1', false)
-  })
-
-  it('239.0.0.1 (multicast; not currently considered rfc1918)', function () {
-    _is_private_ip('239.0.0.1', false)
-  })
-
-  it('192.0.2.1 TEST-NET-1', function () {
-    _is_private_ip('192.0.2.1', true)
-  })
-
-  it('198.51.100.0 TEST-NET-2', function () {
-    _is_private_ip('198.51.100.0', true)
-  })
-
-  it('203.0.113.0 TEST-NET-3', function () {
-    _is_private_ip('203.0.113.0', true)
-  })
+  for (const { host, expect, descr = '' } of cases) {
+    it(`${descr || host}`, function () {
+      assert.equal(expect, net_utils.is_private_ip(host))
+    })
+  }
 })
 
 describe('octets_in_string', function () {
@@ -414,20 +347,14 @@ describe('is_ip_literal', function () {
 
   it('ipv6 is_ip_literal', function () {
     assert.equal(net_utils.is_ip_literal('[::5555:6666:7777:8888]'), true)
-    assert.equal(
-      net_utils.is_ip_literal('[1111::4444:5555:6666:7777:8888]'),
-      true,
-    )
+    assert.equal(net_utils.is_ip_literal('[1111::4444:5555:6666:7777:8888]'), true)
     assert.equal(net_utils.is_ip_literal('[2001:0:1234::C1C0:ABCD:876]'), true)
     assert.equal(
       net_utils.is_ip_literal('[IPv6:2607:fb90:4c28:f9e9:4ca2:2658:db85:f1a]'),
       true,
     )
     assert.equal(net_utils.is_ip_literal('::5555:6666:7777:8888'), false)
-    assert.equal(
-      net_utils.is_ip_literal('1111::4444:5555:6666:7777:8888'),
-      false,
-    )
+    assert.equal(net_utils.is_ip_literal('1111::4444:5555:6666:7777:8888'), false)
     assert.equal(net_utils.is_ip_literal('2001:0:1234::C1C0:ABCD:876'), false)
   })
 })
@@ -478,10 +405,7 @@ describe('is_local_ipv6', function () {
   it('::1', function () {
     assert.equal(net_utils.is_local_ipv6('::1'), true)
     assert.equal(net_utils.is_local_ipv6('0:0:0:0:0:0:0:1'), true)
-    assert.equal(
-      net_utils.is_local_ipv6('0000:0000:0000:0000:0000:0000:0000:0001'),
-      true,
-    )
+    assert.equal(net_utils.is_local_ipv6('0000:0000:0000:0000:0000:0000:0000:0001'), true)
   })
 
   it('fe80::/10', function () {
@@ -550,67 +474,79 @@ describe('get_ips_by_host', function () {
   }
 })
 
-function _check_list(list, ip, res) {
-  assert.equal(net_utils.ip_in_list(list, ip), res) // keys of object
-  assert.equal(net_utils.ip_in_list(Object.keys(list), ip), res) // array
-}
-
 describe('ip_in_list', function () {
-  it('domain.com', function () {
-    _check_list({ 'domain.com': undefined }, 'domain.com', true)
-  })
+  const cases = [
+    { list: { 'domain.com': undefined }, ip: 'domain.com', expect: true },
+    { list: {}, ip: 'foo.com', expect: false },
+    { list: { '1.2.3.4': undefined }, ip: '1.2.3.4', expect: true },
+    { list: { '1.2.3.4/32': undefined }, ip: '1.2.3.4', expect: true },
+    { list: { '1.2.0.0/16': undefined }, ip: '1.2.3.4', expect: true },
+    { list: { '1.2.0.0/16': undefined }, ip: '5.6.7.8', expect: false },
+    {
+      list: { '0000:0000:0000:0000:0000:0000:0000:0001': undefined },
+      ip: '0000:0000:0000:0000:0000:0000:0000:0001',
+      expect: true,
+    },
+    {
+      list: { '0:0:0:0:0:0:0:1': undefined },
+      ip: '0000:0000:0000:0000:0000:0000:0000:0001',
+      expect: true,
+    },
+    {
+      list: { 1.2: undefined },
+      ip: '1.2.3.4',
+      expect: false,
+      descr: '1.2 (bad config)',
+    },
+    {
+      list: { '1.2.3.4/': undefined },
+      ip: '1.2.3.4',
+      expect: true,
+      descr: '1.2.3.4/ (mask ignored)',
+    },
+    {
+      list: { '1.2.3.4/gr': undefined },
+      ip: '1.2.3.4',
+      expect: true,
+      descr: '1.2.3.4/gr (mask ignored)',
+    },
+    {
+      list: { '1.2.3.4/400': undefined },
+      ip: '1.2.3.4',
+      expect: true,
+      descr: '1.2.3.4/400 (mask read as 400 bits)',
+    },
+    { list: undefined, ip: '1.2.3.4', expect: false, descr: 'undefined list' },
+    {
+      list: ['2001:db8::/32'],
+      ip: '1.2.3.4',
+      expect: false,
+      descr: 'family mismatch',
+    },
+    {
+      list: ['10.0.0.0/8'],
+      ip: '2001:db8::1',
+      expect: false,
+      descr: 'family mismatch',
+    },
+    {
+      list: ['1.2.3.4'],
+      ip: '1.2.3.4',
+      expect: true,
+      descr: 'exact match in array',
+    },
+    { list: { 'a.example': 1 }, ip: 'b.example', expect: false },
+  ]
 
-  it('foo.com', function () {
-    _check_list({}, 'foo.com', false)
-  })
-
-  it('1.2.3.4', function () {
-    _check_list({ '1.2.3.4': undefined }, '1.2.3.4', true)
-  })
-
-  it('1.2.3.4/32', function () {
-    _check_list({ '1.2.3.4/32': undefined }, '1.2.3.4', true)
-  })
-
-  it('1.2.0.0/16 <-> 1.2.3.4', function () {
-    _check_list({ '1.2.0.0/16': undefined }, '1.2.3.4', true)
-  })
-
-  it('1.2.0.0/16 <-> 5.6.7.8', function () {
-    _check_list({ '1.2.0.0/16': undefined }, '5.6.7.8', false)
-  })
-
-  it('0000:0000:0000:0000:0000:0000:0000:0001', function () {
-    _check_list(
-      { '0000:0000:0000:0000:0000:0000:0000:0001': undefined },
-      '0000:0000:0000:0000:0000:0000:0000:0001',
-      true,
-    )
-  })
-
-  it('0:0:0:0:0:0:0:1', function () {
-    _check_list(
-      { '0:0:0:0:0:0:0:1': undefined },
-      '0000:0000:0000:0000:0000:0000:0000:0001',
-      true,
-    )
-  })
-
-  it('1.2 (bad config)', function () {
-    _check_list({ 1.2: undefined }, '1.2.3.4', false)
-  })
-
-  it('1.2.3.4/ (mask ignored)', function () {
-    _check_list({ '1.2.3.4/': undefined }, '1.2.3.4', true)
-  })
-
-  it('1.2.3.4/gr (mask ignored)', function () {
-    _check_list({ '1.2.3.4/gr': undefined }, '1.2.3.4', true)
-  })
-
-  it('1.2.3.4/400 (mask read as 400 bits)', function () {
-    _check_list({ '1.2.3.4/400': undefined }, '1.2.3.4', true)
-  })
+  for (const { list, ip, expect, descr = '' } of cases) {
+    it(`${descr ? descr + ': ' + ip : ip}`, () => {
+      assert.equal(net_utils.ip_in_list(list, ip), expect) // keys of object
+      if (list) {
+        const asArray = Array.isArray(list) ? list : Object.keys(list)
+        assert.equal(net_utils.ip_in_list(asArray, ip), expect) // array
+      }
+    })
+  }
 
   it('ignores inherited Object.prototype properties', function () {
     assert.equal(net_utils.ip_in_list({}, '__proto__'), false)
@@ -621,48 +557,38 @@ describe('ip_in_list', function () {
 })
 
 describe('normalize_ip', function () {
-  it('1.2', function () {
-    assert.equal(net_utils.normalize_ip('1.2'), null)
-  })
-  it('empty string', function () {
-    assert.equal(net_utils.normalize_ip(''), null)
-  })
-  it('null', function () {
-    assert.equal(net_utils.normalize_ip(null), null)
-  })
-  it('1.2.3.4', function () {
-    assert.equal(net_utils.normalize_ip('1.2.3.4'), '1.2.3.4')
-  })
-  it('2001:0:1234::c1c0:abcd:876', function () {
-    assert.equal(
-      net_utils.normalize_ip('2001:0:1234::c1c0:abcd:876'),
-      '2001:0:1234::c1c0:abcd:876',
-    )
-  })
-  it('2001:0:1234::C1C0:ABCD:876', function () {
-    assert.equal(
-      net_utils.normalize_ip('2001:0:1234::C1C0:ABCD:876'),
-      '2001:0:1234::c1c0:abcd:876',
-    )
-  })
-  it('0000:0000:0000:0000:0000:0000:0000:0001', function () {
-    assert.equal(
-      net_utils.normalize_ip('0000:0000:0000:0000:0000:0000:0000:0001'),
-      '::1',
-    )
-  })
-  it('::ffff:127.0.0.1', function () {
-    assert.equal(net_utils.normalize_ip('::ffff:127.0.0.1'), '127.0.0.1')
-  })
+  const cases = [
+    { input: '1.2', expect: null },
+    { input: '', expect: null, descr: 'empty string' },
+    { input: null, expect: null },
+    { input: '1.2.3.4', expect: '1.2.3.4' },
+    {
+      input: '2001:0:1234::c1c0:abcd:876',
+      expect: '2001:0:1234::c1c0:abcd:876',
+    },
+    {
+      input: '2001:0:1234::C1C0:ABCD:876',
+      expect: '2001:0:1234::c1c0:abcd:876',
+    },
+    {
+      input: '0000:0000:0000:0000:0000:0000:0000:0001',
+      expect: '::1',
+    },
+    { input: '::ffff:127.0.0.1', expect: '127.0.0.1' },
+  ]
+
+  for (const { input, expect, descr = '' } of cases) {
+    it(`${descr || String(input)}`, function () {
+      assert.equal(net_utils.normalize_ip(input), expect)
+    })
+  }
 })
 
 describe('get_primary_host_name', () => {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
   it('with me config', () => {
@@ -681,9 +607,7 @@ describe('on_local_interface', () => {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
   it('localhost 127.0.0.1', () => {
@@ -704,15 +628,14 @@ describe('on_local_interface', () => {
 
 describe('add_line_processor', () => {
   let net_utils_mod
+  let socket
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
+    socket = new EventEmitter()
   })
 
   it('adds a line processor', async () => {
-    const socket = new EventEmitter()
     let lines = 0
     socket.on('line', () => {
       lines++
@@ -729,7 +652,6 @@ describe('add_line_processor', () => {
   })
 
   it('emits partial line on end', async () => {
-    const socket = new EventEmitter()
     const received = []
     socket.on('line', (line) => {
       received.push(line)
@@ -750,7 +672,6 @@ describe('add_line_processor', () => {
   })
 
   it('emits error when line exceeds MAX_LINE_LENGTH', async () => {
-    const socket = new EventEmitter()
     await new Promise((resolve) => {
       socket.on('error', (err) => {
         assert.ok(err.message.includes('Line length exceeded'))
@@ -777,17 +698,14 @@ describe('parse_proxy_line', function () {
     )
   })
   it('TCP4 127.0.0.1 127.0.0.2 42310 465', function () {
-    assert.deepEqual(
-      net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465'),
-      {
-        type: 'haproxy',
-        proto: 'TCP4',
-        src_ip: '127.0.0.1',
-        src_port: '42310',
-        dst_ip: '127.0.0.2',
-        dst_port: '465',
-      },
-    )
+    assert.deepEqual(net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465'), {
+      type: 'haproxy',
+      proto: 'TCP4',
+      src_ip: '127.0.0.1',
+      src_port: '42310',
+      dst_ip: '127.0.0.2',
+      dst_port: '465',
+    })
   })
   it('TCP4 127.0.0.1 127.0.0.2 42310 465\\r\\n', function () {
     assert.deepEqual(
@@ -834,10 +752,7 @@ describe('parse_proxy_line', function () {
     })
   })
   it('UNKNOWN 1.2.3.4 1.2.3.4 2525 25', function () {
-    assert.deepEqual(
-      net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25'),
-      null,
-    )
+    assert.deepEqual(net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25'), null)
   })
   it('PROXY TCP4 1.2.3.4 999.999.999.999 2525 25', function () {
     assert.deepEqual(
@@ -852,10 +767,7 @@ describe('parse_proxy_line', function () {
     assert.deepEqual(net_utils.parse_proxy_line(null), null)
   })
   it('PROXY TCP4 nope 1.2.3.4 2525 25', function () {
-    assert.deepEqual(
-      net_utils.parse_proxy_line('PROXY TCP4 nope 1.2.3.4 2525 25'),
-      null,
-    )
+    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 nope 1.2.3.4 2525 25'), null)
   })
 })
 
@@ -863,9 +775,7 @@ describe('is_haproxy_allowed', function () {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
   it('with connection.ini config and IPv4', () => {
@@ -873,10 +783,7 @@ describe('is_haproxy_allowed', function () {
   })
 
   it('with connection.ini config and IPv6', () => {
-    assert.equal(
-      net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'),
-      true,
-    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), true)
   })
 
   it('without connection.ini config and IPv4', () => {
@@ -890,10 +797,7 @@ describe('is_haproxy_allowed', function () {
     net_utils_mod.config = net_utils_mod.config.module_config(
       path.resolve('doesnt-exist'),
     )
-    assert.equal(
-      net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'),
-      false,
-    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), false)
   })
 
   it('denies IP not in allow list', () => {

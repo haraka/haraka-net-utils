@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "haraka network utilities",
   "main": "index.js",
   "files": [
@@ -8,6 +8,7 @@
     "lib"
   ],
   "scripts": {
+    "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "format": "npm run prettier:fix && npm run lint:fix",
     "lint": "npx eslint *.js test",
     "lint:fix": "npx eslint *.js test --fix",
@@ -53,6 +54,7 @@
     "@msimerson/stun": "^3.2.1"
   },
   "prettier": {
+    "printWidth": 90,
     "singleQuote": true,
     "semi": false
   }

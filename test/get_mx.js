@@ -159,16 +159,10 @@ describe('get_mx', () => {
       assert.equal(mf.length, 0)
     })
 
-    it(
-      'resolve-fail-definitive.josef-froehle.de',
-      { timeout: 5000 },
-      async () => {
-        const mf = await nu.get_implicit_mx(
-          'resolve-fail-definitive.josef-froehle.de',
-        )
-        assert.equal(mf.length, 0)
-      },
-    )
+    it('resolve-fail-definitive.josef-froehle.de', { timeout: 5000 }, async () => {
+      const mf = await nu.get_implicit_mx('resolve-fail-definitive.josef-froehle.de')
+      assert.equal(mf.length, 0)
+    })
 
     it('resolve-fail-a.josef-froehle.de', { timeout: 5000 }, async () => {
       const mf = await nu.get_implicit_mx('resolve-fail-a.josef-froehle.de')

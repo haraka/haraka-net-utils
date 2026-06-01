@@ -524,10 +524,7 @@ describe('get_ipany_re', function () {
   })
 
   it('IPv4, Received header, parens', function () {
-    const received_re = net_utils.get_ipany_re(
-      '^Received:.*?[\\[\\(]',
-      '[\\]\\)]',
-    )
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]')
     const match = received_re.exec(
       'Received: from unknown (HELO mail.theartfarm.com) (127.0.0.30) by mail.theartfarm.com with SMTP; 5 Sep 2015 14:29:00 -0000',
     )
@@ -538,20 +535,14 @@ describe('get_ipany_re', function () {
   it('IPv4, Received header, bracketed, expedia', function () {
     const received_header =
       'Received: from mta2.expediamail.com (mta2.expediamail.com [66.231.89.19]) by mail.theartfarm.com (Haraka/2.6.2-toaster) with ESMTPS id C669CF18-1C1C-484C-8A5B-A89088B048CB.1 envelope-from <bounce-857_HTML-202764435-1098240-260085-60@bounce.global.expediamail.com> (version=TLSv1/SSLv3 cipher=AES256-SHA verify=NO); Sat, 05 Sep 2015 07:28:57 -0700'
-    const received_re = net_utils.get_ipany_re(
-      '^Received:.*?[\\[\\(]',
-      '[\\]\\)]',
-    )
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]')
     const match = received_re.exec(received_header)
     assert.equal(match[1], '66.231.89.19')
     assert.equal(match.length, 2)
   })
 
   it('IPv4, Received header, bracketed, github', function () {
-    const received_re = net_utils.get_ipany_re(
-      '^Received:.*?[\\[\\(]',
-      '[\\]\\)]',
-    )
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]')
     const match = received_re.exec(
       'Received: from github-smtp2a-ext-cp1-prd.iad.github.net (github-smtp2-ext5.iad.github.net [192.30.252.196])',
     )
@@ -562,10 +553,7 @@ describe('get_ipany_re', function () {
   it('IPv6, Received header, bracketed', function () {
     const received_header =
       'Received: from ?IPv6:2601:184:c001:5cf7:a53f:baf7:aaf3:bce7? ([2601:184:c001:5cf7:a53f:baf7:aaf3:bce7])'
-    const received_re = net_utils.get_ipany_re(
-      '^Received:.*?[\\[\\(]',
-      '[\\]\\)]',
-    )
+    const received_re = net_utils.get_ipany_re('^Received:.*?[\\[\\(]', '[\\]\\)]')
     const match = received_re.exec(received_header)
     assert.equal(match[1], '2601:184:c001:5cf7:a53f:baf7:aaf3:bce7')
     assert.equal(match.length, 2)
@@ -603,9 +591,7 @@ describe('get_ipany_re', function () {
       '^Received:.*?[\\[\\(](?:IPv6:)?',
       '[\\]\\)]',
     )
-    const match = received_re.exec(
-      'Received: from ietfa.amsl.com (localhost [IPv6:::1])',
-    )
+    const match = received_re.exec('Received: from ietfa.amsl.com (localhost [IPv6:::1])')
     assert.equal(match[1], '::1')
     assert.equal(match.length, 2)
   })
