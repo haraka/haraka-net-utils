@@ -347,20 +347,14 @@ describe('is_ip_literal', function () {
 
   it('ipv6 is_ip_literal', function () {
     assert.equal(net_utils.is_ip_literal('[::5555:6666:7777:8888]'), true)
-    assert.equal(
-      net_utils.is_ip_literal('[1111::4444:5555:6666:7777:8888]'),
-      true,
-    )
+    assert.equal(net_utils.is_ip_literal('[1111::4444:5555:6666:7777:8888]'), true)
     assert.equal(net_utils.is_ip_literal('[2001:0:1234::C1C0:ABCD:876]'), true)
     assert.equal(
       net_utils.is_ip_literal('[IPv6:2607:fb90:4c28:f9e9:4ca2:2658:db85:f1a]'),
       true,
     )
     assert.equal(net_utils.is_ip_literal('::5555:6666:7777:8888'), false)
-    assert.equal(
-      net_utils.is_ip_literal('1111::4444:5555:6666:7777:8888'),
-      false,
-    )
+    assert.equal(net_utils.is_ip_literal('1111::4444:5555:6666:7777:8888'), false)
     assert.equal(net_utils.is_ip_literal('2001:0:1234::C1C0:ABCD:876'), false)
   })
 })
@@ -411,10 +405,7 @@ describe('is_local_ipv6', function () {
   it('::1', function () {
     assert.equal(net_utils.is_local_ipv6('::1'), true)
     assert.equal(net_utils.is_local_ipv6('0:0:0:0:0:0:0:1'), true)
-    assert.equal(
-      net_utils.is_local_ipv6('0000:0000:0000:0000:0000:0000:0000:0001'),
-      true,
-    )
+    assert.equal(net_utils.is_local_ipv6('0000:0000:0000:0000:0000:0000:0000:0001'), true)
   })
 
   it('fe80::/10', function () {
@@ -597,9 +588,7 @@ describe('get_primary_host_name', () => {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
   it('with me config', () => {
@@ -618,9 +607,7 @@ describe('on_local_interface', () => {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
   it('localhost 127.0.0.1', () => {
@@ -644,9 +631,7 @@ describe('add_line_processor', () => {
   let socket
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
     socket = new EventEmitter()
   })
 
@@ -713,17 +698,14 @@ describe('parse_proxy_line', function () {
     )
   })
   it('TCP4 127.0.0.1 127.0.0.2 42310 465', function () {
-    assert.deepEqual(
-      net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465'),
-      {
-        type: 'haproxy',
-        proto: 'TCP4',
-        src_ip: '127.0.0.1',
-        src_port: '42310',
-        dst_ip: '127.0.0.2',
-        dst_port: '465',
-      },
-    )
+    assert.deepEqual(net_utils.parse_proxy_line('TCP4 127.0.0.1 127.0.0.2 42310 465'), {
+      type: 'haproxy',
+      proto: 'TCP4',
+      src_ip: '127.0.0.1',
+      src_port: '42310',
+      dst_ip: '127.0.0.2',
+      dst_port: '465',
+    })
   })
   it('TCP4 127.0.0.1 127.0.0.2 42310 465\\r\\n', function () {
     assert.deepEqual(
@@ -770,10 +752,7 @@ describe('parse_proxy_line', function () {
     })
   })
   it('UNKNOWN 1.2.3.4 1.2.3.4 2525 25', function () {
-    assert.deepEqual(
-      net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25'),
-      null,
-    )
+    assert.deepEqual(net_utils.parse_proxy_line('UNKNOWN 1.2.3.4 1.2.3.4 2525 25'), null)
   })
   it('PROXY TCP4 1.2.3.4 999.999.999.999 2525 25', function () {
     assert.deepEqual(
@@ -788,10 +767,7 @@ describe('parse_proxy_line', function () {
     assert.deepEqual(net_utils.parse_proxy_line(null), null)
   })
   it('PROXY TCP4 nope 1.2.3.4 2525 25', function () {
-    assert.deepEqual(
-      net_utils.parse_proxy_line('PROXY TCP4 nope 1.2.3.4 2525 25'),
-      null,
-    )
+    assert.deepEqual(net_utils.parse_proxy_line('PROXY TCP4 nope 1.2.3.4 2525 25'), null)
   })
 })
 
@@ -799,9 +775,7 @@ describe('is_haproxy_allowed', function () {
   let net_utils_mod
   beforeEach(() => {
     net_utils_mod = require('../index')
-    net_utils_mod.config = net_utils_mod.config.module_config(
-      path.resolve('test'),
-    )
+    net_utils_mod.config = net_utils_mod.config.module_config(path.resolve('test'))
   })
 
   it('with connection.ini config and IPv4', () => {
@@ -809,10 +783,7 @@ describe('is_haproxy_allowed', function () {
   })
 
   it('with connection.ini config and IPv6', () => {
-    assert.equal(
-      net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'),
-      true,
-    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), true)
   })
 
   it('without connection.ini config and IPv4', () => {
@@ -826,10 +797,7 @@ describe('is_haproxy_allowed', function () {
     net_utils_mod.config = net_utils_mod.config.module_config(
       path.resolve('doesnt-exist'),
     )
-    assert.equal(
-      net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'),
-      false,
-    )
+    assert.equal(net_utils_mod.is_haproxy_allowed('2001:0:1234::c1c0:abcd:876'), false)
   })
 
   it('denies IP not in allow list', () => {

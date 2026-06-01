@@ -126,27 +126,21 @@ describe('HarakaMx', () => {
     })
 
     it('parses more complex URIs', () => {
-      assert.deepEqual(
-        new nu.HarakaMx('smtp://authUser:sekretPass@[2001:db8::1]'),
-        {
-          exchange: '[2001:db8::1]',
-          priority: 0,
-          auth_pass: 'sekretPass',
-          auth_user: 'authUser',
-        },
-      )
+      assert.deepEqual(new nu.HarakaMx('smtp://authUser:sekretPass@[2001:db8::1]'), {
+        exchange: '[2001:db8::1]',
+        priority: 0,
+        auth_pass: 'sekretPass',
+        auth_user: 'authUser',
+      })
 
-      assert.deepEqual(
-        new nu.HarakaMx('lmtp://authUser:sekretPass@[2001:db8::1]:25'),
-        {
-          exchange: '[2001:db8::1]',
-          port: 25,
-          priority: 0,
-          using_lmtp: true,
-          auth_pass: 'sekretPass',
-          auth_user: 'authUser',
-        },
-      )
+      assert.deepEqual(new nu.HarakaMx('lmtp://authUser:sekretPass@[2001:db8::1]:25'), {
+        exchange: '[2001:db8::1]',
+        port: 25,
+        priority: 0,
+        using_lmtp: true,
+        auth_pass: 'sekretPass',
+        auth_user: 'authUser',
+      })
     })
   })
 

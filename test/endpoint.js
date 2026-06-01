@@ -17,16 +17,10 @@ describe('endpoint', () => {
       assert.equal(endpoint('/foo/bar.sock').toString(), '/foo/bar.sock')
     })
     it('formats unix socket path with mode', () => {
-      assert.equal(
-        endpoint('/foo/bar.sock:770').toString(),
-        '/foo/bar.sock:770',
-      )
+      assert.equal(endpoint('/foo/bar.sock:770').toString(), '/foo/bar.sock:770')
     })
     it('accepts server.address() return shape', () => {
-      assert.equal(
-        endpoint({ address: '::0', port: 80 }).toString(),
-        '[::0]:80',
-      )
+      assert.equal(endpoint({ address: '::0', port: 80 }).toString(), '[::0]:80')
     })
   })
 
@@ -44,10 +38,7 @@ describe('endpoint', () => {
     })
 
     it('Default port if only host', () => {
-      assert.deepEqual(
-        { ...endpoint('10.0.0.3', 42) },
-        { host: '10.0.0.3', port: 42 },
-      )
+      assert.deepEqual({ ...endpoint('10.0.0.3', 42) }, { host: '10.0.0.3', port: 42 })
     })
 
     it('Bracketed IPv6 host is normalized to lowercase', () => {
@@ -58,10 +49,7 @@ describe('endpoint', () => {
     })
 
     it('Unix socket', () => {
-      assert.deepEqual(
-        { ...endpoint('/foo/bar.sock') },
-        { path: '/foo/bar.sock' },
-      )
+      assert.deepEqual({ ...endpoint('/foo/bar.sock') }, { path: '/foo/bar.sock' })
     })
 
     it('Unix socket w/mode', () => {
@@ -132,9 +120,7 @@ describe('endpoint', () => {
       const fakeFs = mockFs(log, {})
       const ep = endpoint('10.0.0.3:42')
       await ep.bind(mockServer(log), { backlog: 19 }, fakeFs)
-      assert.deepEqual(log, [
-        ['listen', { host: '10.0.0.3', port: 42, backlog: 19 }],
-      ])
+      assert.deepEqual(log, [['listen', { host: '10.0.0.3', port: 42, backlog: 19 }]])
     })
 
     it('Unix socket removes stale path then listens', async () => {
