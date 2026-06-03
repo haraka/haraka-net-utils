@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- dep(openssl-wrapper): deleted, not used
+- dep(punycode): removed, use url.domainToASCII
+- refactor(get_mx): use sanitize() for log output
+
 ### [1.9.1] - 2026-05-31
 
 - fix(get_ips_by_host): async now throws errors
