@@ -16,6 +16,8 @@ describe('get_mx', () => {
     'no-mx.haraka.tnpi.net': '192.0.99.5',
     'bad-mx.haraka.tnpi.net': /99/,
     'über.haraka.tnpi.net': 'no-mx.haraka.tnpi.net',
+    'matt@über.haraka.tnpi.net': 'no-mx.haraka.tnpi.net',
+    'xn--ber-goa.haraka.tnpi.net': 'no-mx.haraka.tnpi.net',
   }
 
   function checkValid(c, mxlist) {
@@ -84,6 +86,34 @@ describe('get_mx', () => {
       }
     })
   }
+
+  describe('punycode normalization', () => {
+    it(
+      'normalizes UTF-8 IDN domains to ACE in from_dns',
+      { timeout: 12000 },
+      async () => {
+        const mxlist = await net_utils.get_mx('über.haraka.tnpi.net')
+        assert.equal(mxlist[0].exchange, 'no-mx.haraka.tnpi.net')
+        assert.equal(mxlist[0].from_dns, 'xn--ber-goa.haraka.tnpi.net')
+      },
+    )
+
+    it(
+      'normalizes UTF-8 IDNs when supplied in an email address',
+      { timeout: 12000 },
+      async () => {
+        const mxlist = await net_utils.get_mx('matt@über.haraka.tnpi.net')
+        assert.equal(mxlist[0].exchange, 'no-mx.haraka.tnpi.net')
+        assert.equal(mxlist[0].from_dns, 'xn--ber-goa.haraka.tnpi.net')
+      },
+    )
+
+    it('keeps ACE domains unchanged', { timeout: 12000 }, async () => {
+      const mxlist = await net_utils.get_mx('xn--ber-goa.haraka.tnpi.net')
+      assert.equal(mxlist[0].exchange, 'no-mx.haraka.tnpi.net')
+      assert.equal(mxlist[0].from_dns, 'xn--ber-goa.haraka.tnpi.net')
+    })
+  })
 
   describe('resolve_mx_hosts', () => {
     let nu
