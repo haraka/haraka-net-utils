@@ -4,9 +4,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.9.2] - 2026-06-08
+
+- revert fix(get_ips_by_host). 3 callers (fcrdns, helo.checks, internal)
+  - each want incompatible things, replace with getHostIPs
+- refactor(get_mx): use sanitize() for log output (#107)
 - dep(openssl-wrapper): deleted, not used
 - dep(punycode): removed, use url.domainToASCII
-- refactor(get_mx): use sanitize() for log output
 
 ### [1.9.1] - 2026-05-31
 
@@ -294,3 +298,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.8.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.8.3
 [1.9.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.0
 [1.9.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.1
+[1.9.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.2

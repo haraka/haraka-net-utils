@@ -101,9 +101,17 @@ net_utils.ip_in_list(array, ip)
 net_utils.ip_in_list(tls.no_tls_hosts, '127.0.0.5')
 ```
 
+### getHostIPs
+
+Returns an array of all the IPv4 and IPv6 addresses of the provided hostname. The returned promise resolves with arrays of addresses and errors.
+
+```js
+const { addrs, errors } = await net_utils.getHostIPs('host.example.com')
+```
+
 ### get_ips_by_host
 
-Returns an array of all the IPv4 and IPv6 addresses of the provided hostname. The returned promise resolves with a (possibly empty) array or throws when there are no IPs and there are DNS lookup errors.
+Returns an array of all the IPv4 and IPv6 addresses of the provided hostname. The returned promise resolves with a (possibly empty) array.
 
 ```js
 try {
