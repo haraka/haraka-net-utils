@@ -205,25 +205,30 @@ exports.get_ipany_re = function (prefix = '', suffix = '', modifier = 'mg') {
   )
 }
 
-exports.get_ips_by_host = function (hostname, done) {
-  const ips = new Set()
+// Resolve a hostname to its A and AAAA addresses, reporting both the
+// addresses found and any per-family lookup errors. Never throws, so callers
+// can decide what a partial or empty result means
+exports.getHostIPs = async function (hostname) {
+  const addrs = []
   const errors = []
 
-  return Promise.allSettled([dns.resolve6(hostname), dns.resolve4(hostname)]).then(
-    (res) => {
-      for (const a of res) {
-        if (a.status === 'rejected') errors.push(a.reason)
-        else for (const ip of a.value) ips.add(ip)
-      }
+  const settled = await Promise.allSettled([
+    dns.resolve6(hostname),
+    dns.resolve4(hostname),
+  ])
+  for (const res of settled) {
+    if (res.status === 'fulfilled') addrs.push(...res.value)
+    else errors.push(res.reason)
+  }
 
-      if (done) done(errors, Array.from(ips)) // callback
+  return { addrs, errors }
+}
 
-      if (ips.size === 0 && errors.length > 0) {
-        throw new AggregateError(errors)
-      }
-      return Array.from(ips)
-    },
-  )
+exports.get_ips_by_host = async function (hostname, done) {
+  const { addrs, errors } = await exports.getHostIPs(hostname)
+  const ips = [...new Set(addrs)]
+  if (done) done(errors, ips) // callback form also surfaces the errors
+  return ips
 }
 
 exports.ipv6_reverse = function (ipv6) {

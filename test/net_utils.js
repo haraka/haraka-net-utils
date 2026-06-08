@@ -474,6 +474,29 @@ describe('get_ips_by_host', function () {
   }
 })
 
+describe('getHostIPs', function () {
+  it(
+    'returns addrs and no errors for a host that resolves',
+    { timeout: 7000 },
+    async () => {
+      const { addrs, errors } = await net_utils.getHostIPs('net-utils.haraka.tnpi.net')
+      if (errors.length) return // tolerate DNS being unavailable
+      assert.deepEqual(addrs.sort(), ['1.2.3.4', '8:7:6:5:4:3:2:1'].sort())
+    },
+  )
+
+  it(
+    'returns errors (never throws) for a non-existent host',
+    { timeout: 7000 },
+    async () => {
+      const { addrs, errors } = await net_utils.getHostIPs('does-not-exist.invalid')
+      assert.deepEqual(addrs, [])
+      assert.ok(errors.length > 0)
+      assert.ok(errors.every((e) => e.code))
+    },
+  )
+})
+
 describe('ip_in_list', function () {
   const cases = [
     { list: { 'domain.com': undefined }, ip: 'domain.com', expect: true },

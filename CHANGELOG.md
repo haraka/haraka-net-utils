@@ -6,11 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.9.2] - 2026-06-08
 
+- revert fix(get_ips_by_host). 3 callers (fcrdns, helo.checks, internal)
+  - each want incompatible things, replace with getHostIPs
 - refactor(get_mx): use sanitize() for log output (#107)
-
 - dep(openssl-wrapper): deleted, not used
 - dep(punycode): removed, use url.domainToASCII
-- refactor(get_mx): use sanitize() for log output
 
 ### [1.9.1] - 2026-05-31
 
