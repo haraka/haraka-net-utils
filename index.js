@@ -212,9 +212,11 @@ exports.getHostIPs = async function (hostname) {
   const addrs = []
   const errors = []
 
+  // defer into a microtask so a synchronous throw (e.g. a non-string
+  // hostname) becomes a rejection captured here rather than escaping
   const settled = await Promise.allSettled([
-    dns.resolve6(hostname),
-    dns.resolve4(hostname),
+    Promise.resolve().then(() => dns.resolve6(hostname)),
+    Promise.resolve().then(() => dns.resolve4(hostname)),
   ])
   for (const res of settled) {
     if (res.status === 'fulfilled') addrs.push(...res.value)

@@ -7,17 +7,13 @@ const { beforeEach, describe, it } = require('node:test')
 require('haraka-config').watch_files = false
 const net_utils = require('../index')
 
-function _check(ip, host, res) {
-  assert.equal(net_utils.is_ip_in_str(ip, host), res)
-}
-
-describe('long_to_ip', function () {
-  it('185999660', function () {
+describe('long_to_ip', () => {
+  it('185999660', () => {
     assert.equal(net_utils.long_to_ip(185999660), '11.22.33.44')
   })
 })
 
-describe('dec_to_hex', function () {
+describe('dec_to_hex', () => {
   const cases = [
     { input: 0, expect: '0' },
     { input: 1, expect: '1' },
@@ -28,13 +24,13 @@ describe('dec_to_hex', function () {
   ]
 
   for (const { input, expect } of cases) {
-    it(`${input} -> ${expect}`, function () {
+    it(`${input} -> ${expect}`, () => {
       assert.equal(net_utils.dec_to_hex(input), expect)
     })
   }
 })
 
-describe('hex_to_dec', function () {
+describe('hex_to_dec', () => {
   const cases = [
     { input: '0', expect: 0 },
     { input: '1', expect: 1 },
@@ -45,13 +41,13 @@ describe('hex_to_dec', function () {
   ]
 
   for (const { input, expect } of cases) {
-    it(`${input} -> ${expect}`, function () {
+    it(`${input} -> ${expect}`, () => {
       assert.equal(net_utils.hex_to_dec(input), expect)
     })
   }
 })
 
-describe('ip_to_long', function () {
+describe('ip_to_long', () => {
   const cases = [
     { input: '0.0.0.0', expect: 0 },
     { input: '1.2.3.4', expect: 16909060 },
@@ -63,13 +59,13 @@ describe('ip_to_long', function () {
   ]
 
   for (const { input, expect } of cases) {
-    it(`${input}`, function () {
+    it(`${input}`, () => {
       assert.equal(net_utils.ip_to_long(input), expect)
     })
   }
 })
 
-describe('ipv6_reverse', function () {
+describe('ipv6_reverse', () => {
   const cases = [
     {
       input: '::1',
@@ -92,28 +88,32 @@ describe('ipv6_reverse', function () {
   }
 })
 
-describe('ipv6_bogus', function () {
-  it('unicast returns false', function () {
+describe('ipv6_bogus', () => {
+  it('unicast returns false', () => {
     assert.equal(net_utils.ipv6_bogus('2606:4700:4700::1111'), false)
   })
-  it('loopback returns true', function () {
+  it('loopback returns true', () => {
     assert.equal(net_utils.ipv6_bogus('::1'), true)
   })
-  it('invalid input returns true', function () {
+  it('invalid input returns true', () => {
     assert.equal(net_utils.ipv6_bogus('not-an-ipv6'), true)
   })
 })
 
-describe('static_rdns', function () {
-  it('74.125.82.182', function () {
-    _check('74.125.82.182', 'mail-we0-f182.google.com', false)
+describe('static_rdns', () => {
+  it('74.125.82.182', () => {
+    assert.equal(
+      net_utils.is_ip_in_str('74.125.82.182', 'mail-we0-f182.google.com'),
+      false,
+    )
   })
-  it('74.125.82.53', function () {
-    _check('74.125.82.53', 'mail-ww0-f53.google.com', false)
+
+  it('74.125.82.53', () => {
+    assert.equal(net_utils.is_ip_in_str('74.125.82.53', 'mail-ww0-f53.google.com'), false)
   })
 })
 
-describe('dynamic_rdns', function () {
+describe('dynamic_rdns', () => {
   const cases = [
     {
       ip: '109.168.232.131',
@@ -137,7 +137,7 @@ describe('dynamic_rdns', function () {
   ]
 
   for (const { ip, rdns, expect } of cases) {
-    it(`${ip} -> ${rdns}`, function () {
+    it(`${ip} -> ${rdns}`, () => {
       assert.equal(net_utils.is_ip_in_str(ip, rdns), expect)
     })
   }
@@ -176,42 +176,42 @@ describe('same_ipv4_network', function () {
   })
 })
 
-describe('is_ip_in_str (1st/2nd octets fallback)', function () {
-  it('returns true via the 1st/2nd octets when 3rd/4th are absent', function () {
+describe('is_ip_in_str (1st/2nd octets fallback)', () => {
+  it('returns true via the 1st/2nd octets when 3rd/4th are absent', () => {
     // host has the first two octets embedded but not 3 or 4
     assert.equal(net_utils.is_ip_in_str('1.2.3.4', 'mail1and2.example'), true)
   })
 
-  it('returns false for empty / missing str argument', function () {
+  it('returns false for empty / missing str argument', () => {
     assert.equal(net_utils.is_ip_in_str('1.2.3.4', ''), false)
     assert.equal(net_utils.is_ip_in_str('1.2.3.4', null), false)
   })
 
-  it('returns false for missing ip argument', function () {
+  it('returns false for missing ip argument', () => {
     assert.equal(net_utils.is_ip_in_str(undefined, 'mail.example.com'), false)
     assert.equal(net_utils.is_ip_in_str('', 'mail.example.com'), false)
   })
 
-  it('returns false for non-IPv4 ip (IPv6 not supported here)', function () {
+  it('returns false for non-IPv4 ip (IPv6 not supported here)', () => {
     assert.equal(net_utils.is_ip_in_str('::1', 'mail.example.com'), false)
     assert.equal(net_utils.is_ip_in_str('not-an-ip', 'mail.example.com'), false)
   })
 })
 
-describe('octets_in_string', function () {
-  it('returns false when oct1 is absent (with oct2.length < oct1.length)', function () {
+describe('octets_in_string', () => {
+  it('returns false when oct1 is absent (with oct2.length < oct1.length)', () => {
     // Pass single-char oct2 so we go through the second branch (oct2 length < oct1)
     // where oct1.indexOf is checked first; choose strings so oct1 is not present.
     assert.equal(net_utils.octets_in_string('zzzzzzz', '111', '9'), false)
   })
 
-  it('returns false when oct2 is absent after stripping oct1', function () {
+  it('returns false when oct2 is absent after stripping oct1', () => {
     assert.equal(net_utils.octets_in_string('111-zzz', '111', '9'), false)
   })
 })
 
-describe('is_local_host error path', function () {
-  it('returns false when an internal lookup throws', async function () {
+describe('is_local_host error path', () => {
+  it('returns false when an internal lookup throws', async () => {
     try {
       const result = await net_utils.is_local_host('example.org')
       assert.equal(result, false)
@@ -219,8 +219,8 @@ describe('is_local_host error path', function () {
   })
 })
 
-describe('is_ipv4_literal', function () {
-  it('3 ways', function () {
+describe('is_ipv4_literal', () => {
+  it('3 ways', () => {
     assert.equal(true, net_utils.is_ipv4_literal('[127.0.0.1]'))
     assert.equal(false, net_utils.is_ipv4_literal('127.0.0.1'))
     assert.equal(false, net_utils.is_ipv4_literal('test.host'))
@@ -439,7 +439,7 @@ describe('is_local_ipv6', function () {
   })
 })
 
-describe('get_ips_by_host', function () {
+describe('get_ips_by_host', () => {
   const tests = {
     'net-utils.haraka.tnpi.net': ['1.2.3.4', '8:7:6:5:4:3:2:1'],
     'localhost.haraka.tnpi.net': ['127.0.0.1', '::1'],
@@ -451,7 +451,7 @@ describe('get_ips_by_host', function () {
       { timeout: 7000 },
       () =>
         new Promise((resolve) => {
-          net_utils.get_ips_by_host(t, function (err, res) {
+          net_utils.get_ips_by_host(t, (err, res) => {
             if (err && err.length) {
               console.error(err)
               return resolve()
@@ -474,16 +474,15 @@ describe('get_ips_by_host', function () {
   }
 })
 
-describe('getHostIPs', function () {
-  it(
-    'returns addrs and no errors for a host that resolves',
-    { timeout: 7000 },
-    async () => {
-      const { addrs, errors } = await net_utils.getHostIPs('net-utils.haraka.tnpi.net')
-      if (errors.length) return // tolerate DNS being unavailable
-      assert.deepEqual(addrs.sort(), ['1.2.3.4', '8:7:6:5:4:3:2:1'].sort())
-    },
-  )
+describe('getHostIPs', () => {
+  it('returns addrs for a host that resolves', { timeout: 7000 }, async () => {
+    const { addrs, errors } = await net_utils.getHostIPs('net-utils.haraka.tnpi.net')
+    if (!addrs.length) {
+      console.error(errors) // tolerate slow/unavailable DNS
+      return
+    }
+    assert.deepEqual(addrs.sort(), ['1.2.3.4', '8:7:6:5:4:3:2:1'].sort())
+  })
 
   it(
     'returns errors (never throws) for a non-existent host',
@@ -495,9 +494,16 @@ describe('getHostIPs', function () {
       assert.ok(errors.every((e) => e.code))
     },
   )
+
+  it('reports a synchronous resolver throw via errors, never throws', async () => {
+    const { addrs, errors } = await net_utils.getHostIPs(undefined)
+    assert.deepEqual(addrs, [])
+    assert.ok(errors.length > 0)
+    assert.equal(errors[0].code, 'ERR_INVALID_ARG_TYPE')
+  })
 })
 
-describe('ip_in_list', function () {
+describe('ip_in_list', () => {
   const cases = [
     { list: { 'domain.com': undefined }, ip: 'domain.com', expect: true },
     { list: {}, ip: 'foo.com', expect: false },
