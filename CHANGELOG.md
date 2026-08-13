@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.9.3] - 2026-08-13
+
+- get_public_ip: quiet, accurate handling when optional stun is absent (#109)
+
 ### [1.9.2] - 2026-06-08
 
 - revert fix(get_ips_by_host). 3 callers (fcrdns, helo.checks, internal)
@@ -89,6 +93,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### [1.6.0] - 2024-04-17
 
 - feat: normalizeDomain, for punycode/IDN names
+
 <!-- prettier-ignore -->
 - feat: get*mx now \_also* returns implicit MX records
 - feat: added get_implicit_mx
@@ -299,3 +304,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.9.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.0
 [1.9.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.1
 [1.9.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.2
+[1.9.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.3
