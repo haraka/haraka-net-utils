@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.9.3] - 2026-08-13
 
-- get_public_ip: quiet, accurate handling when optional stun is absent (#109)
+- get_public_ip: quiet, accurate handling when stun is absent (#109)
 
 ### [1.9.2] - 2026-06-08
 
