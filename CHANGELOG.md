@@ -4,7 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
-- fix(endpoint): prefer complete bare IPv6 hosts
+### [1.9.4] - 2026-10-01
+
+- fix(endpoint): prefer complete bare IPv6 hosts (#111)
 - deps: bump versions
 
 ### [1.9.3] - 2026-08-13
@@ -308,3 +310,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.9.1]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.1
 [1.9.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.2
 [1.9.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.3
+[1.9.4]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.4
