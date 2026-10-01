@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.10.0] - 2026-10-01
+
+- endpoint: parse() and a bucket of fixes
+
 - feat(endpoint): add throwing Endpoint.parse()
 - fix(endpoint): validate port range and IPv4
 - fix(endpoint): accept FQDN with trailing dot
@@ -322,3 +326,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.9.2]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.2
 [1.9.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.3
 [1.9.4]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.4
+[1.10.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.10.0

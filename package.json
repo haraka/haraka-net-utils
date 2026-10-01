@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.9.4",
+  "version": "1.10.0",
   "description": "haraka network utilities",
   "main": "index.js",
   "files": [
