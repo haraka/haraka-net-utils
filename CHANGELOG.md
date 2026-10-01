@@ -4,7 +4,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
-- fix(endpoint): parse a complete bare IPv6 as host, not host:port
+- fix(endpoint): prefer complete bare IPv6 hosts
+- deps: bump versions
 
 ### [1.9.3] - 2026-08-13
 
