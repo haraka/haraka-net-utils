@@ -230,6 +230,34 @@ The parameter can be one of:
 
 An optional second parameter is an alias for from_dns.
 
+### Endpoint
+
+Parse, format, and bind socket addresses.
+
+```js
+const { Endpoint } = require('haraka-net-utils')
+
+Endpoint.parse('[2001:db8::1]:25').toString() // '[2001:db8::1]:25'
+Endpoint.parse('2001:db8::1:25', 587).port // 587, a bare IPv6 is all host
+Endpoint.parse('mail.example.com', 25) // { host: 'mail.example.com', port: 25 }
+Endpoint.parse('/var/run/haraka.sock:770') // { path, mode: '770' }
+Endpoint.parse({ host: '::1' }, 25) // objects get defaultPort too
+
+await Endpoint.parse('[::0]:25').bind(server, { backlog: 0 })
+```
+
+`Endpoint.parse(addr, defaultPort)` throws on invalid input: malformed
+hosts or IPv4, ports outside 0-65535, and brackets around anything but IPv6.
+Put an IPv6 address in brackets to give it a port. `endpoint(addr, defaultPort)`
+does the same but returns the Error instead of throwing. Code running in a vm
+context, such as Haraka plugins, should use `parse()` because `instanceof
+Error` fails across realms.
+
+`new Endpoint({ host, port })` never throws, so it is safe for formatting log
+messages.
+
+`bind()` replaces an existing unix socket at the path
+
 [ci-img]: https://github.com/haraka/haraka-net-utils/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-net-utils/actions/workflows/ci.yml
 [cov-img]: https://codecov.io/github/haraka/haraka-net-utils/coverage.svg

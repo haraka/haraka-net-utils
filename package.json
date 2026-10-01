@@ -1,6 +1,6 @@
 {
   "name": "haraka-net-utils",
-  "version": "1.9.4",
+  "version": "1.10.0",
   "description": "haraka network utilities",
   "main": "index.js",
   "files": [
@@ -34,7 +34,7 @@
   "author": "Matt Simerson <matt@tnpi.net>",
   "license": "MIT",
   "engines": {
-    "node": ">= v18.0.0"
+    "node": ">= v22.0.0"
   },
   "bugs": {
     "url": "https://github.com/haraka/haraka-net-utils/issues"
