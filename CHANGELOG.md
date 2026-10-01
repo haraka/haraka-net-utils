@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- fix(endpoint): prefer complete bare IPv6 hosts
+- deps: bump versions
+
 ### [1.9.3] - 2026-08-13
 
 - get_public_ip: quiet, accurate handling when stun is absent (#109)

@@ -33,8 +33,19 @@ describe('endpoint', () => {
       assert.deepEqual({ ...endpoint('::0', 25) }, { host: '::0', port: 25 })
     })
 
-    it('Unbracketed IPv6 host:port parses correctly', () => {
-      assert.deepEqual({ ...endpoint('::0:25') }, { host: '::0', port: 25 })
+    it('Unbracketed IPv6 that is a complete address keeps the default port', () => {
+      assert.deepEqual({ ...endpoint('::0:25', 587) }, { host: '::0:25', port: 587 })
+      assert.deepEqual(
+        { ...endpoint('2001:db8::1:25', 587) },
+        { host: '2001:db8::1:25', port: 587 },
+      )
+    })
+
+    it('Unbracketed IPv6 host:port parses when the whole is not an address', () => {
+      assert.deepEqual(
+        { ...endpoint('2001:db8:0:0:0:0:0:1:25') },
+        { host: '2001:db8:0:0:0:0:0:1', port: 25 },
+      )
     })
 
     it('Default port if only host', () => {
