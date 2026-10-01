@@ -369,6 +369,73 @@ describe('endpoint', () => {
       assert.equal(Endpoint.parse('1.2.3.4', 587).port, 587)
       assert.equal(Endpoint.parse({ host: '1.2.3.4' }, 587).port, 587)
     })
+
+    it('rejects an invalid defaultPort in every string form', () => {
+      for (const addr of ['::1', '[::1]', '1.2.3.4', 'mail.example.com']) {
+        assert.throws(() => Endpoint.parse(addr, 70000), RangeError, addr)
+        assert.throws(() => parseSockaddr(addr, 70000), RangeError, addr)
+      }
+    })
+
+    it('ignores an invalid defaultPort when a port is given', () => {
+      assert.equal(Endpoint.parse('[::1]:25', 70000).port, 25)
+    })
+
+    it('normalizes a numeric-string defaultPort', () => {
+      assert.equal(parseSockaddr('::1', '587').port, 587)
+    })
+
+    it('rejects a malformed object host', () => {
+      assert.throws(
+        () => Endpoint.parse({ host: 'not a host', port: 25 }),
+        /Invalid socket address/,
+      )
+      assert.throws(
+        () => Endpoint.parse({ host: '999.1.1.1', port: 25 }),
+        /Invalid socket address/,
+      )
+      assert.throws(
+        () => Endpoint.parse({ host: '[1.2.3.4]', port: 25 }),
+        /Invalid socket address/,
+      )
+      assert.throws(
+        () => Endpoint.parse({ address: 'bogus host', port: 25 }),
+        /Invalid socket address/,
+      )
+    })
+
+    it('accepts valid object hosts', () => {
+      assert.equal(Endpoint.parse({ host: '[::1]', port: 25 }).toString(), '[::1]:25')
+      assert.equal(Endpoint.parse({ address: '::', port: 25 }).toString(), '[::0]:25')
+      assert.equal(Endpoint.parse({ host: 'mx.example.com.', port: 25 }).port, 25)
+      assert.equal(Endpoint.parse({ port: 25 }).toString(), '[::0]:25')
+    })
+
+    it('keeps direct construction tolerant of malformed hosts', () => {
+      assert.equal(
+        new Endpoint({ host: 'not a host', port: 25 }).toString(),
+        'not a host:25',
+      )
+    })
+  })
+
+  describe('hostname length', () => {
+    // 4 labels of 63 + 3 dots = 255; trim to the limits
+    const name = (len) =>
+      `${'a'.repeat(63)}.${'b'.repeat(63)}.${'c'.repeat(63)}.${'d'.repeat(len - 192)}`
+
+    it('accepts 253 characters without a trailing dot', () => {
+      assert.equal(name(253).length, 253)
+      assert.equal(Endpoint.parse(name(253), 25).port, 25)
+    })
+
+    it('rejects 254 characters without a trailing dot', () => {
+      assert.throws(() => Endpoint.parse(name(254), 25), /Invalid socket address/)
+    })
+
+    it('accepts 254 characters when the last is the root dot', () => {
+      assert.equal(Endpoint.parse(`${name(253)}.`, 25).port, 25)
+    })
   })
 
   describe('bind() safety', () => {
