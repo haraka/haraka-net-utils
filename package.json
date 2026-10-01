@@ -34,7 +34,7 @@
   "author": "Matt Simerson <matt@tnpi.net>",
   "license": "MIT",
   "engines": {
-    "node": ">= v18.0.0"
+    "node": ">= v22.0.0"
   },
   "bugs": {
     "url": "https://github.com/haraka/haraka-net-utils/issues"
