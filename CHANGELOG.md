@@ -4,6 +4,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- feat(endpoint): add throwing Endpoint.parse()
+- fix(endpoint): validate port range and IPv4
+- fix(endpoint): accept FQDN with trailing dot
+- fix(endpoint): accept bracketed scoped/mapped IPv6
+- fix(endpoint): preserve IPv6 zone ID case
+- fix(endpoint): trim whitespace, reject non-strings
+- fix(endpoint): apply defaultPort to objects, no NaN
+- fix(endpoint): strip brackets from object hosts
+- fix(endpoint): bind() only removes unix sockets
+- fix(endpoint): bind() closes server if chmod fails
+
 ### [1.9.4] - 2026-10-01
 
 - fix(endpoint): prefer complete bare IPv6 hosts (#111)
