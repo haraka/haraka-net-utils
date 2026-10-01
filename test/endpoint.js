@@ -417,6 +417,48 @@ describe('endpoint', () => {
         'not a host:25',
       )
     })
+
+    it('rejects numbers that are not valid ports', () => {
+      for (const n of [NaN, Infinity, -Infinity, -1, 1.5, 65536]) {
+        assert.throws(() => Endpoint.parse(n), RangeError, String(n))
+        assert.ok(endpoint(n) instanceof Error, String(n))
+      }
+      assert.equal(Endpoint.parse(0).toString(), '[::0]:0')
+      assert.equal(Endpoint.parse(65535).port, 65535)
+    })
+
+    it('rejects a non-string object host without a TypeError', () => {
+      assert.throws(
+        () => Endpoint.parse({ host: 1, port: 25 }),
+        /Invalid socket address 1/,
+      )
+      assert.throws(
+        () => Endpoint.parse({ host: {}, port: 25 }),
+        /Invalid socket address/,
+      )
+      assert.throws(() => Endpoint.parse(Symbol('x')), /Invalid socket address/)
+    })
+  })
+
+  describe('constructor never throws', () => {
+    const cases = {
+      'numeric host': { host: 1, port: 25 },
+      'object host': { host: {}, port: 25 },
+      'symbol port': { host: 'a', port: Symbol('p') },
+      'symbol host': { host: Symbol('h'), port: 25 },
+      'object port': { host: 'a', port: {} },
+      'numeric path': { path: 5 },
+      null: null,
+      string: '1.2.3.4:25',
+      undefined,
+    }
+    for (const [name, addr] of Object.entries(cases)) {
+      it(name, () => {
+        const ep = new Endpoint(addr)
+        assert.equal(typeof ep.toString(), 'string')
+        assert.equal(typeof `${ep}`, 'string')
+      })
+    }
   })
 
   describe('hostname length', () => {

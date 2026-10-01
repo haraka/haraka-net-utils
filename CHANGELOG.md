@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - fix(endpoint): accept FQDN with trailing dot
 - fix(endpoint): accept bracketed scoped/mapped IPv6
 - fix(endpoint): preserve IPv6 zone ID case
-- fix(endpoint): trim whitespace, reject non-strings
+- fix(endpoint): trim whitespace, reject null/bool/NaN
 - fix(endpoint): apply defaultPort to objects, no NaN
 - fix(endpoint): strip brackets from object hosts
 - fix(endpoint): bind() only removes unix sockets
