@@ -270,6 +270,9 @@ describe('is_local_ip', function () {
     { host: '0000:0000:0000:0000:0000:0000:0000:0001', expect: true },
     { host: '123.123.123.123', expect: false },
     { host: 'dead::beef', expect: false },
+    { host: '169.254.10.1', expect: false, descr: '169.254.10.1 (link local)' },
+    { host: 'fe80::dead:beef', expect: false, descr: 'fe80::dead:beef (link local)' },
+    { host: 'fd12:3456::1', expect: false, descr: 'fd12:3456::1 (unique local)' },
     { host: '192.168.1', expect: false, descr: 'missing octet' },
     {
       host: '239.0.0.1',
@@ -284,6 +287,18 @@ describe('is_local_ip', function () {
       assert.strictEqual(expect, is_local_host)
     })
   }
+
+  const own_private_v6 = Object.values(require('node:os').networkInterfaces())
+    .flat()
+    .find((a) => a.family === 'IPv6' && net_utils.is_private_ipv6(a.address))
+
+  it(
+    'a link local / unique local address on this host',
+    { skip: !own_private_v6 },
+    () => {
+      assert.strictEqual(net_utils.is_local_ip(own_private_v6.address), true)
+    },
+  )
 })
 
 describe('is_private_ip', function () {
@@ -299,6 +314,8 @@ describe('is_private_ip', function () {
       host: '0000:0000:0000:0000:0000:0000:0000:0001',
       expect: true,
     },
+    { host: 'fe80::1', expect: true, descr: 'fe80::1 (link local)' },
+    { host: 'fd12:3456::1', expect: true, descr: 'fd12:3456::1 (unique local)' },
     { host: '123.123.123.123', expect: false },
     { host: 'dead::beef', expect: false },
     { host: '192.168.1', expect: false, descr: '192.168.1 (missing octet)' },
@@ -372,6 +389,11 @@ describe('is_local_ipv4', function () {
     assert.equal(net_utils.is_local_ipv4('1.255.0.1'), false)
     assert.equal(net_utils.is_local_ipv4('10.255.0.1'), false)
   })
+
+  it('169.254/16 is private, not local', function () {
+    assert.equal(net_utils.is_local_ipv4('169.254.0.0'), false)
+    assert.equal(net_utils.is_local_ipv4('169.254.10.1'), false)
+  })
 })
 
 describe('is_private_ipv4', function () {
@@ -395,6 +417,13 @@ describe('is_private_ipv4', function () {
     assert.equal(net_utils.is_private_ipv4('172.15.0.0'), false)
     assert.equal(net_utils.is_private_ipv4('172.32.0.0'), false)
   })
+
+  it('169.254/16', function () {
+    assert.equal(net_utils.is_private_ipv4('169.254.0.0'), true)
+    assert.equal(net_utils.is_private_ipv4('169.254.255.255'), true)
+    assert.equal(net_utils.is_private_ipv4('169.253.0.0'), false)
+    assert.equal(net_utils.is_private_ipv4('169.255.0.0'), false)
+  })
 })
 
 describe('is_local_ipv6', function () {
@@ -408,34 +437,46 @@ describe('is_local_ipv6', function () {
     assert.equal(net_utils.is_local_ipv6('0000:0000:0000:0000:0000:0000:0000:0001'), true)
   })
 
-  it('fe80::/10', function () {
-    assert.equal(net_utils.is_local_ipv6('fe80::'), true)
-    assert.equal(net_utils.is_local_ipv6('fe81::1'), true)
-    assert.equal(net_utils.is_local_ipv6('fea0::1'), true)
-    assert.equal(net_utils.is_local_ipv6('febf::ffff'), true)
-    assert.equal(net_utils.is_local_ipv6('fec0::1'), false) // outside /10
-    assert.equal(net_utils.is_local_ipv6('fe70::1'), false) // outside /10
-    assert.equal(net_utils.is_local_ipv6('fe80:'), false)
-    assert.equal(net_utils.is_local_ipv6('fe8:'), false)
-    assert.equal(net_utils.is_local_ipv6(':fe80:'), false)
+  it('link local and unique local are private, not local', function () {
+    for (const ip of ['fe80::', 'fe80::1', 'febf::ffff', 'fc00::1', 'fd12:3456::1']) {
+      assert.equal(net_utils.is_local_ipv6(ip), false, ip)
+    }
+  })
+})
+
+describe('is_private_ipv6', function () {
+  it('::1 is local, not private', function () {
+    assert.equal(net_utils.is_private_ipv6('::1'), false)
   })
 
-  it('fc80::/7', function () {
-    assert.equal(net_utils.is_local_ipv6('fc00:'), true)
-    assert.equal(net_utils.is_local_ipv6('fcff:'), true)
+  it('fe80::/10', function () {
+    assert.equal(net_utils.is_private_ipv6('fe80::'), true)
+    assert.equal(net_utils.is_private_ipv6('fe81::1'), true)
+    assert.equal(net_utils.is_private_ipv6('fea0::1'), true)
+    assert.equal(net_utils.is_private_ipv6('febf::ffff'), true)
+    assert.equal(net_utils.is_private_ipv6('fec0::1'), false) // outside /10
+    assert.equal(net_utils.is_private_ipv6('fe70::1'), false) // outside /10
+    assert.equal(net_utils.is_private_ipv6('fe80:'), false)
+    assert.equal(net_utils.is_private_ipv6('fe8:'), false)
+    assert.equal(net_utils.is_private_ipv6(':fe80:'), false)
+  })
+
+  it('fc00::/7', function () {
+    assert.equal(net_utils.is_private_ipv6('fc00:'), true)
+    assert.equal(net_utils.is_private_ipv6('fcff:'), true)
 
     // examples from https://en.wikipedia.org/wiki/Unique_local_address
-    assert.equal(net_utils.is_local_ipv6('fde4:8dba:82e1::'), true)
-    assert.equal(net_utils.is_local_ipv6('fde4:8dba:82e1:ffff::'), true)
+    assert.equal(net_utils.is_private_ipv6('fde4:8dba:82e1::'), true)
+    assert.equal(net_utils.is_private_ipv6('fde4:8dba:82e1:ffff::'), true)
 
-    assert.equal(net_utils.is_local_ipv6('fd00:'), true)
-    assert.equal(net_utils.is_local_ipv6('fdff:'), true)
+    assert.equal(net_utils.is_private_ipv6('fd00:'), true)
+    assert.equal(net_utils.is_private_ipv6('fdff:'), true)
 
-    assert.equal(net_utils.is_local_ipv6('fb00:'), false)
-    assert.equal(net_utils.is_local_ipv6('fe00:'), false)
+    assert.equal(net_utils.is_private_ipv6('fb00:'), false)
+    assert.equal(net_utils.is_private_ipv6('fe00:'), false)
 
-    assert.equal(net_utils.is_local_ipv6('fe8:'), false)
-    assert.equal(net_utils.is_local_ipv6(':fe80:'), false)
+    assert.equal(net_utils.is_private_ipv6('fe8:'), false)
+    assert.equal(net_utils.is_private_ipv6(':fe80:'), false)
   })
 })
 

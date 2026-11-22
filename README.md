@@ -52,36 +52,44 @@ net_utils.normalize_ip('not-an-ip') // null
 ### is_local_ipv4
 
 ```js
-// Is IPv4 address on a local network?
+// Is IPv4 address loopback (this host)?
 net_utils.is_local_ipv4('127.0.0.200') // true (localhost)
-net_utils.is_local_ipv4('169.254.0.0') // true (link local)
+net_utils.is_local_ipv4('169.254.0.0') // false (link local: see is_private_ipv4)
 net_utils.is_local_ipv4('226.0.0.1') // false
 ```
 
 ### is_private_ipv4
 
 ```js
-// Is IPv4 address in RFC 1918 reserved private address space?
+// Is IPv4 address in RFC 1918 private or RFC 3927 link local space?
 net_utils.is_private_ipv4('10.0.0.0') // true
 net_utils.is_private_ipv4('192.168.0.0') // true
 net_utils.is_private_ipv4('172.16.0.0') // true
+net_utils.is_private_ipv4('169.254.0.0') // true (link local)
 ```
 
 ### is_local_ipv6
 
 ```js
-// Is IPv6 addr on local network?
+// Is IPv6 addr loopback (this host)?
 net_utils.is_local_ipv6('::1') // true (localhost)
-net_utils.is_local_ipv6('fe80::') // true (link local)
-net_utils.is_local_ipv6('fc00::') // true (unique local)
-net_utils.is_local_ipv6('fd00::') // true (unique local)
+net_utils.is_local_ipv6('fe80::') // false (link local: see is_private_ipv6)
+```
+
+### is_private_ipv6
+
+```js
+// Is IPv6 addr link local or unique local?
+net_utils.is_private_ipv6('fe80::') // true (link local)
+net_utils.is_private_ipv6('fc00::') // true (unique local)
+net_utils.is_private_ipv6('fd00::') // true (unique local)
 ```
 
 ### is_private_ip
 
 Determines if an IPv4 or IPv6 address is on a "private" network.
 For IPv4, returns true if is_private_ipv4 or is_local_ipv4 are true
-For IPv6, returns true if is_local_ipv6 is true
+For IPv6, returns true if is_private_ipv6 or is_local_ipv6 are true
 
 ### is_local_host
 

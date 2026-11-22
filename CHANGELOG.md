@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- BREAKING: `is_local_*`: link & unique local are private
+- feat: add `is_private_ipv6`
+
 ### [1.10.0] - 2026-10-01
 
 - feat(endpoint): add throwing Endpoint.parse()
