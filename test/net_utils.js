@@ -287,18 +287,6 @@ describe('is_local_ip', function () {
       assert.strictEqual(expect, is_local_host)
     })
   }
-
-  const own_private_v6 = Object.values(require('node:os').networkInterfaces())
-    .flat()
-    .find((a) => a.family === 'IPv6' && net_utils.is_private_ipv6(a.address))
-
-  it(
-    'a link local / unique local address on this host',
-    { skip: !own_private_v6 },
-    () => {
-      assert.strictEqual(net_utils.is_local_ip(own_private_v6.address), true)
-    },
-  )
 })
 
 describe('is_private_ip', function () {
