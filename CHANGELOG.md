@@ -6,10 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.11.0] - 2026-11-21
 
-#### Fixed
-
-- link local and unique local are private, not local
-
 - BREAKING: `is_local_*`: link & unique local are private
 - feat: add `is_private_ipv6`
 
