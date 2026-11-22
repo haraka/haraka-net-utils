@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.11.0] - 2026-11-21
+
+- BREAKING: `is_local_*`: link & unique local are private
+- feat: add `is_private_ipv6`
+
 ### [1.10.0] - 2026-10-01
 
 - feat(endpoint): add throwing Endpoint.parse()
@@ -325,3 +330,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.9.3]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.3
 [1.9.4]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.9.4
 [1.10.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.10.0
+[1.11.0]: https://github.com/haraka/haraka-net-utils/releases/tag/v1.11.0

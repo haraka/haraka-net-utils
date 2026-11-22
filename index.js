@@ -97,12 +97,14 @@ exports.is_ip_in_str = function (ip, str) {
 
 const {
   is_private_ipv4,
+  is_private_ipv6,
   is_local_ipv4,
   is_local_ipv6,
   is_private_ip,
 } = require('./lib/ip')
 
 exports.is_private_ipv4 = is_private_ipv4
+exports.is_private_ipv6 = is_private_ipv6
 exports.is_local_ipv4 = is_local_ipv4
 exports.is_local_ipv6 = is_local_ipv6
 exports.is_private_ip = is_private_ip
